@@ -26,6 +26,8 @@ En **Settings → Environment Variables** agrega:
 | `MASTER_EMAIL` | Correo del usuario master. |
 | `MASTER_PASSWORD` | Clave del usuario master. Usa una larga. |
 
+Opcionales: `RESEND_API_KEY` y `CORREO_REMITENTE` (avisos por correo al comprador) y `SITIO_URL` (dirección pública para los enlaces de esos correos).
+
 El usuario master se crea la primera vez que alguien intenta ingresar y todavía no existe ningún usuario. Después de ese primer ingreso, `MASTER_PASSWORD` ya no se usa y se puede borrar de Vercel.
 
 ## 5. Desplegar y entrar

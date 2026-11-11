@@ -173,7 +173,7 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
 
 /* ---------- Plano de butacas ---------- */
-.plano-caja { --tam: 30px; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--superficie); min-width: 0; }
+.plano-caja { --zoom: 1; --base: 30px; --tam: calc(var(--base) * var(--zoom)); border: 1px solid var(--linea); border-radius: var(--radio); background: var(--superficie); min-width: 0; }
 .plano-barra { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--linea); font-size: .88rem; color: var(--tenue); }
 .plano-barra .zoom { display: flex; gap: 6px; }
 .plano-barra .zoom button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--linea); background: none; color: var(--texto); font-size: 1.2rem; cursor: pointer; }
@@ -183,7 +183,8 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 .plano { display: flex; gap: calc(var(--tam) * .7); }
 .lado { display: flex; flex-direction: column; gap: calc(var(--tam) * .16); align-items: center; }
 .lado-nombre { font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--tenue); margin-top: 8px; }
-.fila { display: flex; gap: calc(var(--tam) * .16); }
+.hilera { display: flex; gap: calc(var(--tam) * .16); }
+@media (max-width: 600px) { .plano-caja { --base: 25px; } }
 .butaca { width: var(--tam); height: var(--tam); border: 0; padding: 0; border-radius: 30% 30% 14% 14%; font: 700 calc(var(--tam) * .36)/1 var(--f-cuerpo), system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #111; cursor: pointer; transition: transform .12s; }
 .butaca:not(:disabled):hover { transform: scale(1.15); }
 .butaca.mia { background: #4fd08a; transform: scale(1.12); box-shadow: 0 0 0 2px var(--superficie), 0 0 0 4px #4fd08a; }
@@ -243,3 +244,5 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 .afiche a.img:hover { transform: translateY(-4px); border-color: var(--acento); }
 .afiche .aforo { display: block; height: 5px; background: var(--linea); border-radius: 3px; margin-top: 7px; overflow: hidden; }
 .afiche .aforo i { display: block; height: 100%; background: var(--acento); }
+/* El botón flotante no debe tapar el plano ni el formulario de pago. */
+body:has(.plano-caja) .whatsapp, body:has(.reloj) .whatsapp { display: none; }

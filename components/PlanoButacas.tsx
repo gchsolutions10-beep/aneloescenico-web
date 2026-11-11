@@ -24,7 +24,7 @@ export default function PlanoButacas({ funcionId, inicial, max, tasa, tocables =
   const [plano, setPlano] = useState(inicial);
   const [sel, setSel] = useState<number[]>([]);
   const [aviso, setAviso] = useState("");
-  const [tam, setTam] = useState(30);
+  const [zoom, setZoom] = useState(1);
 
   // Refresco en vivo cada 6 segundos mientras la pestaña está visible.
   useEffect(() => {
@@ -64,12 +64,12 @@ export default function PlanoButacas({ funcionId, inicial, max, tasa, tocables =
   };
 
   return (
-    <div className="plano-caja" style={{ ["--tam" as string]: `${tam}px` }}>
+    <div className="plano-caja" style={{ ["--zoom" as string]: zoom }}>
       <div className="plano-barra">
         <span>{plano.libres} de {plano.total} butacas disponibles</span>
         <span className="zoom">
-          <button type="button" onClick={() => setTam((t) => Math.max(22, t - 4))} aria-label="Reducir el plano">−</button>
-          <button type="button" onClick={() => setTam((t) => Math.min(46, t + 4))} aria-label="Ampliar el plano">+</button>
+          <button type="button" onClick={() => setZoom((z) => Math.max(0.7, z - 0.15))} aria-label="Reducir el plano">−</button>
+          <button type="button" onClick={() => setZoom((z) => Math.min(1.6, z + 0.15))} aria-label="Ampliar el plano">+</button>
         </span>
       </div>
       <div className="plano-scroll">
@@ -79,7 +79,7 @@ export default function PlanoButacas({ funcionId, inicial, max, tasa, tocables =
             {BLOQUES.map(([clave, nombre]) => (
               <div key={clave} className="lado">
                 {filas(clave).map((fila, i) => (
-                  <div key={i} className="fila">
+                  <div key={i} className="hilera">
                     {fila.map((b) => {
                       const z = zona.get(b.z);
                       const mia = vigentes.includes(b.n);

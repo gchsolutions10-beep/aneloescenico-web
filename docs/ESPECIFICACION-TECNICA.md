@@ -159,3 +159,23 @@ MASTER_PASSWORD         clave del usuario master inicial (solo se usa en el prim
 - Páginas públicas generadas de forma estática. Cada lectura lleva una etiqueta de caché (`config`, `carrusel`, `blog`, `funciones`, `niveles`) que el panel invalida al guardar, así el cambio se ve de inmediato.
 - Imágenes en formatos modernos y tamaños por dispositivo; carga diferida fuera de la primera pantalla.
 - Objetivo: primera pantalla útil en menos de 2,5 s en un teléfono de gama media con datos móviles.
+
+## 10. Tasa del BCV
+
+`lib/tasa.ts` obtiene la tasa oficial (bolívares por dólar) una vez al día y la guarda en la tabla `tasas`. Orden de búsqueda:
+
+1. Tasa manual, si el administrador fijó una en Cobros y tasa.
+2. La tasa ya guardada hoy (fecha de Venezuela).
+3. La portada de `bcv.org.ve`.
+4. DolarApi (`ve.dolarapi.com/v1/dolares/oficial`), que publica la tasa oficial del BCV.
+5. La última tasa guardada, marcada como desactualizada.
+
+El sitio del BCV suele servir su certificado sin la cadena completa, y entonces la conexión segura falla. No se desactiva la verificación de certificados (una tasa alterada es dinero): en ese caso se usa DolarApi. La tasa queda fijada en cada orden al momento de apartar.
+
+## 11. Bonos de regalo
+
+Un bono tiene un código y un saldo en dólares. Al reportar el pago se descuenta del bono lo que cubra; si cubre todo, la orden queda pagada sin revisión. Si la orden se rechaza, se reembolsa o se anula, el saldo vuelve al bono. Todo ocurre en la misma transacción que el cambio de estado de las butacas.
+
+## 12. Pruebas
+
+`npm run prueba` ejecuta `pruebas/taquilla.prueba.ts` contra la base indicada en `DATABASE_URL` (**borra los datos de taquilla; usar solo una base de pruebas**). Cubre: carrera por la misma butaca, vencimiento, reporte tardío, conflicto, cambio de butacas, reembolso, bonos, cortesías, bloqueos y validación en puerta.

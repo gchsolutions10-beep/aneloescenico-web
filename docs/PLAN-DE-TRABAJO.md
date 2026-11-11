@@ -22,15 +22,26 @@ Cada fase termina con algo publicado en Vercel que el cliente puede probar.
 
 **Queda para fases siguientes:** la página de Protagonistas muestra un aviso de "en preparación"; la cartelera es informativa (sin venta); el botón Inscribir lleva a Contáctanos; solo existe el usuario master (administradores y vendedores se crean en la Fase 2).
 
-## Fase 2 · Funciones y taquilla
-- Obras, funciones, afiches con recorte automático
-- Editor de plano; plano de 184 butacas precargado
-- Compra en línea con apartado de 15 minutos
-- Reporte y confirmación de pagos, manejo de conflictos y reembolsos
-- Entradas con QR y validación en puerta
-- Taquilla presencial, rol Vendedor, cierre de caja
+## Fase 2 · Funciones y taquilla (construida)
+- [x] Plano de la sala de 184 butacas (VIP y General) por función
+- [x] Precios en dólares por zona, con precio de preventa hasta una fecha y hora
+- [x] Cobro en bolívares a la tasa oficial del BCV del día, con tasa manual de respaldo
+- [x] Compra en línea: plano táctil en vivo, apartado de 15 minutos con reloj
+- [x] Pago Móvil y transferencia con referencia y captura; bonos de regalo
+- [x] Bandeja de Pagos: confirmar, rechazar, reembolsar
+- [x] Conflictos: quien paga tarde y pierde la butaca elige otras o pide reembolso
+- [x] Entradas con código QR y validación en puerta (una sola vez)
+- [x] Taquilla presencial, cortesías, butacas bloqueadas
+- [x] Elenco en carrusel en la página de la función; entradas disponibles en cada afiche
+- [x] Usuarios Administrador y Vendedor
+- [x] Pruebas automáticas de las reglas (`npm run prueba`)
 
-**Se entrega:** venta real de entradas para una función.
+**Pendiente de esta fase:**
+- Editor de planos para salas distintas (hoy existe una plantilla: la sala de 184 butacas).
+- Correos al comprador: están programados pero sin probar; requieren una cuenta de Resend (`RESEND_API_KEY` y `CORREO_REMITENTE`). Sin ellas el comprador consulta todo en el enlace de su orden.
+- Lector de QR dentro del panel: hoy se escanea con la cámara del teléfono, que abre el enlace de validación.
+- Cierre de caja y reportes exportables a Excel.
+- Restablecer clave por correo.
 
 ## Fase 3 · Escuela
 - Niveles, inscripciones en línea
@@ -55,8 +66,8 @@ Cada fase termina con algo publicado en Vercel que el cliente puede probar.
 
 1. ~~Dirección de diseño~~ → elegida A · Telón.
 2. **Nombre de la sección de artistas:** Protagonistas (recomendado), Elenco o Nuestros Artistas.
-3. **Métodos de pago** aceptados y sus datos (Pago Móvil, transferencia, Zelle, efectivo, punto).
-4. **Moneda:** solo dólares, o dólares con equivalente en bolívares.
+3. ~~Métodos de pago~~ → Pago Móvil, transferencia y bonos de regalo en línea; en taquilla además efectivo y punto. Falta cargar los datos bancarios en Cobros y tasa.
+4. ~~Moneda~~ → precios en dólares, cobro en bolívares a tasa BCV del día.
 5. **Política de reembolso** cuando hay conflicto de butacas o se cancela una función.
 6. **Máximo de entradas** por compra (la propuesta asume 8).
 7. **Fecha de vencimiento** de la mensualidad y si se cobra recargo por mora.

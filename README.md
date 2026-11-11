@@ -2,13 +2,15 @@
 
 Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de Teatro** (Acarigua). Niveles Kids, Teen y Teenagers.
 
-**Estado: Fase 1 construida** (sitio público, panel de administración, apariencia configurable y app instalable). Taquilla, pagos, estudiantes y Protagonistas llegan en las fases siguientes; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
+**Estado: Fases 1 y 2 construidas** (sitio público, panel, apariencia configurable, app instalable y taquilla con plano de butacas). Inscripciones, estudiantes, mensualidades y Protagonistas llegan en las fases siguientes; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
 
 ## Qué funciona hoy
 
 - **Sitio público** con diseño Telón: menú que crece al seleccionar, carrusel de fotos grandes, novedades destacadas, cartelera de afiches, niveles, blog, Sobre nosotros y Contáctanos.
 - **Panel** en `/admin` con ingreso master: Carrusel, Blog, Funciones, Niveles, Mensajes, Apariencia (logo, colores, letra), Datos de la escuela, guía de primeros pasos y manual.
 - **Fotos** que se recortan solas al formato correcto al subirlas (carrusel 16:9, afiche 2:3, logo cuadrado).
+- **Taquilla:** plano de 184 butacas, apartado de 15 minutos, precios en dólares con preventa, cobro en bolívares a tasa BCV, Pago Móvil, transferencia y bonos de regalo, entradas con QR, venta presencial y validación en puerta.
+- **Roles:** Master, Administrador y Vendedor.
 - **App instalable** (PWA) con el logo y los colores configurados.
 
 Para publicarlo: [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
@@ -43,4 +45,4 @@ Next.js 16 (App Router, TypeScript, Cache Components) en **Vercel** · Postgres 
 
 ## Próximo paso
 
-Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real desde el panel y empezar la Fase 2 (funciones y taquilla).
+Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real y los datos de pago desde el panel, y seguir con la Fase 3 (inscripciones, estudiantes y mensualidades).

@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { asc } from "drizzle-orm";
@@ -35,6 +36,7 @@ function Formulario({ n, orden }: { n?: Nivel; orden: number }) {
 }
 
 async function Niveles({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
   const niveles = await db().select().from(schema.niveles).orderBy(asc(schema.niveles.orden), asc(schema.niveles.id));
   return (
     <>

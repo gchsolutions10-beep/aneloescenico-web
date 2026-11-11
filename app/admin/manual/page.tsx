@@ -37,13 +37,52 @@ export default function Manual() {
       </section>
 
       <section className="panel">
-        <h2>Anunciar una función</h2>
+        <h2>Poner una función a la venta</h2>
         <ol>
-          <li>Entra a Funciones y llena el formulario Nueva función.</li>
-          <li>Sube el afiche: se recorta a formato vertical de cartelera.</li>
-          <li>Pon el estado en Preventa o A la venta para que aparezca.</li>
-          <li>Cuando pase la función, cámbiala a Finalizada: pasa al archivo de funciones pasadas.</li>
+          <li>En Funciones, crea la función con su afiche, fecha, hora y lugar.</li>
+          <li>En Venta y butacas, crea el plano de la sala y revisa los precios de preventa y regular de cada zona.</li>
+          <li>Indica hasta qué fecha y hora rige la preventa. Pasado ese momento se cobra el precio regular automáticamente.</li>
+          <li>Bloquea las butacas que no se venden y agrega el elenco.</li>
+          <li>Cambia el estado a A la venta. Cuando pase la función, cámbiala a Finalizada.</li>
         </ol>
+      </section>
+
+      <section className="panel">
+        <h2>Cómo compra una persona en línea</h2>
+        <ol>
+          <li>Toca sus butacas en el plano y pulsa Apartar. Quedan reservadas 15 minutos, con un reloj a la vista.</li>
+          <li>Ve el total en dólares y en bolívares a la tasa BCV del día, y los datos de Pago Móvil o transferencia.</li>
+          <li>Paga desde su banco y reporta la referencia (y la captura, si quiere). Puede usar un bono de regalo.</li>
+          <li>Sus butacas quedan “por confirmar” hasta que el equipo verifique el pago en Pagos.</li>
+          <li>Al confirmarse, en el mismo enlace aparecen sus entradas con código QR.</li>
+          <li>Si no reporta el pago en 15 minutos, las butacas se liberan solas.</li>
+        </ol>
+      </section>
+
+      <section className="panel">
+        <h2>Confirmar pagos</h2>
+        <ol>
+          <li>Entra a Pagos. Arriba están los que esperan atención.</li>
+          <li>Busca en el banco la referencia y el monto en bolívares.</li>
+          <li>Confirmar pago emite las entradas. Rechazar libera las butacas y le avisa al comprador el motivo.</li>
+          <li>Si alguien pagó tarde y su butaca ya se vendió, el sistema se lo dice y le deja elegir otras butacas o pedir reembolso. El reembolso lo marca un administrador después de devolver el dinero.</li>
+        </ol>
+      </section>
+
+      <section className="panel">
+        <h2>Vender en la sala y dar entrada</h2>
+        <ol>
+          <li>En Taquilla, toca las butacas, elige la forma de pago y pulsa Vender. Abre las entradas para imprimirlas o envíalas por WhatsApp.</li>
+          <li>En la puerta, escanea el QR con la cámara del teléfono (con la sesión iniciada) y pulsa Dar entrada. Cada entrada sirve una sola vez.</li>
+        </ol>
+      </section>
+
+      <section className="panel">
+        <h2>Bonos de regalo</h2>
+        <ul>
+          <li>En Bonos de regalo generas un código con un monto en dólares y se lo entregas a la persona.</li>
+          <li>Ella lo escribe al pagar. Si cubre todo, recibe sus entradas al instante; si no, paga la diferencia.</li>
+        </ul>
       </section>
 
       <section className="panel">

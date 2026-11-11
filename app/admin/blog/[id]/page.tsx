@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { eq } from "drizzle-orm";
@@ -13,6 +14,7 @@ export const metadata = { title: "Entrada del blog" };
 const CATEGORIAS = ["Escuela", "Inscripciones", "Funciones", "Protagonistas", "Eventos"];
 
 async function Entrada({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
   const { id } = await params;
   const e = id === "nueva" ? undefined : (await db().select().from(schema.entradasBlog).where(eq(schema.entradasBlog.id, Number(id) || 0)))[0];
   if (id !== "nueva" && !e) notFound();

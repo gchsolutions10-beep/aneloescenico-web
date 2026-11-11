@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { asc, eq } from "drizzle-orm";
@@ -11,6 +12,7 @@ import { borrarSlide, guardarSlide } from "@/lib/acciones";
 export const metadata = { title: "Carrusel" };
 
 async function Carrusel({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
   const q = await searchParams;
   const slides = await db().select().from(schema.carrusel).orderBy(asc(schema.carrusel.orden), asc(schema.carrusel.id));
   const id = Number(q.editar) || 0;

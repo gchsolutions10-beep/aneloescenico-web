@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { desc } from "drizzle-orm";
@@ -9,6 +10,7 @@ import { fechaCorta, hora } from "@/lib/util";
 export const metadata = { title: "Mensajes" };
 
 async function Mensajes() {
+  await exigirAdmin();
   const lista = await db().select().from(schema.mensajes).orderBy(desc(schema.mensajes.creadoEl)).limit(200);
   return (
     <>

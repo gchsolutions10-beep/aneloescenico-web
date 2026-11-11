@@ -1,8 +1,10 @@
 import "server-only";
+import { eq } from "drizzle-orm";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import { db, schema } from "@/db";
 
 export const COOKIE_SESION = "anelo_sesion";
 const DURACION_DIAS = 7;
@@ -36,7 +38,10 @@ export async function leerSesion(): Promise<Sesion | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, clave());
-    return { id: Number(payload.id), nombre: String(payload.nombre), correo: String(payload.correo), rol: payload.rol as Sesion["rol"] };
+    // Se confirma contra la base: un usuario desactivado pierde el acceso de inmediato.
+    const [u] = await db().select().from(schema.usuarios).where(eq(schema.usuarios.id, Number(payload.id)));
+    if (!u || !u.activo) return null;
+    return { id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol as Sesion["rol"] };
   } catch {
     return null;
   }
@@ -46,6 +51,22 @@ export async function leerSesion(): Promise<Sesion | null> {
 export async function exigirAdmin(): Promise<Sesion> {
   const s = await leerSesion();
   if (!s) redirect("/ingresar");
-  if (s.rol !== "master" && s.rol !== "admin") redirect("/ingresar?motivo=permiso");
+  // Un vendedor que abre una pantalla de administración vuelve a su taquilla.
+  if (s.rol === "vendedor") redirect("/admin/taquilla");
+  if (s.rol !== "master" && s.rol !== "admin") redirect("/ingresar");
+  return s;
+}
+
+/** Exige sesión de cualquier miembro del equipo: master, administrador o vendedor. */
+export async function exigirEquipo(): Promise<Sesion> {
+  const s = await leerSesion();
+  if (!s || s.rol === "representante") redirect("/ingresar");
+  return s;
+}
+
+export async function exigirMaster(): Promise<Sesion> {
+  const s = await leerSesion();
+  if (!s) redirect("/ingresar");
+  if (s.rol !== "master") redirect("/admin");
   return s;
 }

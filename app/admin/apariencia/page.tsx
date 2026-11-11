@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { Ayuda, Resultado } from "@/components/Ayuda";
@@ -9,6 +10,7 @@ import { getConfig } from "@/lib/datos";
 export const metadata = { title: "Apariencia" };
 
 async function Apariencia({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
   const { tema, escuela } = await getConfig();
   return (
     <>

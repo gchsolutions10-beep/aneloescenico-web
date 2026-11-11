@@ -1,6 +1,6 @@
 // Lecturas del sitio público. Cada una se guarda en caché y se invalida con su
 // etiqueta cuando el administrador guarda cambios (ver lib/acciones.ts).
-import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { db, hayBaseDeDatos, schema } from "@/db";
 import { sanearTema, TEMA_INICIAL, type Tema } from "./tema";
@@ -25,6 +25,21 @@ export type Escuela = {
   appInstalada: boolean;
 };
 
+export type Cobros = {
+  pagoMovil: { banco: string; telefono: string; cedula: string; titular: string };
+  transferencia: { banco: string; cuenta: string; titular: string; cedula: string };
+  minutosApartado: number;
+  /** Si tiene valor, se cobra con esta tasa en lugar de la del BCV. */
+  tasaManual: number | null;
+};
+
+export const COBROS_INICIAL: Cobros = {
+  pagoMovil: { banco: "", telefono: "", cedula: "", titular: "" },
+  transferencia: { banco: "", cuenta: "", titular: "", cedula: "" },
+  minutosApartado: 15,
+  tasaManual: null,
+};
+
 export const ESCUELA_INICIAL: Escuela = {
   nombre: "A-Nelo Escénico",
   lema: "Escuela de Teatro",
@@ -45,16 +60,17 @@ export const ESCUELA_INICIAL: Escuela = {
   appInstalada: false,
 };
 
-export async function getConfig(): Promise<{ tema: Tema; escuela: Escuela }> {
+export async function getConfig(): Promise<{ tema: Tema; escuela: Escuela; cobros: Cobros }> {
   "use cache";
   cacheLife("hours");
   cacheTag("config");
-  if (!hayBaseDeDatos()) return { tema: TEMA_INICIAL, escuela: ESCUELA_INICIAL };
+  if (!hayBaseDeDatos()) return { tema: TEMA_INICIAL, escuela: ESCUELA_INICIAL, cobros: COBROS_INICIAL };
   const filas = await db().select().from(schema.configuracion);
   const por = Object.fromEntries(filas.map((f) => [f.clave, f.valor]));
   return {
     tema: sanearTema(por.tema),
     escuela: { ...ESCUELA_INICIAL, ...((por.escuela as Partial<Escuela>) ?? {}) },
+    cobros: { ...COBROS_INICIAL, ...((por.cobros as Partial<Cobros>) ?? {}) },
   };
 }
 
@@ -121,6 +137,37 @@ export async function getFunciones() {
   cacheTag("funciones");
   if (!hayBaseDeDatos()) return { proximas: [], pasadas: [] };
   const todas = await db().select().from(schema.funciones).where(ne(schema.funciones.estado, "borrador")).orderBy(asc(schema.funciones.fechaHora));
-  const enCartel = (f: (typeof todas)[number]) => f.estado !== "finalizada" && f.estado !== "cancelada";
-  return { proximas: todas.filter(enCartel), pasadas: todas.filter((f) => f.estado === "finalizada").reverse() };
+  // "En preventa" depende de la hora; se calcula aquí, dentro de la caché, para que las páginas sigan siendo estáticas.
+  const ahora = new Date();
+  const lista = todas.map((f) => ({ ...f, enPreventa: Boolean(f.preventaHasta && ahora <= f.preventaHasta) }));
+  return { proximas: lista.filter((f) => f.estado === "a_la_venta"), pasadas: lista.filter((f) => f.estado === "finalizada").reverse() };
+}
+
+/** Una función con sus zonas de precio y su elenco, para la página de detalle. */
+export async function getFuncion(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("funciones");
+  if (!hayBaseDeDatos()) return null;
+  const [f] = await db().select().from(schema.funciones).where(and(eq(schema.funciones.slug, slug), ne(schema.funciones.estado, "borrador")));
+  if (!f) return null;
+  const [zonas, elenco] = await Promise.all([
+    db().select().from(schema.zonas).where(eq(schema.zonas.funcionId, f.id)).orderBy(asc(schema.zonas.orden)),
+    db().select().from(schema.elenco).where(eq(schema.elenco.funcionId, f.id)).orderBy(asc(schema.elenco.orden), asc(schema.elenco.id)),
+  ]);
+  return { ...f, zonas, elenco };
+}
+
+/** Butacas libres por función para la cartelera. Se refresca cada minuto y al vender o apartar. */
+export async function getCupos(): Promise<Record<number, { libres: number; total: number }>> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("cupos");
+  if (!hayBaseDeDatos()) return {};
+  const filas = await db().execute<{ funcion_id: number; libres: number; total: number }>(sql`
+    SELECT funcion_id,
+      count(*) FILTER (WHERE estado = 'libre' OR (estado = 'apartada' AND apartada_hasta < now()))::int AS libres,
+      count(*) FILTER (WHERE estado <> 'bloqueada')::int AS total
+    FROM butacas GROUP BY funcion_id`);
+  return Object.fromEntries(filas.rows.map((r) => [r.funcion_id, { libres: r.libres, total: r.total }]));
 }

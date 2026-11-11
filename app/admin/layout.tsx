@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { MenuAdmin } from "@/components/AdminPiezas";
 import { salir } from "@/lib/acciones";
-import { exigirAdmin } from "@/lib/sesion";
+import { exigirEquipo } from "@/lib/sesion";
 import "./admin.css";
 
 export const metadata: Metadata = { title: { default: "Panel", template: "%s | Panel" }, robots: { index: false } };
@@ -21,12 +21,12 @@ export default function LayoutAdmin({ children }: { children: React.ReactNode })
 }
 
 async function Protegido({ children }: { children: React.ReactNode }) {
-  const s = await exigirAdmin();
+  const s = await exigirEquipo();
   return (
     <div className="adm-marco">
       <nav className="adm-lado" aria-label="Panel">
         <div className="quien"><b>{s.nombre}</b><span>{ROLES[s.rol] ?? s.rol}</span></div>
-        <MenuAdmin />
+        <MenuAdmin rol={s.rol} />
         <div className="sep">
           <Link href="/" target="_blank">Ver el sitio ↗</Link>
           <form action={salir}><button>Salir</button></form>

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import Carrusel from "@/components/Carrusel";
 import { Afiche, TarjetaEntrada } from "@/components/Piezas";
-import { getCarrusel, getConfig, getFunciones, getNiveles, getNovedades } from "@/lib/datos";
+import { getCarrusel, getConfig, getCupos, getFunciones, getNiveles, getNovedades } from "@/lib/datos";
 
 export default async function Inicio() {
-  const [{ tema, escuela }, slides, novedades, { proximas }, niveles] = await Promise.all([
-    getConfig(), getCarrusel(), getNovedades(), getFunciones(), getNiveles(),
+  const [{ tema, escuela }, slides, novedades, { proximas }, niveles, cupos] = await Promise.all([
+    getConfig(), getCarrusel(), getNovedades(), getFunciones(), getNiveles(), getCupos(),
   ]);
 
   return (
@@ -46,7 +46,7 @@ export default async function Inicio() {
               <div><span className="ceja">En cartelera</span><h2>Funciones de Teatro</h2></div>
               <Link href="/funciones">Todas las funciones →</Link>
             </div>
-            <div className="cartelera">{proximas.slice(0, 5).map((f) => <Afiche key={f.id} f={f} />)}</div>
+            <div className="cartelera">{proximas.slice(0, 5).map((f) => <Afiche key={f.id} f={f} cupo={cupos[f.id]} />)}</div>
           </div>
         </section>
       )}

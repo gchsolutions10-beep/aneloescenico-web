@@ -1,6 +1,7 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
-import { count, eq, isNotNull, type SQL } from "drizzle-orm";
+import { count, eq, inArray, isNotNull, type SQL } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
 import Link from "next/link";
 import { db, schema } from "@/db";
@@ -8,14 +9,16 @@ import { marcarAppInstalada } from "@/lib/acciones";
 import { getConfig } from "@/lib/datos";
 
 async function InicioAdmin() {
+  await exigirAdmin();
   const contar = (tabla: PgTable, donde?: SQL) => db().select({ n: count() }).from(tabla).where(donde).then((r) => r[0].n);
-  const [{ escuela }, slides, publicadas, funciones, nivelesConMonto, sinLeer] = await Promise.all([
+  const [{ escuela, cobros }, slides, publicadas, funciones, nivelesConMonto, sinLeer, porAtender] = await Promise.all([
     getConfig(),
     contar(schema.carrusel),
     contar(schema.entradasBlog, eq(schema.entradasBlog.publicada, true)),
     contar(schema.funciones),
     contar(schema.niveles, isNotNull(schema.niveles.montoMensualidad)),
     contar(schema.mensajes, eq(schema.mensajes.leido, false)),
+    contar(schema.ordenes, inArray(schema.ordenes.estado, ["por_confirmar", "en_conflicto", "reembolso_pendiente"])),
   ]);
 
   const pasos = [
@@ -24,7 +27,8 @@ async function InicioAdmin() {
     { hecho: slides > 0, href: "/admin/carrusel", titulo: "Sube las fotos del carrusel", nota: "Fotos grandes de las clases para la portada." },
     { hecho: nivelesConMonto > 0, href: "/admin/niveles", titulo: "Revisa los niveles, horarios y montos", nota: "Kids, Teen y Teenagers ya están creados." },
     { hecho: publicadas > 0, href: "/admin/blog/nueva", titulo: "Publica la primera novedad", nota: "Márcala como destacada para que salga en Inicio." },
-    { hecho: funciones > 0, href: "/admin/funciones", titulo: "Anuncia tu primera función", nota: "Sube el afiche; se ajusta solo al formato de cartelera." },
+    { hecho: Boolean(cobros.pagoMovil.telefono || cobros.transferencia.cuenta), href: "/admin/cobros", titulo: "Registra tus datos de pago", nota: "Pago Móvil y transferencia; revisa la tasa BCV." },
+    { hecho: funciones > 0, href: "/admin/funciones", titulo: "Crea tu primera función con su plano de butacas", nota: "Afiche, precios de preventa y regular." },
   ];
   const hechos = pasos.filter((p) => p.hecho).length + (escuela.appInstalada ? 1 : 0);
   const total = pasos.length + 1;
@@ -55,6 +59,7 @@ async function InicioAdmin() {
       )}
 
       <section className="cifras">
+        <Link className="cifra" href="/admin/pagos"><b>{porAtender}</b><span>Pagos por atender</span></Link>
         <Link className="cifra" href="/admin/mensajes"><b>{sinLeer}</b><span>Mensajes sin leer</span></Link>
         <Link className="cifra" href="/admin/blog"><b>{publicadas}</b><span>Entradas publicadas</span></Link>
         <Link className="cifra" href="/admin/funciones"><b>{funciones}</b><span>Funciones</span></Link>
@@ -63,7 +68,7 @@ async function InicioAdmin() {
 
       <section className="panel">
         <h2>Lo que viene</h2>
-        <p className="tenue" style={{ margin: 0 }}>Taquilla con plano de butacas, pagos, estudiantes, mensualidades y fichas de Protagonistas llegan en las siguientes fases. Aparecerán aquí en el menú cuando estén listas.</p>
+        <p className="tenue" style={{ margin: 0 }}>Inscripciones, estudiantes, mensualidades y fichas de Protagonistas llegan en las siguientes fases. Aparecerán aquí en el menú cuando estén listas.</p>
       </section>
     </>
   );

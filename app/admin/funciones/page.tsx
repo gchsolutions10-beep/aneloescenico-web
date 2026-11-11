@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { desc, eq } from "drizzle-orm";
@@ -12,6 +13,7 @@ import { aInputLocal, ESTADOS_FUNCION, fechaCorta, hora } from "@/lib/util";
 export const metadata = { title: "Funciones" };
 
 async function Funciones({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
   const q = await searchParams;
   const lista = await db().select().from(schema.funciones).orderBy(desc(schema.funciones.fechaHora));
   const id = Number(q.editar) || 0;
@@ -22,11 +24,10 @@ async function Funciones({ searchParams }: { searchParams: Promise<Record<string
       <h1>Funciones de Teatro</h1>
       <Ayuda>
         <ol>
-          <li>Sube el afiche. Se ajusta solo al formato vertical de cartelera (2:3), como en el cine.</li>
-          <li>Indica fecha y hora (hora de Venezuela), el lugar y la cantidad de butacas.</li>
-          <li>El estado decide dónde aparece: Borrador no se ve; Preventa y A la venta salen en cartelera; Finalizada pasa al archivo.</li>
+          <li>Crea la función con su afiche (se ajusta solo al formato vertical 2:3), fecha, hora y lugar.</li>
+          <li>Al crearla pasas a <b>Venta y butacas</b>: ahí eliges el plano de la sala, los precios y la fecha límite de preventa.</li>
+          <li>Pon el estado en <b>A la venta</b> para que aparezca en cartelera y se puedan comprar entradas. <b>Finalizada</b> la pasa al archivo.</li>
         </ol>
-        <p className="tenue" style={{ margin: "8px 0 0" }}>La venta de entradas con plano de butacas se activa en la Fase 2. Por ahora la cartelera es informativa.</p>
       </Ayuda>
       <Resultado searchParams={searchParams} errores={{ faltan: "Falta el título de la obra." }} />
 
@@ -42,14 +43,13 @@ async function Funciones({ searchParams }: { searchParams: Promise<Record<string
         <div className="fila">
           <div className="campo"><label htmlFor="f-fecha">Fecha y hora</label><input id="f-fecha" name="fechaHora" type="datetime-local" defaultValue={aInputLocal(f?.fechaHora ?? null)} /></div>
           <div className="campo"><label htmlFor="f-lugar">Lugar</label><input id="f-lugar" name="lugar" defaultValue={f?.lugar} /></div>
-          <div className="campo"><label htmlFor="f-aforo">Butacas</label><input id="f-aforo" name="aforo" type="number" min={0} defaultValue={f?.aforo ?? 184} /></div>
           <div className="campo">
             <label htmlFor="f-estado">Estado</label>
             <select id="f-estado" name="estado" defaultValue={f?.estado ?? "borrador"}>{Object.entries(ESTADOS_FUNCION).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           </div>
         </div>
         <div className="acciones">
-          <button className="btn">{f ? "Guardar cambios" : "Crear función"}</button>
+          <button className="btn">{f ? "Guardar cambios" : "Crear y configurar la venta"}</button>
           {f && <Link className="btn sec" href="/admin/funciones">Cancelar</Link>}
         </div>
       </form>
@@ -66,8 +66,9 @@ async function Funciones({ searchParams }: { searchParams: Promise<Record<string
                   <td>{x.aficheUrl ? <img className="mini afiche" src={x.aficheUrl} alt="" /> : <span className="tenue">—</span>}</td>
                   <td>{x.titulo}</td>
                   <td>{fechaCorta(x.fechaHora)} {hora(x.fechaHora)}</td>
-                  <td><span className={`pastilla${x.estado === "preventa" || x.estado === "a_la_venta" ? " si" : ""}`}>{ESTADOS_FUNCION[x.estado]}</span></td>
+                  <td><span className={`pastilla${x.estado === "a_la_venta" ? " si" : ""}`}>{ESTADOS_FUNCION[x.estado]}</span></td>
                   <td><div className="acciones">
+                    <Link className="btn chico" href={`/admin/funciones/${x.id}`}>Venta y butacas</Link>
                     <Link className="btn sec chico" href={`/admin/funciones?editar=${x.id}`}>Editar</Link>
                     <form action={borrarFuncion}><input type="hidden" name="id" value={x.id} /><BotonBorrar que={`“${x.titulo}”`} /></form>
                   </div></td>

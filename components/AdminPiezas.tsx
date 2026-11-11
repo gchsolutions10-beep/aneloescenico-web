@@ -4,17 +4,20 @@ import { usePathname } from "next/navigation";
 import { useActionState } from "react";
 import { ingresar } from "@/lib/acciones";
 
-const MENU = [
-  ["/admin", "Inicio"], ["/admin/carrusel", "Carrusel"], ["/admin/blog", "Blog"], ["/admin/funciones", "Funciones"],
-  ["/admin/niveles", "Niveles"], ["/admin/mensajes", "Mensajes"], ["/admin/apariencia", "Apariencia"],
-  ["/admin/configuracion", "Datos de la escuela"], ["/admin/manual", "Manual"],
+// [ruta, texto, quién lo ve]  e = todo el equipo, a = administradores, m = solo master
+const MENU: [string, string, "e" | "a" | "m"][] = [
+  ["/admin", "Inicio", "a"], ["/admin/taquilla", "Taquilla", "e"], ["/admin/pagos", "Pagos", "e"], ["/admin/validar", "Validar entradas", "e"],
+  ["/admin/funciones", "Funciones", "a"], ["/admin/bonos", "Bonos de regalo", "a"], ["/admin/cobros", "Cobros y tasa", "a"],
+  ["/admin/carrusel", "Carrusel", "a"], ["/admin/blog", "Blog", "a"], ["/admin/niveles", "Niveles", "a"], ["/admin/mensajes", "Mensajes", "a"],
+  ["/admin/apariencia", "Apariencia", "a"], ["/admin/configuracion", "Datos de la escuela", "a"], ["/admin/usuarios", "Usuarios", "m"], ["/admin/manual", "Manual", "e"],
 ];
 
-export function MenuAdmin() {
+export function MenuAdmin({ rol }: { rol: string }) {
   const ruta = usePathname();
+  const visible = (quien: string) => quien === "e" || (quien === "a" && rol !== "vendedor") || (quien === "m" && rol === "master");
   return (
     <>
-      {MENU.map(([href, texto]) => (
+      {MENU.filter(([, , q]) => visible(q)).map(([href, texto]) => (
         <Link key={href} href={href} aria-current={(href === "/admin" ? ruta === href : ruta.startsWith(href)) ? "page" : undefined}>{texto}</Link>
       ))}
     </>

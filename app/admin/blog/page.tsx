@@ -1,3 +1,4 @@
+import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { desc } from "drizzle-orm";
@@ -11,6 +12,7 @@ import { fechaCorta } from "@/lib/util";
 export const metadata = { title: "Blog" };
 
 async function Blog({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
   const entradas = await db().select().from(schema.entradasBlog).orderBy(desc(schema.entradasBlog.creadoEl));
   return (
     <>

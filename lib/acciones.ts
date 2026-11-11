@@ -258,12 +258,16 @@ export async function guardarFuncion(f: FormData) {
     fechaHora: deInputLocal(txt(f, "fechaHora")),
     lugar: txt(f, "lugar"),
     estado: estado in ESTADOS_FUNCION ? estado : "borrador",
-    aforo: Math.max(0, entero(f, "aforo")),
   };
+  let destino = "/admin/funciones?ok=1";
   if (id) await db().update(schema.funciones).set(datos).where(eq(schema.funciones.id, id));
-  else await db().insert(schema.funciones).values(datos);
+  else {
+    // Recién creada: se sigue en su pantalla de venta para crear el plano y los precios.
+    const [nueva] = await db().insert(schema.funciones).values(datos).returning({ id: schema.funciones.id });
+    destino = `/admin/funciones/${nueva.id}`;
+  }
   updateTag("funciones");
-  redirect("/admin/funciones?ok=1");
+  redirect(destino);
 }
 
 export async function borrarFuncion(f: FormData) {

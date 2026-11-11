@@ -43,9 +43,17 @@ export function monto(v: string | null): string | null {
 
 export const ESTADOS_FUNCION: Record<string, string> = {
   borrador: "Borrador",
-  preventa: "Preventa",
   a_la_venta: "A la venta",
-  agotada: "Agotada",
   finalizada: "Finalizada",
   cancelada: "Cancelada",
 };
+
+export const usd = (v: number | string) => { const n = Number(v); return Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`; };
+export const bs = (v: number | string) => `Bs ${Number(v).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/** Enlace de WhatsApp. Acepta números venezolanos locales (0412…) o con código de país. */
+export function enlaceWhatsApp(telefono: string, texto = ""): string {
+  let n = telefono.replace(/\D/g, "");
+  if (n.startsWith("0")) n = `58${n.slice(1)}`;
+  return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ""}`;
+}

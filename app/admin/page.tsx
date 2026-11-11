@@ -11,7 +11,7 @@ import { getConfig } from "@/lib/datos";
 async function InicioAdmin() {
   await exigirAdmin();
   const contar = (tabla: PgTable, donde?: SQL) => db().select({ n: count() }).from(tabla).where(donde).then((r) => r[0].n);
-  const [{ escuela, cobros }, slides, publicadas, funciones, nivelesConMonto, sinLeer, porAtender] = await Promise.all([
+  const [{ escuela, cobros }, slides, publicadas, funciones, nivelesConMonto, sinLeer, porAtender, solicitudes, cobrosEscuela, activos] = await Promise.all([
     getConfig(),
     contar(schema.carrusel),
     contar(schema.entradasBlog, eq(schema.entradasBlog.publicada, true)),
@@ -19,6 +19,9 @@ async function InicioAdmin() {
     contar(schema.niveles, isNotNull(schema.niveles.montoMensualidad)),
     contar(schema.mensajes, eq(schema.mensajes.leido, false)),
     contar(schema.ordenes, inArray(schema.ordenes.estado, ["por_confirmar", "en_conflicto", "reembolso_pendiente"])),
+    contar(schema.estudiantes, eq(schema.estudiantes.estado, "solicitud")),
+    contar(schema.reportesPago, eq(schema.reportesPago.estado, "reportado")),
+    contar(schema.estudiantes, eq(schema.estudiantes.estado, "activo")),
   ]);
 
   const pasos = [
@@ -59,7 +62,10 @@ async function InicioAdmin() {
       )}
 
       <section className="cifras">
-        <Link className="cifra" href="/admin/pagos"><b>{porAtender}</b><span>Pagos por atender</span></Link>
+        <Link className="cifra" href="/admin/pagos"><b>{porAtender}</b><span>Pagos de entradas por atender</span></Link>
+        <Link className="cifra" href="/admin/cobranza"><b>{cobrosEscuela}</b><span>Pagos de la escuela por confirmar</span></Link>
+        <Link className="cifra" href="/admin/inscripciones"><b>{solicitudes}</b><span>Solicitudes de inscripción</span></Link>
+        <Link className="cifra" href="/admin/estudiantes"><b>{activos}</b><span>Estudiantes activos</span></Link>
         <Link className="cifra" href="/admin/mensajes"><b>{sinLeer}</b><span>Mensajes sin leer</span></Link>
         <Link className="cifra" href="/admin/blog"><b>{publicadas}</b><span>Entradas publicadas</span></Link>
         <Link className="cifra" href="/admin/funciones"><b>{funciones}</b><span>Funciones</span></Link>
@@ -68,7 +74,7 @@ async function InicioAdmin() {
 
       <section className="panel">
         <h2>Lo que viene</h2>
-        <p className="tenue" style={{ margin: 0 }}>Inscripciones, estudiantes, mensualidades y fichas de Protagonistas llegan en las siguientes fases. Aparecerán aquí en el menú cuando estén listas.</p>
+        <p className="tenue" style={{ margin: 0 }}>Las fichas de Protagonistas y los reportes llegan en la siguiente fase. Aparecerán aquí en el menú cuando estén listas.</p>
       </section>
     </>
   );

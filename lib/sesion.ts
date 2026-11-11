@@ -70,3 +70,11 @@ export async function exigirMaster(): Promise<Sesion> {
   if (s.rol !== "master") redirect("/admin");
   return s;
 }
+
+/** Exige sesión de representante (portal). El equipo se envía a su panel. */
+export async function exigirRepresentante(): Promise<Sesion> {
+  const s = await leerSesion();
+  if (!s) redirect("/ingresar");
+  if (s.rol !== "representante") redirect("/admin");
+  return s;
+}

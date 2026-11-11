@@ -40,8 +40,8 @@ async function Nivel({ params }: Props) {
               {inscripcion && <div><dt>Inscripción</dt><dd>{inscripcion}</dd></div>}
               {mensualidad && <div><dt>Mensualidad</dt><dd>{mensualidad}</dd></div>}
             </dl>
-            <Link className="boton" href={`/contacto?nivel=${encodeURIComponent(n.nombre)}`}>Quiero inscribir</Link>
-            <p className="tenue" style={{ margin: 0, fontSize: ".85rem" }}>Escríbenos y te contamos los pasos para inscribir.</p>
+            <Link className="boton" href={`/portal/registro?nivel=${n.id}`}>Inscribir en línea</Link>
+            <p className="tenue" style={{ margin: 0, fontSize: ".85rem" }}>Crea tu cuenta de representante y envía la solicitud. ¿Ya tienes cuenta? Entra por Ingresar. ¿Dudas? Escríbenos desde Contáctanos.</p>
           </aside>
         </div>
       </section>

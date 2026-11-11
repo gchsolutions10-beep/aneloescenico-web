@@ -7,6 +7,7 @@ import { ingresar } from "@/lib/acciones";
 // [ruta, texto, quién lo ve]  e = todo el equipo, a = administradores, m = solo master
 const MENU: [string, string, "e" | "a" | "m"][] = [
   ["/admin", "Inicio", "a"], ["/admin/taquilla", "Taquilla", "e"], ["/admin/pagos", "Pagos", "e"], ["/admin/validar", "Validar entradas", "e"],
+  ["/admin/inscripciones", "Inscripciones", "a"], ["/admin/estudiantes", "Estudiantes", "a"], ["/admin/cobranza", "Cobranza", "a"],
   ["/admin/funciones", "Funciones", "a"], ["/admin/salas", "Salas", "a"], ["/admin/bonos", "Bonos de regalo", "a"], ["/admin/cobros", "Cobros y tasa", "a"],
   ["/admin/carrusel", "Carrusel", "a"], ["/admin/blog", "Blog", "a"], ["/admin/niveles", "Niveles", "a"], ["/admin/mensajes", "Mensajes", "a"],
   ["/admin/apariencia", "Apariencia", "a"], ["/admin/correo", "Correo", "a"], ["/admin/configuracion", "Datos de la escuela", "a"], ["/admin/usuarios", "Usuarios", "m"], ["/admin/manual", "Manual", "e"],
@@ -44,6 +45,7 @@ export function FormularioIngreso() {
       <div className="campo"><label htmlFor="i-correo">Correo</label><input id="i-correo" name="correo" type="email" required autoComplete="username" defaultValue={estado?.valores?.correo} /></div>
       <div className="campo"><label htmlFor="i-clave">Clave</label><input id="i-clave" name="clave" type="password" required autoComplete="current-password" /></div>
       <button className="btn" disabled={enviando}>{enviando ? "Entrando…" : "Entrar"}</button>
+      <Link href="/portal/registro" style={{ textAlign: "center", fontSize: ".9rem" }}>¿Eres representante y no tienes cuenta? Créala aquí</Link>
       <Link href="/" style={{ textAlign: "center", fontSize: ".9rem" }}>← Volver al sitio</Link>
     </form>
   );

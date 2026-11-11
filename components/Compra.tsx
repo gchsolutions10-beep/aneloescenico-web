@@ -59,7 +59,7 @@ export function CuentaRegresiva({ vence }: { vence: string }) {
 }
 
 /** Reduce la captura en el navegador y la sube. */
-async function subirCaptura(archivo: File, codigo: string): Promise<string> {
+export async function subirCaptura(archivo: File, codigo: string): Promise<string> {
   const img = await createImageBitmap(archivo);
   const escala = Math.min(1, 1400 / Math.max(img.width, img.height));
   const c = document.createElement("canvas");

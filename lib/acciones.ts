@@ -82,7 +82,7 @@ export async function ingresar(_: Estado, f: FormData): Promise<Estado> {
   }
   await db().update(schema.usuarios).set({ intentosFallidos: 0, bloqueadoHasta: null }).where(eq(schema.usuarios.id, u.id));
   await crearSesion({ id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol as "master" });
-  redirect("/admin");
+  redirect(u.rol === "representante" ? "/portal" : "/admin");
 }
 
 export async function salir() {

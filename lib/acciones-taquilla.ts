@@ -214,6 +214,7 @@ export async function accionGuardarCobros(f: FormData) {
     pagoMovil: { banco: txt(f, "pmBanco"), telefono: txt(f, "pmTelefono"), cedula: txt(f, "pmCedula"), titular: txt(f, "pmTitular") },
     transferencia: { banco: txt(f, "trBanco"), cuenta: txt(f, "trCuenta"), titular: txt(f, "trTitular"), cedula: txt(f, "trCedula") },
     minutosApartado: Math.min(60, Math.max(5, entero(f, "minutosApartado") || COBROS_INICIAL.minutosApartado)),
+    diaVencimiento: Math.min(28, Math.max(1, entero(f, "diaVencimiento") || COBROS_INICIAL.diaVencimiento)),
     tasaManual: manual > 0 ? manual : null,
   };
   await db().insert(schema.configuracion).values({ clave: "cobros", valor }).onConflictDoUpdate({ target: schema.configuracion.clave, set: { valor } });

@@ -246,3 +246,28 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 .afiche .aforo i { display: block; height: 100%; background: var(--acento); }
 /* El botón flotante no debe tapar el plano ni el formulario de pago. */
 body:has(.plano-caja) .whatsapp, body:has(.reloj) .whatsapp { display: none; }
+
+/* ---------- Portal de representantes ---------- */
+.cargos { display: grid; gap: 8px; }
+.cargo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; border: 1px solid var(--linea); border-radius: var(--radio); padding: 12px 14px; cursor: pointer; }
+.cargo:has(input:checked) { border-color: var(--acento); background: color-mix(in srgb, var(--acento) 9%, transparent); }
+.cargo input { width: 20px; height: 20px; accent-color: var(--acento); }
+.cargo small { display: block; color: var(--tenue); }
+.mora { color: #ff8a80; }
+.etiqueta { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: var(--superficie); box-shadow: inset 0 0 0 1px var(--linea); color: var(--tenue); white-space: nowrap; }
+.etiqueta.ok { color: #7fd6a4; box-shadow: inset 0 0 0 1px #7fd6a4; }
+.etiqueta.alerta { color: #ff8a80; box-shadow: inset 0 0 0 1px #ff8a80; }
+.etiqueta.espera { color: var(--acento); box-shadow: inset 0 0 0 1px var(--acento); }
+.tabla-simple { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.tabla-simple th, .tabla-simple td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+.tabla-simple th { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--tenue); }
+.desliza { overflow-x: auto; }
+.recibo { background: #fff; color: #17110f; border-radius: 10px; padding: clamp(20px, 5vw, 44px); max-width: 720px; margin: 0 auto; }
+.recibo h1 { font-size: 1.7rem; }
+.recibo table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+.recibo th, .recibo td { text-align: left; padding: 9px 6px; border-bottom: 1px solid #ddd; }
+.recibo td:last-child, .recibo th:last-child { text-align: right; }
+.recibo .cab-recibo { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; border-bottom: 2px solid #17110f; padding-bottom: 14px; margin-bottom: 14px; }
+.recibo .num { font-size: 1.4rem; font-weight: 800; }
+.recibo small { color: #6b5d55; }
+@media print { .recibo { border-radius: 0; padding: 0; max-width: none; } }

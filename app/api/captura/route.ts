@@ -1,5 +1,5 @@
 // Captura del comprobante de pago. La sube el comprador, sin sesión: solo se acepta
-// si presenta el código de una orden que todavía espera pago.
+// si presenta el código de una orden que todavía espera pago, o si tiene sesión iniciada.
 import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -7,6 +7,7 @@ import { put } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db, schema } from "@/db";
+import { leerSesion } from "@/lib/sesion";
 
 const TIPOS: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
@@ -14,7 +15,9 @@ export async function POST(req: Request) {
   const datos = await req.formData();
   const archivo = datos.get("archivo");
   const [o] = await db().select({ estado: schema.ordenes.estado }).from(schema.ordenes).where(eq(schema.ordenes.codigo, String(datos.get("codigo") ?? "")));
-  if (!o || (o.estado !== "apartada" && o.estado !== "vencida")) return NextResponse.json({ error: "Esta orden no espera un pago." }, { status: 403 });
+  const conOrden = o && (o.estado === "apartada" || o.estado === "vencida");
+  // También puede subirla quien tenga sesión iniciada (representantes al pagar mensualidades).
+  if (!conOrden && !(await leerSesion())) return NextResponse.json({ error: "Esta orden no espera un pago." }, { status: 403 });
   if (!(archivo instanceof File) || !TIPOS[archivo.type]) return NextResponse.json({ error: "Sube una imagen JPG, PNG o WebP." }, { status: 400 });
   if (archivo.size > 3 * 1024 * 1024) return NextResponse.json({ error: "La imagen pesa demasiado (máximo 3 MB)." }, { status: 400 });
 

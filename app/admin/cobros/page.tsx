@@ -60,6 +60,7 @@ async function Cobros({ searchParams }: Props) {
         <h2>Reglas</h2>
         <div className="fila">
           <div className="campo"><label htmlFor="c-min">Minutos de apartado</label><input id="c-min" name="minutosApartado" type="number" min={5} max={60} defaultValue={c.minutosApartado} /><small>Tiempo que el comprador tiene para pagar antes de que sus butacas se liberen.</small></div>
+          <div className="campo"><label htmlFor="c-dia">Día de vencimiento de la mensualidad</label><input id="c-dia" name="diaVencimiento" type="number" min={1} max={28} defaultValue={c.diaVencimiento} /><small>Pasado ese día del mes, la mensualidad sin pagar queda en mora.</small></div>
           <div className="campo"><label htmlFor="c-tasa">Tasa manual (Bs por dólar)</label><input id="c-tasa" name="tasaManual" inputMode="decimal" defaultValue={c.tasaManual ?? ""} placeholder="Vacío = tasa BCV automática" /></div>
         </div>
         <div><button className="btn">Guardar</button></div>

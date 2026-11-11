@@ -29,6 +29,8 @@ export type Cobros = {
   pagoMovil: { banco: string; telefono: string; cedula: string; titular: string };
   transferencia: { banco: string; cuenta: string; titular: string; cedula: string };
   minutosApartado: number;
+  /** Día del mes en que vence la mensualidad. */
+  diaVencimiento: number;
   /** Si tiene valor, se cobra con esta tasa en lugar de la del BCV. */
   tasaManual: number | null;
 };
@@ -37,6 +39,7 @@ export const COBROS_INICIAL: Cobros = {
   pagoMovil: { banco: "", telefono: "", cedula: "", titular: "" },
   transferencia: { banco: "", cuenta: "", titular: "", cedula: "" },
   minutosApartado: 15,
+  diaVencimiento: 5,
   tasaManual: null,
 };
 

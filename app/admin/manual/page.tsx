@@ -86,6 +86,34 @@ export default function Manual() {
       </section>
 
       <section className="panel">
+        <h2>Salas</h2>
+        <ul>
+          <li>En Salas creas el plano de cada lugar donde se presenten: zonas de precio, bloques y filas. Los números de butaca se asignan solos.</li>
+          <li>Al poner una función a la venta eliges su sala. Cada función guarda su propia copia.</li>
+        </ul>
+      </section>
+
+      <section className="panel">
+        <h2>Inscripciones y estudiantes</h2>
+        <ol>
+          <li>El representante crea su cuenta en el sitio y envía la solicitud. Llega a Inscripciones.</li>
+          <li>Al aprobarla, el estudiante queda activo y se generan su inscripción y la mensualidad del mes.</li>
+          <li>Si se inscribe en la escuela, usa Inscribir en persona y luego dale acceso al portal desde su ficha.</li>
+          <li>En la ficha cambias nivel, beca y estado, agregas cargos (vestuario, talleres) y cobras en persona.</li>
+        </ol>
+      </section>
+
+      <section className="panel">
+        <h2>Mensualidades y cobranza</h2>
+        <ol>
+          <li>Cada mes se genera sola la mensualidad de cada estudiante activo, con su beca aplicada. El día de vencimiento se fija en Cobros y tasa.</li>
+          <li>El representante la paga desde su portal y reporta la referencia. Tú la confirmas en Cobranza y se emite el recibo numerado.</li>
+          <li>Pasado el vencimiento, lo no pagado aparece En mora, con un botón para recordarle por WhatsApp.</li>
+          <li>Con el correo configurado, el sitio envía recordatorios tres días antes del vencimiento y al entrar en mora.</li>
+        </ol>
+      </section>
+
+      <section className="panel">
         <h2>Cambiar colores y letra</h2>
         <ol>
           <li>Entra a Apariencia.</li>

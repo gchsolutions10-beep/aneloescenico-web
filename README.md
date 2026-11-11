@@ -2,7 +2,16 @@
 
 Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de Teatro** (Acarigua). Niveles Kids, Teen y Teenagers.
 
-**Estado: propuesta.** Todavía no hay código de la aplicación. Este repositorio contiene la propuesta visual y la especificación completa para aprobarla antes de construir.
+**Estado: Fase 1 construida** (sitio público, panel de administración, apariencia configurable y app instalable). Taquilla, pagos, estudiantes y Protagonistas llegan en las fases siguientes; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
+
+## Qué funciona hoy
+
+- **Sitio público** con diseño Telón: menú que crece al seleccionar, carrusel de fotos grandes, novedades destacadas, cartelera de afiches, niveles, blog, Sobre nosotros y Contáctanos.
+- **Panel** en `/admin` con ingreso master: Carrusel, Blog, Funciones, Niveles, Mensajes, Apariencia (logo, colores, letra), Datos de la escuela, guía de primeros pasos y manual.
+- **Fotos** que se recortan solas al formato correcto al subirlas (carrusel 16:9, afiche 2:3, logo cuadrado).
+- **App instalable** (PWA) con el logo y los colores configurados.
+
+Para publicarlo: [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 
 ## Qué hay aquí
 
@@ -12,13 +21,26 @@ Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de T
 | [`docs/PROPUESTA.md`](docs/PROPUESTA.md) | Propuesta funcional completa: secciones del sitio, módulos, roles, reglas de negocio. |
 | [`docs/ESPECIFICACION-TECNICA.md`](docs/ESPECIFICACION-TECNICA.md) | Arquitectura, modelo de datos en Neon, lógica del apartado de butacas, seguridad, PWA. |
 | [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md) | Fases de entrega, qué se necesita del cliente y decisiones pendientes. |
+| [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) | Cómo publicar en Vercel con Neon y cómo trabajar en local. |
 
 `propuesta/propuesta.html` es la fuente de la propuesta visual; `propuesta/build.sh` genera `index.html` a partir de ella.
 
-## Tecnología prevista
+## Código
 
-Next.js (App Router, TypeScript) en **Vercel** · Postgres en **Neon** con Drizzle ORM · imágenes en **Vercel Blob** · correo con Resend · instalable como app (PWA).
+| Ruta | Contenido |
+|---|---|
+| `app/(publico)/` | Páginas del sitio público |
+| `app/admin/` | Panel de administración |
+| `app/api/subir/` | Recepción de imágenes |
+| `components/` | Menú, carrusel, subida de imágenes, editor de tema |
+| `db/` | Esquema Drizzle y migraciones |
+| `lib/` | Datos en caché, acciones del panel, sesión, tema |
+| `scripts/migrar.mjs` | Migraciones y datos iniciales (corre en cada build) |
+
+## Tecnología
+
+Next.js 16 (App Router, TypeScript, Cache Components) en **Vercel** · Postgres en **Neon** con Drizzle ORM · imágenes en **Vercel Blob** · instalable como app (PWA). Correo con Resend a partir de la Fase 2.
 
 ## Próximo paso
 
-Elegir la dirección de diseño (A Telón, B Foco o C Marquesina) y responder las decisiones de [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md). Con eso empieza la Fase 1.
+Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real desde el panel y empezar la Fase 2 (funciones y taquilla).

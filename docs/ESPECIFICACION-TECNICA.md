@@ -6,10 +6,10 @@ Complementa a [`PROPUESTA.md`](PROPUESTA.md). Describe cómo se construye.
 
 | Capa | Elección | Motivo |
 |---|---|---|
-| Aplicación | Next.js (App Router), TypeScript, React Server Components | Sitio público rápido y panel en un solo proyecto; despliegue nativo en Vercel |
-| Estilos | Tailwind CSS + variables CSS | Los colores y tamaños del panel de Apariencia son variables CSS leídas de la base de datos |
-| Base de datos | Neon (Postgres) con Drizzle ORM y migraciones versionadas | Transacciones reales para las butacas; ramas de Neon para probar sin tocar producción |
-| Autenticación | Auth.js con correo y clave (hash Argon2), sesiones en cookie httpOnly | Roles: `master`, `admin`, `vendedor`, `representante` |
+| Aplicación | Next.js 16 (App Router, Cache Components), TypeScript, React Server Components | Sitio público rápido y panel en un solo proyecto; despliegue nativo en Vercel |
+| Estilos | CSS propio con variables CSS | Los colores y tamaños del panel de Apariencia son variables CSS leídas de la base de datos |
+| Base de datos | Neon (Postgres) con Drizzle ORM, driver `pg` y migraciones versionadas | Transacciones reales para las butacas; ramas de Neon para probar sin tocar producción |
+| Autenticación | Correo y clave (hash bcrypt), sesión firmada (JWT con `jose`) en cookie httpOnly; bloqueo de 15 minutos tras 5 intentos fallidos | Roles: `master`, `admin`, `vendedor`, `representante` |
 | Imágenes | Vercel Blob + `next/image` | Un solo proveedor. Recorte en el navegador al subir (afiche 2:3, carrusel 16:9, retrato 1:1) y tamaños optimizados al servir |
 | Correo | Resend | Recibos, entradas, avisos |
 | PDF y QR | `@react-pdf/renderer`, `qrcode` | Recibos y entradas |
@@ -129,7 +129,7 @@ Dentro de una transacción. Si devuelve menos filas que las pedidas, se revierte
 ## 6. Seguridad y privacidad
 
 - Permisos verificados en el servidor en cada acción, no solo ocultando botones.
-- Claves con Argon2; límite de intentos de ingreso; restablecimiento por correo.
+- Claves con bcrypt; límite de intentos de ingreso; restablecimiento por correo (Fase 2).
 - Subida de archivos: solo imágenes, tamaño máximo, nombre aleatorio.
 - Capturas de pago y datos de estudiantes no son públicos: se sirven solo a usuarios con permiso.
 - Datos de menores: la ficha pública exige autorización registrada; nunca expone contacto, documento, fecha de nacimiento ni dirección.
@@ -143,8 +143,9 @@ DATABASE_URL            conexión a Neon
 AUTH_SECRET             firma de sesiones
 BLOB_READ_WRITE_TOKEN   Vercel Blob
 RESEND_API_KEY          correo
-CRON_SECRET             protege las tareas programadas
+CRON_SECRET             protege las tareas programadas (Fase 2)
 MASTER_EMAIL            correo del usuario master inicial
+MASTER_PASSWORD         clave del usuario master inicial (solo se usa en el primer ingreso)
 ```
 
 ## 8. Entornos y despliegue
@@ -155,6 +156,6 @@ MASTER_EMAIL            correo del usuario master inicial
 
 ## 9. Rendimiento
 
-- Páginas públicas generadas de forma estática y revalidadas al publicar.
+- Páginas públicas generadas de forma estática. Cada lectura lleva una etiqueta de caché (`config`, `carrusel`, `blog`, `funciones`, `niveles`) que el panel invalida al guardar, así el cambio se ve de inmediato.
 - Imágenes en formatos modernos y tamaños por dispositivo; carga diferida fuera de la primera pantalla.
 - Objetivo: primera pantalla útil en menos de 2,5 s en un teléfono de gama media con datos móviles.

@@ -1,0 +1,126 @@
+// Lecturas del sitio público. Cada una se guarda en caché y se invalida con su
+// etiqueta cuando el administrador guarda cambios (ver lib/acciones.ts).
+import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { cacheLife, cacheTag } from "next/cache";
+import { db, hayBaseDeDatos, schema } from "@/db";
+import { sanearTema, TEMA_INICIAL, type Tema } from "./tema";
+
+export type Escuela = {
+  nombre: string;
+  lema: string;
+  descripcion: string;
+  ciudad: string;
+  direccion: string;
+  telefono: string;
+  whatsapp: string;
+  instagram: string;
+  correo: string;
+  sobreNosotros: string;
+  directorNombre: string;
+  directorBio: string;
+  directorFotoUrl: string;
+  logoUrl: string;
+  icono192: string;
+  icono512: string;
+  appInstalada: boolean;
+};
+
+export const ESCUELA_INICIAL: Escuela = {
+  nombre: "A-Nelo Escénico",
+  lema: "Escuela de Teatro",
+  descripcion: "Formación teatral en Acarigua. Niveles Kids, Teen y Teenagers. Un espacio artístico y cultural para pequeños y grandes artistas.",
+  ciudad: "Acarigua",
+  direccion: "",
+  telefono: "",
+  whatsapp: "",
+  instagram: "aneloescenico",
+  correo: "",
+  sobreNosotros: "",
+  directorNombre: "",
+  directorBio: "",
+  directorFotoUrl: "",
+  logoUrl: "",
+  icono192: "",
+  icono512: "",
+  appInstalada: false,
+};
+
+export async function getConfig(): Promise<{ tema: Tema; escuela: Escuela }> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("config");
+  if (!hayBaseDeDatos()) return { tema: TEMA_INICIAL, escuela: ESCUELA_INICIAL };
+  const filas = await db().select().from(schema.configuracion);
+  const por = Object.fromEntries(filas.map((f) => [f.clave, f.valor]));
+  return {
+    tema: sanearTema(por.tema),
+    escuela: { ...ESCUELA_INICIAL, ...((por.escuela as Partial<Escuela>) ?? {}) },
+  };
+}
+
+export async function getCarrusel() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("carrusel");
+  if (!hayBaseDeDatos()) return [];
+  return db().select().from(schema.carrusel).where(eq(schema.carrusel.activo, true)).orderBy(asc(schema.carrusel.orden), asc(schema.carrusel.id));
+}
+
+export async function getNiveles() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("niveles");
+  if (!hayBaseDeDatos()) return [];
+  return db().select().from(schema.niveles).where(eq(schema.niveles.activo, true)).orderBy(asc(schema.niveles.orden), asc(schema.niveles.id));
+}
+
+export async function getNivel(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("niveles");
+  if (!hayBaseDeDatos()) return null;
+  const [n] = await db().select().from(schema.niveles).where(and(eq(schema.niveles.slug, slug), eq(schema.niveles.activo, true)));
+  return n ?? null;
+}
+
+const publicadas = eq(schema.entradasBlog.publicada, true);
+const recientes = [desc(schema.entradasBlog.publicadaEl), desc(schema.entradasBlog.id)] as const;
+
+export async function getBlog() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blog");
+  if (!hayBaseDeDatos()) return [];
+  return db().select().from(schema.entradasBlog).where(publicadas).orderBy(...recientes);
+}
+
+/** Novedades de Inicio: las destacadas; si no hay ninguna, las tres más recientes. */
+export async function getNovedades() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blog");
+  if (!hayBaseDeDatos()) return [];
+  const destacadas = await db().select().from(schema.entradasBlog).where(and(publicadas, eq(schema.entradasBlog.destacada, true))).orderBy(...recientes).limit(6);
+  if (destacadas.length) return destacadas;
+  return db().select().from(schema.entradasBlog).where(publicadas).orderBy(...recientes).limit(3);
+}
+
+export async function getEntrada(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blog");
+  if (!hayBaseDeDatos()) return null;
+  const [e] = await db().select().from(schema.entradasBlog).where(and(eq(schema.entradasBlog.slug, slug), publicadas));
+  return e ?? null;
+}
+
+/** Cartelera: todo lo que no es borrador. Próximas primero, luego pasadas. */
+export async function getFunciones() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("funciones");
+  if (!hayBaseDeDatos()) return { proximas: [], pasadas: [] };
+  const todas = await db().select().from(schema.funciones).where(ne(schema.funciones.estado, "borrador")).orderBy(asc(schema.funciones.fechaHora));
+  const enCartel = (f: (typeof todas)[number]) => f.estado !== "finalizada" && f.estado !== "cancelada";
+  return { proximas: todas.filter(enCartel), pasadas: todas.filter((f) => f.estado === "finalizada").reverse() };
+}

@@ -9,7 +9,6 @@ import PlanoButacas from "@/components/PlanoButacas";
 import SubirImagen from "@/components/SubirImagen";
 import { db, schema } from "@/db";
 import { accionBloquear, accionBorrarActor, accionCrearPlano, accionGuardarActor, accionGuardarVenta } from "@/lib/acciones-taquilla";
-import { PLANOS } from "@/lib/planos";
 import { exigirAdmin } from "@/lib/sesion";
 import { enPreventa, estadoPlano } from "@/lib/taquilla";
 import { aInputLocal, ESTADOS_FUNCION, fechaLarga, hora, usd } from "@/lib/util";
@@ -22,7 +21,8 @@ async function Detalle({ params, searchParams }: Props) {
   const id = Number((await params).id) || 0;
   const [f] = await db().select().from(schema.funciones).where(eq(schema.funciones.id, id));
   if (!f) notFound();
-  const [zonas, elenco, plano, [dinero]] = await Promise.all([
+  const [salas, zonas, elenco, plano, [dinero]] = await Promise.all([
+    db().select().from(schema.salas).orderBy(asc(schema.salas.id)),
     db().select().from(schema.zonas).where(eq(schema.zonas.funcionId, id)).orderBy(asc(schema.zonas.orden)),
     db().select().from(schema.elenco).where(eq(schema.elenco.funcionId, id)).orderBy(asc(schema.elenco.orden), asc(schema.elenco.id)),
     estadoPlano(f),
@@ -46,7 +46,7 @@ async function Detalle({ params, searchParams }: Props) {
       </div>
       <Ayuda>
         <ol>
-          <li><b>Plano:</b> elige la sala. Se crean las butacas numeradas y las zonas VIP y General.</li>
+          <li><b>Sala:</b> elige dónde es la función. Se crean sus butacas numeradas y sus zonas de precio. Las salas se administran en el menú Salas.</li>
           <li><b>Precios:</b> cada zona tiene precio de preventa y precio regular, en dólares. El de preventa rige hasta la fecha y hora que indiques; después se cobra el regular automáticamente.</li>
           <li><b>Butacas bloqueadas:</b> toca las que quieras sacar de la venta (invitados, técnica) y pulsa el botón. Tocar una bloqueada la devuelve a la venta.</li>
           <li><b>Elenco:</b> agrega a cada actor con su foto y personaje; aparecen en carrusel en la página de la función.</li>
@@ -57,11 +57,12 @@ async function Detalle({ params, searchParams }: Props) {
 
       {zonas.length === 0 ? (
         <form action={accionCrearPlano} className="panel">
-          <h2>Plano de la sala</h2>
-          <p className="tenue" style={{ margin: 0 }}>Esta función aún no tiene butacas. Elige el plano para poder vender entradas.</p>
+          <h2>Sala</h2>
+          <p className="tenue" style={{ margin: 0 }}>Esta función aún no tiene butacas. Elige la sala para poder vender entradas.</p>
           <input type="hidden" name="id" value={f.id} />
-          <div className="campo"><label htmlFor="v-plano">Plano</label>
-            <select id="v-plano" name="plano">{Object.entries(PLANOS).map(([k, p]) => <option key={k} value={k}>{p.nombre}</option>)}</select>
+          <div className="campo"><label htmlFor="v-plano">Sala</label>
+            <select id="v-plano" name="sala">{salas.map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}</select>
+            <small>¿La función es en otro lugar? Crea su sala en <Link href="/admin/salas">Salas</Link>.</small>
           </div>
           <div><button className="btn">Crear butacas</button></div>
         </form>
@@ -101,7 +102,7 @@ async function Detalle({ params, searchParams }: Props) {
             <h2>Butacas bloqueadas</h2>
             <p className="tenue" style={{ margin: 0 }}>Bloqueadas ahora: {cuenta("bloqueada")}. Las de borde dorado están bloqueadas.</p>
             <input type="hidden" name="id" value={f.id} />
-            <PlanoButacas funcionId={f.id} inicial={plano} max={184} tocables={["libre", "bloqueada"]} />
+            <PlanoButacas funcionId={f.id} inicial={plano} max={2000} tocables={["libre", "bloqueada"]} />
             <div><button className="btn">Bloquear o liberar las elegidas</button></div>
           </form>
         </>

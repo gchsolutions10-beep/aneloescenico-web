@@ -26,6 +26,25 @@ try {
     );
     console.log("[migrar] Niveles iniciales creados.");
   }
+
+  // Sala de la escuela, solo si no hay ninguna sala.
+  const salas = await pool.query("select count(*)::int as n from salas");
+  if (salas.rows[0].n === 0) {
+    const lateral = (nombre) => ({ nombre, filas: Array.from({ length: 12 }, (_, i) => ({ butacas: 4, zona: i < 3 ? "vip" : "general" })) });
+    const definicion = {
+      zonas: [
+        { clave: "vip", nombre: "VIP", color: "#e3bd5e", precioPreventa: "10", precioRegular: "15" },
+        { clave: "general", nombre: "General", color: "#8fa3b8", precioPreventa: "8", precioRegular: "10" },
+      ],
+      bloques: [
+        lateral("Lado izquierdo"),
+        { nombre: "Lado central", filas: [7, 8, 7, 8, 7, 8, 7, 8, 7, 8, 7, 6].map((butacas, i) => ({ butacas, zona: i < 7 ? "vip" : "general" })) },
+        lateral("Lado derecho"),
+      ],
+    };
+    await pool.query("insert into salas (nombre, definicion) values ($1, $2)", ["Sala principal · 184 butacas", JSON.stringify(definicion)]);
+    console.log("[migrar] Sala principal creada.");
+  }
 } finally {
   await pool.end();
 }

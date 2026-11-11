@@ -15,7 +15,6 @@ type Props = {
   tope?: number;
 };
 
-const BLOQUES = [["izquierdo", "Lado izquierdo"], ["central", "Lado central"], ["derecho", "Lado derecho"]] as const;
 const NOMBRE_ESTADO: Record<string, string> = { libre: "disponible", apartada: "apartada por otra persona", por_confirmar: "en proceso de pago", vendida: "vendida", bloqueada: "no disponible" };
 const usd = (v: number) => (Number.isInteger(v) ? `$${v}` : `$${v.toFixed(2)}`);
 const bs = (v: number) => `Bs ${v.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -43,6 +42,8 @@ export default function PlanoButacas({ funcionId, inicial, max, tasa, tocables =
 
   const porNumero = useMemo(() => new Map(plano.butacas.map((b) => [b.n, b])), [plano]);
   const zona = useMemo(() => new Map(plano.zonas.map((z) => [z.id, z])), [plano]);
+  // Los bloques se muestran en el orden de su numeración.
+  const bloques = useMemo(() => [...new Set(plano.butacas.map((b) => b.b))], [plano]);
   // Si alguien más tomó una butaca que yo tenía marcada, sale de mi selección.
   const vigentes = sel.filter((n) => tocables.includes(porNumero.get(n)?.e ?? ""));
   const perdidas = sel.length - vigentes.length;
@@ -76,9 +77,9 @@ export default function PlanoButacas({ funcionId, inicial, max, tasa, tocables =
         <div className="plano-lienzo">
           <div className="escenario">ESCENARIO</div>
           <div className="plano">
-            {BLOQUES.map(([clave, nombre]) => (
-              <div key={clave} className="lado">
-                {filas(clave).map((fila, i) => (
+            {bloques.map((nombre) => (
+              <div key={nombre} className="lado">
+                {filas(nombre).map((fila, i) => (
                   <div key={i} className="hilera">
                     {fila.map((b) => {
                       const z = zona.get(b.z);

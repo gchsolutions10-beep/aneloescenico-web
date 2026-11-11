@@ -15,6 +15,13 @@
       "when": 1794392701448,
       "tag": "0001_taquilla",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794411349897,
+      "tag": "0002_escuela_y_salas",
+      "breakpoints": true
     }
   ]
 }

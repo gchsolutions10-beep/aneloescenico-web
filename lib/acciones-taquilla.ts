@@ -135,7 +135,7 @@ export async function accionCrearPlano(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "id");
   let destino = `/admin/funciones/${id}?ok=1`;
-  try { await t.crearPlano(id, txt(f, "plano")); } catch (e) { destino = conError(`/admin/funciones/${id}`, e); }
+  try { await t.crearPlano(id, entero(f, "sala")); } catch (e) { destino = conError(`/admin/funciones/${id}`, e); }
   updateTag("funciones"); updateTag("cupos");
   redirect(destino);
 }

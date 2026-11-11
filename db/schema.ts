@@ -12,6 +12,8 @@ export const usuarios = pgTable("usuarios", {
   activo: boolean("activo").notNull().default(true),
   intentosFallidos: integer("intentos_fallidos").notNull().default(0),
   bloqueadoHasta: timestamp("bloqueado_hasta", { withTimezone: true }),
+  telefono: text("telefono").notNull().default(""),
+  cedula: text("cedula").notNull().default(""),
   creadoEl,
 });
 
@@ -199,3 +201,74 @@ export const mensajes = pgTable("mensajes", {
   leido: boolean("leido").notNull().default(false),
   creadoEl,
 });
+
+/** Salas disponibles para crear planos. `definicion` sigue el formato de lib/planos.ts. */
+export const salas = pgTable("salas", {
+  id: serial("id").primaryKey(),
+  nombre: text("nombre").notNull(),
+  definicion: jsonb("definicion").notNull().$type<import("@/lib/planos").DefSala>(),
+  creadoEl,
+});
+
+// ---------- Escuela ----------
+
+export const estudiantes = pgTable("estudiantes", {
+  id: serial("id").primaryKey(),
+  /** Cuenta del representante en el portal (usuarios con rol "representante"). Puede faltar. */
+  representanteId: integer("representante_id").references(() => usuarios.id, { onDelete: "set null" }),
+  nivelId: integer("nivel_id").references(() => niveles.id, { onDelete: "set null" }),
+  nombres: text("nombres").notNull(),
+  apellidos: text("apellidos").notNull(),
+  fechaNacimiento: date("fecha_nacimiento"),
+  // solicitud | activo | retirado | egresado | rechazado
+  estado: text("estado").notNull().default("solicitud"),
+  fechaIngreso: date("fecha_ingreso"),
+  /** Descuento sobre la mensualidad, de 0 a 100 (beca, hermanos). */
+  becaPct: integer("beca_pct").notNull().default(0),
+  repNombre: text("rep_nombre").notNull().default(""),
+  repCedula: text("rep_cedula").notNull().default(""),
+  repTelefono: text("rep_telefono").notNull().default(""),
+  repCorreo: text("rep_correo").notNull().default(""),
+  observaciones: text("observaciones").notNull().default(""),
+  notas: text("notas").notNull().default(""), // internas, no las ve el representante
+  creadoEl,
+});
+
+/** Pago reportado por un representante (o registrado por el equipo) que cubre uno o más cargos. */
+export const reportesPago = pgTable("reportes_pago", {
+  id: serial("id").primaryKey(),
+  usuarioId: integer("usuario_id").references(() => usuarios.id, { onDelete: "set null" }),
+  metodo: text("metodo").notNull(), // pago_movil | transferencia | efectivo | punto
+  referencia: text("referencia").notNull().default(""),
+  montoUsd: usd("monto_usd").notNull(),
+  tasa: numeric("tasa", { precision: 14, scale: 4 }),
+  montoBs: numeric("monto_bs", { precision: 16, scale: 2 }),
+  capturaUrl: text("captura_url"),
+  // reportado | confirmado | rechazado
+  estado: text("estado").notNull().default("reportado"),
+  revisadoPor: integer("revisado_por").references(() => usuarios.id),
+  nota: text("nota").notNull().default(""),
+  /** Número correlativo del recibo; se asigna al confirmar. */
+  numeroRecibo: integer("numero_recibo").unique(),
+  /** Copia de lo pagado, para que el recibo no cambie aunque después se edite un cargo. */
+  detalle: jsonb("detalle").notNull().$type<{ estudiante: string; concepto: string; monto: number }[]>(),
+  confirmadoEl: timestamp("confirmado_el", { withTimezone: true }),
+  creadoEl,
+});
+
+export const cargos = pgTable("cargos", {
+  id: serial("id").primaryKey(),
+  estudianteId: integer("estudiante_id").notNull().references(() => estudiantes.id, { onDelete: "cascade" }),
+  tipo: text("tipo").notNull(), // inscripcion | mensualidad | otro
+  concepto: text("concepto").notNull(),
+  /** AAAA-MM para mensualidades; evita generar dos veces el mismo mes. */
+  periodo: text("periodo"),
+  montoUsd: usd("monto_usd").notNull(),
+  venceEl: date("vence_el").notNull(),
+  // pendiente | por_confirmar | pagado | anulado   ("en mora" = pendiente y vencido)
+  estado: text("estado").notNull().default("pendiente"),
+  reporteId: integer("reporte_id").references(() => reportesPago.id, { onDelete: "set null" }),
+  recordadoEl: timestamp("recordado_el", { withTimezone: true }),
+  moraAvisadaEl: timestamp("mora_avisada_el", { withTimezone: true }),
+  creadoEl,
+}, (t) => [unique("cargos_estudiante_tipo_periodo").on(t.estudianteId, t.tipo, t.periodo), index("cargos_estado_idx").on(t.estado)]);

@@ -6,7 +6,7 @@ import { randomBytes } from "node:crypto";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { enviarCorreo, urlBase } from "./correo";
-import { PLANOS } from "./planos";
+import { generarButacas } from "./planos";
 import { enBs } from "./tasa";
 
 const { butacas, ordenes, pagos, bonos, entradas, zonas, funciones } = schema;
@@ -49,17 +49,20 @@ export function precioDe(z: Pick<Zona, "precioPreventa" | "precioRegular">, f: P
 
 // ---------- Plano ----------
 
-/** Crea las zonas y butacas de una función a partir de una plantilla. No hace nada si ya tiene. */
-export async function crearPlano(funcionId: number, clave: string) {
-  const plano = PLANOS[clave];
-  if (!plano) throw new ErrorTaquilla("Ese plano no existe.");
+/** Crea las zonas y butacas de una función copiando una sala. No hace nada si ya tiene. */
+export async function crearPlano(funcionId: number, salaId: number) {
+  const [sala] = await db().select().from(schema.salas).where(eq(schema.salas.id, salaId));
+  if (!sala) throw new ErrorTaquilla("Esa sala no existe.");
+  const lista = generarButacas(sala.definicion);
   await db().transaction(async (tx) => {
     const [ya] = await tx.select({ id: butacas.id }).from(butacas).where(eq(butacas.funcionId, funcionId)).limit(1);
     if (ya) return;
-    const zs = await tx.insert(zonas).values(plano.zonas.map((z, i) => ({ funcionId, ...z, orden: i }))).returning();
+    const zs = await tx.insert(zonas).values(sala.definicion.zonas.map((z, i) => ({
+      funcionId, clave: z.clave, nombre: z.nombre, color: z.color, precioPreventa: z.precioPreventa || null, precioRegular: z.precioRegular, orden: i,
+    }))).returning();
     const idDe = Object.fromEntries(zs.map((z) => [z.clave, z.id]));
-    await tx.insert(butacas).values(plano.butacas.map((b) => ({ funcionId, zonaId: idDe[b.zona], numero: b.numero, bloque: b.bloque, fila: b.fila, pos: b.pos })));
-    await tx.update(funciones).set({ plano: clave, aforo: plano.butacas.length }).where(eq(funciones.id, funcionId));
+    await tx.insert(butacas).values(lista.map((b) => ({ funcionId, zonaId: idDe[b.zona], numero: b.numero, bloque: b.bloque, fila: b.fila, pos: b.pos })));
+    await tx.update(funciones).set({ plano: sala.nombre, aforo: lista.length }).where(eq(funciones.id, funcionId));
   });
 }
 

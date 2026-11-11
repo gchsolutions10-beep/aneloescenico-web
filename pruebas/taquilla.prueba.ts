@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import * as t from "@/lib/taquilla";
+import { generarButacas, SALA_184, validarSala } from "@/lib/planos";
 import { parsearBcv } from "@/lib/tasa";
 
 const { funciones, butacas, ordenes, bonos, entradas } = schema;
@@ -24,7 +25,12 @@ async function main() {
   const [u] = await db().select().from(schema.usuarios).limit(1);
   const admin = u?.id ?? (await db().insert(schema.usuarios).values({ nombre: "Prueba", correo: "prueba@anelo.test", claveHash: "x", rol: "master" }).returning())[0].id;
   const [f] = await db().insert(funciones).values({ slug: "prueba-" + Date.now(), titulo: "Función de prueba", estado: "a_la_venta", fechaHora: new Date(Date.now() + 86400_000 * 20), preventaHasta: new Date(Date.now() + 86400_000) }).returning();
-  await t.crearPlano(f.id, "sala184");
+  const [sala] = await db().insert(schema.salas).values(SALA_184).returning();
+  await t.crearPlano(f.id, sala.id);
+  const gen = generarButacas(SALA_184.definicion);
+  assert.deepEqual([gen[48].numero, gen[48].bloque, gen[48].zona], [49, "Lado central", "vip"]);
+  assert.deepEqual([gen[136].numero, gen[136].bloque, gen[100].zona, gen[12].zona, gen[148].zona], [137, "Lado derecho", "general", "general", "general"]);
+  assert.ok("error" in validarSala({ zonas: SALA_184.definicion.zonas, bloques: [{ nombre: "A", filas: [{ butacas: 5, zona: "palco" }] }] }));
   const paso = (nombre: string) => console.log("  ✓", nombre);
 
   // Plano y precios
@@ -137,6 +143,7 @@ async function main() {
   paso("lectura del formato de la página del BCV");
 
   await db().execute(sql`TRUNCATE entradas, pagos, butacas, zonas, ordenes, bonos RESTART IDENTITY CASCADE; DELETE FROM funciones WHERE slug LIKE 'prueba-%'`);
+  await db().delete(schema.salas).where(eq(schema.salas.id, sala.id));
   console.log("Todas las pruebas pasaron.");
   process.exit(0);
 }

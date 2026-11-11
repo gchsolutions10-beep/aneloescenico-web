@@ -1,0 +1,561 @@
+<title>Propuesta A-Nelo Escénico</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=Figtree:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;900&family=Archivo:wght@400;500;600&family=Limelight&family=Nunito:wght@400;600;800&display=swap">
+<style>
+/* Layout: documento de propuesta en una columna ancha; cada sección abre con un
+   "acto" (rótulo de programa de mano) y los prototipos van en marcos de navegador. */
+:root{
+  color-scheme:dark;
+  --bg:#0f0c0d; --surface:#191415; --surface2:#221b1d; --line:#352b2d;
+  --fg:#f2ebe3; --muted:#ab9f97; --gold:#d9b25c; --wine:#8f1d2c;
+  --ok:#5fb98a; --warn:#e6b84f; --bad:#d9645f;
+  --display:"Bodoni Moda","Didot","Times New Roman",serif;
+  --body:"Figtree","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:56px;border-top:1px solid var(--line)}
+h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,7vw,4.6rem)}
+h1 em{color:var(--gold)}
+h2{font-size:clamp(1.8rem,4.5vw,2.8rem);margin-bottom:12px}
+h3{font-size:1.3rem;margin-bottom:6px}
+p{margin:0 0 12px;max-width:68ch}
+a{color:var(--gold)}
+.acto{font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;font-weight:600}
+.lead{font-size:1.12rem;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:.86rem}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Portada */
+.portada{padding-block:64px 56px;border-top:0;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center}
+.portada img{width:168px;height:168px;border-radius:50%;box-shadow:0 0 0 1px var(--line),0 0 80px #d9b25c33}
+.ficha{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:22px;font-size:.92rem;color:var(--muted)}
+.ficha b{color:var(--fg);font-weight:600}
+@media(max-width:640px){.portada{grid-template-columns:1fr}.portada img{width:112px;height:112px;order:-1}}
+
+/* Rejillas genéricas */
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.card p:last-child{margin-bottom:0}
+.card ul{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:.93rem}
+.card li{margin-bottom:4px}
+.ref a{font-weight:600;text-decoration:none}
+.ref .dom{font-size:.8rem;color:var(--muted);display:block;margin-bottom:6px}
+
+/* Selector de dirección */
+.selector{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:20px}
+.selector button{flex:1 1 150px;text-align:left;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font:inherit;cursor:pointer}
+.selector button b{display:block;font-family:var(--display);font-size:1.15rem;font-weight:500}
+.selector button span{font-size:.8rem;color:var(--muted)}
+.selector button[aria-pressed="true"]{border-color:var(--gold);background:var(--surface2);box-shadow:inset 0 -3px 0 var(--gold)}
+.dirnote{display:none}
+#demo[data-dir="a"] .dirnote.a,#demo[data-dir="b"] .dirnote.b,#demo[data-dir="c"] .dirnote.c{display:block}
+
+/* Marco de navegador */
+.marco{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--p-bg);margin-top:14px}
+.marco .barra{display:flex;align-items:center;gap:6px;padding:8px 12px;background:#0a0808;border-bottom:1px solid var(--line);font-size:.75rem;color:var(--muted)}
+.marco .barra i{width:9px;height:9px;border-radius:50%;background:#3a3032}
+.marco .barra span{margin-left:8px;background:#191415;border-radius:20px;padding:2px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.rotulo{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:34px}
+
+/* ====== Tokens de las tres direcciones (lo que el admin podrá ajustar) ====== */
+#demo[data-dir="a"]{--p-bg:#140a0c;--p-surface:#1f1013;--p-line:#4a2229;--p-fg:#f6ecdf;--p-muted:#b9a297;--p-accent:#d6ab52;--p-on-accent:#1a0c0e;--p-accent2:#9c1f30;
+  --p-display:"Bodoni Moda","Didot",serif;--p-body:"Figtree",system-ui,sans-serif;--p-r:4px;--p-filter:none;--p-tt:none;--p-ls:0;--p-hw:500;--p-hs:1}
+#demo[data-dir="b"]{--p-bg:#050505;--p-surface:#111;--p-line:#2b2b2b;--p-fg:#fafafa;--p-muted:#9a9a9a;--p-accent:#ffc247;--p-on-accent:#050505;--p-accent2:#fafafa;
+  --p-display:"Big Shoulders Display","Impact",sans-serif;--p-body:"Archivo",system-ui,sans-serif;--p-r:0px;--p-filter:grayscale(1) contrast(1.15);--p-tt:uppercase;--p-ls:.01em;--p-hw:900;--p-hs:1.25}
+#demo[data-dir="c"]{--p-bg:#0d0f2e;--p-surface:#171a45;--p-line:#30357a;--p-fg:#fff8e8;--p-muted:#b3b6dc;--p-accent:#ffd447;--p-on-accent:#0d0f2e;--p-accent2:#ff4f8b;
+  --p-display:"Limelight","Georgia",serif;--p-body:"Nunito",system-ui,sans-serif;--p-r:16px;--p-filter:saturate(1.15);--p-tt:none;--p-ls:.01em;--p-hw:400;--p-hs:.95}
+
+.p{background:var(--p-bg);color:var(--p-fg);font-family:var(--p-body);font-size:15px;line-height:1.5}
+.p h4,.p h5{font-family:var(--p-display);font-weight:var(--p-hw);text-transform:var(--p-tt);letter-spacing:var(--p-ls);margin:0;line-height:1.02;text-wrap:balance}
+.p .btn{display:inline-block;background:var(--p-accent);color:var(--p-on-accent);font-weight:700;border:0;border-radius:calc(var(--p-r) + 2px);padding:10px 18px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none}
+.p .btn.sec{background:transparent;color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-line)}
+.p .btn:disabled{opacity:.45;cursor:not-allowed}
+.p :focus-visible{outline:2px solid var(--p-accent);outline-offset:2px}
+
+/* Menú */
+.pnav{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--p-line);position:relative}
+.pnav img{width:38px;height:38px;border-radius:50%}
+.pnav .marca{font-family:var(--p-display);font-size:1.1rem;text-transform:var(--p-tt);font-weight:var(--p-hw);margin-right:auto;white-space:nowrap}
+.pnav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.pnav li{position:relative}
+.pnav li>a{display:block;padding:8px 9px;color:var(--p-muted);text-decoration:none;font-size:.84rem;font-weight:600;transition:transform .18s,color .18s;transform-origin:center}
+.pnav li>a:hover,.pnav li>a:focus-visible,.pnav li.on>a,.pnav li:focus-within>a{color:var(--p-fg);transform:scale(1.13)}
+.pnav li.on>a{box-shadow:inset 0 -2px 0 var(--p-accent)}
+.pnav .sub{position:absolute;left:0;top:100%;min-width:190px;background:var(--p-surface);border:1px solid var(--p-line);border-radius:var(--p-r);padding:6px;z-index:4;opacity:0;visibility:hidden;transform:translateY(-4px);transition:.18s}
+.pnav li:hover .sub,.pnav li:focus-within .sub{opacity:1;visibility:visible;transform:none}
+.pnav .sub a{display:block;padding:7px 10px;color:var(--p-fg);text-decoration:none;font-size:.86rem;border-radius:var(--p-r)}
+.pnav .sub a:hover{background:var(--p-accent);color:var(--p-on-accent)}
+.pnav .sub small{display:block;color:var(--p-muted);font-size:.72rem}
+.pnav .sub a:hover small{color:inherit}
+.pnav .ham{display:none;background:none;border:1px solid var(--p-line);color:var(--p-fg);border-radius:var(--p-r);padding:6px 12px;font:inherit}
+@media(max-width:900px){
+  .pnav{flex-wrap:wrap}
+  .pnav .ham{display:block}
+  .pnav ul{display:none;flex-direction:column;width:100%}
+  .pnav.abierto ul{display:flex}
+  .pnav .sub{position:static;opacity:1;visibility:visible;transform:none;border:0;background:none;padding:0 0 0 14px}
+  .pnav li>a:hover,.pnav li.on>a{transform:none}
+}
+
+/* Hero / carrusel */
+.hero{position:relative;overflow:hidden;min-height:400px;display:grid}
+.slide{grid-area:1/1;display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:center;padding:36px 34px 52px;opacity:0;visibility:hidden;transition:opacity .7s;position:relative}
+.slide.on{opacity:1;visibility:visible}
+.slide .fondo{position:absolute;inset:-30px;background-size:cover;background-position:center;filter:blur(30px) brightness(.24) var(--p-filter);z-index:0}
+.slide>*{position:relative;z-index:1;min-width:0}
+.slide .foto{aspect-ratio:4/5;max-height:330px;max-width:100%;justify-self:center;border-radius:var(--p-r);overflow:hidden;box-shadow:0 20px 60px #000a}
+.slide .foto img{width:100%;height:100%;object-fit:cover;filter:var(--p-filter);display:block}
+.slide .eyebrow{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--p-accent);font-weight:700;margin-bottom:10px}
+.slide h4{font-size:calc(clamp(1.9rem,4.6vw,3.3rem)*var(--p-hs));margin-bottom:12px}
+.slide p{color:var(--p-fg);opacity:.85;max-width:44ch;margin-bottom:18px}
+.puntos{position:absolute;left:34px;bottom:18px;display:flex;gap:8px;z-index:3}
+.puntos button{width:26px;height:5px;border:0;border-radius:3px;background:var(--p-muted);opacity:.5;cursor:pointer;padding:0}
+.puntos button[aria-current="true"]{background:var(--p-accent);opacity:1}
+@media(max-width:640px){.slide{grid-template-columns:1fr;padding:24px 18px 50px}.slide .foto{max-height:240px;order:-1}.puntos{left:18px}}
+/* A: telón */
+#demo[data-dir="a"] .hero::before,#demo[data-dir="a"] .hero::after{content:"";position:absolute;top:0;bottom:0;width:7%;z-index:2;
+  background:repeating-linear-gradient(90deg,#5d0f1c 0 6px,#a3243a 12px,#6d1422 20px,#3c0810 26px);box-shadow:0 0 40px #000}
+#demo[data-dir="a"] .hero::before{left:0;border-bottom-right-radius:60% 12%}
+#demo[data-dir="a"] .hero::after{right:0;border-bottom-left-radius:60% 12%}
+#demo[data-dir="a"] .slide{padding-inline:calc(7% + 22px)}
+#demo[data-dir="a"] .puntos{left:calc(7% + 22px)}
+#demo[data-dir="a"] .slide h4 i{font-style:italic;color:var(--p-accent)}
+/* B: foco */
+#demo[data-dir="b"] .slide::after{content:"";position:absolute;inset:0;z-index:0;background:conic-gradient(from 168deg at 78% -8%,transparent 0deg,#ffffff24 9deg,#ffffff3a 14deg,#ffffff24 19deg,transparent 28deg)}
+#demo[data-dir="b"] .slide h4 i{font-style:normal;color:var(--p-accent)}
+/* C: marquesina */
+#demo[data-dir="c"] .hero{border:10px solid transparent;background:
+  radial-gradient(circle,#ffd447 2.4px,transparent 3.2px) 0 0/22px 22px border-box,var(--p-bg)}
+#demo[data-dir="c"] .slide{background:var(--p-bg);border-radius:10px;overflow:hidden}
+#demo[data-dir="c"] .slide h4 i{font-style:normal;color:var(--p-accent2)}
+
+/* Bloques del home */
+.bloque{padding:26px 34px}
+.bloque>header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+.bloque h5{font-size:calc(1.5rem*var(--p-hs))}
+.bloque>header a{color:var(--p-accent);font-size:.85rem;font-weight:700;text-decoration:none;white-space:nowrap}
+@media(max-width:640px){.bloque{padding:22px 18px}}
+.news{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.news article{background:var(--p-surface);border:1px solid var(--p-line);border-radius:var(--p-r);padding:14px;min-width:0}
+.news .tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--p-accent);font-weight:700}
+.news h6{font-family:var(--p-body);font-size:1rem;margin:6px 0;line-height:1.3}
+.news time{font-size:.78rem;color:var(--p-muted)}
+.cartelera{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.poster{min-width:0}
+.poster .img{aspect-ratio:2/3;max-width:100%;border-radius:var(--p-r);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;border:1px solid var(--p-line)}
+.poster .img b{font-family:var(--p-display);font-weight:var(--p-hw);font-size:calc(1.35rem*var(--p-hs));line-height:1.02;text-transform:var(--p-tt)}
+.poster .img small{font-size:.72rem;opacity:.85;margin-top:4px}
+.poster .img .chip{position:absolute;top:10px;left:10px;background:var(--p-accent);color:var(--p-on-accent);font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.po1{background:radial-gradient(circle at 70% 20%,#f3c96b55,transparent 45%),linear-gradient(170deg,#7a1526,#1c0a10 70%)}
+.po2{background:radial-gradient(circle at 30% 30%,#5fb9d455,transparent 50%),linear-gradient(170deg,#143a52,#070d14 70%)}
+.po3{background:radial-gradient(circle at 60% 25%,#c58cf055,transparent 50%),linear-gradient(170deg,#3d1d5c,#0c0714 70%)}
+.poster .meta{font-size:.82rem;margin-top:8px;color:var(--p-muted)}
+.poster .meta strong{color:var(--p-fg);display:block}
+.aforo{height:5px;background:var(--p-line);border-radius:3px;margin-top:6px;overflow:hidden}
+.aforo i{display:block;height:100%;background:var(--p-accent)}
+
+/* Taquilla */
+.taq{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:0}
+.taq .sala{padding:22px;min-width:0}
+.taq aside{padding:22px;background:var(--p-surface);border-left:1px solid var(--p-line)}
+@media(max-width:820px){.taq{grid-template-columns:1fr}.taq aside{border-left:0;border-top:1px solid var(--p-line)}}
+.escenario{margin:0 auto 18px;max-width:420px;text-align:center;font-size:.72rem;letter-spacing:.3em;color:var(--p-muted);padding:7px;border-radius:50% 50% 6px 6px/100% 100% 6px 6px;background:linear-gradient(var(--p-surface),transparent);border-top:2px solid var(--p-accent)}
+.scroll{overflow-x:auto;padding-bottom:8px}
+.plano{display:flex;gap:18px;justify-content:center;width:max-content;margin:0 auto}
+.lado{display:flex;flex-direction:column;gap:4px;align-items:center}
+.lado>span{font-size:.66rem;letter-spacing:.14em;color:var(--p-muted);margin-top:6px}
+.fila{display:flex;gap:4px}
+.as{width:26px;height:26px;border-radius:6px 6px 3px 3px;border:0;font-size:.6rem;font-weight:700;cursor:pointer;font-family:var(--p-body);font-variant-numeric:tabular-nums;padding:0;color:#0b0b0b;transition:transform .12s}
+.as.vip{background:#e3bd5e}.as.gen{background:#8fa3b8}
+.as.ven{background:transparent;box-shadow:inset 0 0 0 1px var(--p-line);color:var(--p-muted);cursor:not-allowed;text-decoration:line-through}
+.as.apa{background:repeating-linear-gradient(45deg,#6a5a7c 0 4px,#4d4060 4px 8px);color:#e9e2f2;cursor:not-allowed}
+.as.sel{background:#4fd08a;transform:scale(1.14);box-shadow:0 0 0 2px var(--p-bg),0 0 0 3px #4fd08a}
+.as:not(.ven):not(.apa):hover{transform:scale(1.14)}
+.leyenda{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;font-size:.78rem;color:var(--p-muted);margin-top:14px}
+.leyenda i{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.reloj{font-family:var(--p-display);font-size:2.3rem;font-variant-numeric:tabular-nums;color:var(--p-accent);line-height:1}
+.reloj.urge{color:#ff7a70}
+.taq aside dl{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin:14px 0;font-size:.9rem}
+.taq aside dt{color:var(--p-muted)}.taq aside dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.taq aside .total{font-weight:800;font-size:1.1rem;border-top:1px solid var(--p-line);padding-top:6px}
+.aviso{font-size:.82rem;border:1px solid var(--p-line);border-left:3px solid var(--p-accent);padding:8px 10px;border-radius:var(--p-r);margin-top:12px;color:var(--p-fg)}
+.link{background:none;border:0;color:var(--p-muted);font:inherit;font-size:.78rem;text-decoration:underline;cursor:pointer;padding:0;margin-top:10px}
+.elenco{display:flex;gap:16px;overflow-x:auto;padding:4px 22px 20px;scroll-snap-type:x mandatory}
+.elenco figure{margin:0;flex:0 0 96px;text-align:center;scroll-snap-align:start}
+.elenco .av{width:84px;height:84px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-family:var(--p-display);font-size:1.5rem;background:var(--p-surface);border:2px solid var(--p-accent);overflow:hidden}
+.elenco .av img{width:100%;height:100%;object-fit:cover;filter:var(--p-filter)}
+.elenco figcaption{font-size:.78rem;line-height:1.25}
+.elenco figcaption small{display:block;color:var(--p-muted)}
+
+/* Ficha de artista */
+.fichaA{display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;padding:26px 30px}
+.fichaA .ret{aspect-ratio:1;max-width:100%;border-radius:var(--p-r);overflow:hidden;border:1px solid var(--p-line)}
+.fichaA .ret img{width:100%;height:100%;object-fit:cover;filter:var(--p-filter);display:block}
+.fichaA h4{font-size:calc(2.2rem*var(--p-hs))}
+.fichaA .gustos{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px}
+.fichaA .gustos span{border:1px solid var(--p-line);border-radius:20px;padding:3px 11px;font-size:.8rem}
+.tabla{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--p-line,var(--line));vertical-align:top}
+th{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--p-muted,var(--muted));font-weight:600}
+@media(max-width:640px){.fichaA{grid-template-columns:1fr;padding:20px 18px}.fichaA .ret{max-width:200px}}
+
+/* Admin (neutro, no cambia con la dirección) */
+.admin{display:grid;grid-template-columns:190px minmax(0,1fr);background:#121012;font-size:.88rem}
+.admin nav{border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.admin nav span{padding:7px 10px;border-radius:6px;color:var(--muted)}
+.admin nav span.on{background:var(--surface2);color:var(--fg)}
+.admin .cuerpo{padding:18px;display:grid;gap:16px;min-width:0}
+.pasos{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.pasos ol{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.pasos li{display:flex;gap:8px;color:var(--muted)}
+.pasos li.ok{color:var(--fg)}
+.pasos li::before{content:"○";color:var(--muted)}
+.pasos li.ok::before{content:"●";color:var(--ok)}
+.barraP{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:8px}
+.barraP i{display:block;height:100%;width:43%;background:var(--ok)}
+.est{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px}
+.est.p{background:#e6b84f22;color:var(--warn)}.est.o{background:#5fb98a22;color:var(--ok)}.est.m{background:#d9645f22;color:var(--bad)}
+@media(max-width:700px){.admin{grid-template-columns:1fr}.admin nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.admin nav span{white-space:nowrap}}
+.si{color:var(--ok);font-weight:700}.no{color:var(--muted)}
+.fases{counter-reset:f;display:grid;gap:12px}
+.fases .card{counter-increment:f;display:grid;grid-template-columns:auto 1fr;gap:4px 16px}
+.fases .card::before{content:counter(f);font-family:var(--display);font-size:2.2rem;color:var(--gold);line-height:1;grid-row:span 2}
+.fases h3{margin:0}
+footer{padding-block:36px 56px;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="portada">
+  <div>
+    <div class="acto">Propuesta de sitio web y sistema de gestión</div>
+    <h1>A-Nelo Escénico, <em>en escena</em> también en la web</h1>
+    <p class="lead" style="margin-top:16px">Un sitio con carácter de teatro para mostrar la escuela, vender entradas con plano de butacas y llevar inscripciones y mensualidades desde un solo panel.</p>
+    <div class="ficha">
+      <span><b>Cliente</b> A-Nelo | Escuela de Teatro</span>
+      <span><b>Sede</b> Acarigua</span>
+      <span><b>Niveles</b> Kids · Teen · Teenagers</span>
+      <span><b>Fecha</b> noviembre 2026</span>
+    </div>
+  </div>
+  <img src="assets/logo.png" alt="Logo de A-Nelo Escénico">
+</header>
+
+<section>
+  <div class="acto">Acto I · Referencias</div>
+  <h2>Cinco sitios profesionales de los que tomamos ideas</h2>
+  <p class="muted">No copiamos ninguno. De cada uno tomamos un patrón concreto que funciona y lo adaptamos a la escuela.</p>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card ref"><a href="https://www.nationaltheatre.org.uk" target="_blank" rel="noopener">National Theatre</a><span class="dom">nationaltheatre.org.uk · Londres</span><p class="small">Fondo negro, tipografía grande y fotografía de escena a todo el ancho. La cartelera manda. Base de la dirección B.</p></div>
+    <div class="card ref"><a href="https://www.teatroreal.es" target="_blank" rel="noopener">Teatro Real</a><span class="dom">teatroreal.es · Madrid</span><p class="small">Elegancia clásica: serif, dorados y un calendario de funciones claro. Base de la dirección A.</p></div>
+    <div class="card ref"><a href="https://www.cirquedusoleil.com" target="_blank" rel="noopener">Cirque du Soleil</a><span class="dom">cirquedusoleil.com</span><p class="small">Cada espectáculo tiene su propio afiche y color. Color vivo y sentido de espectáculo. Base de la dirección C.</p></div>
+    <div class="card ref"><a href="https://www.stagecoach.co.uk" target="_blank" rel="noopener">Stagecoach Performing Arts</a><span class="dom">stagecoach.co.uk · escuela para niños y jóvenes</span><p class="small">Cómo una escuela presenta sus niveles por edad y lleva al representante a inscribir en pocos pasos.</p></div>
+    <div class="card ref"><a href="https://cinepolis.com" target="_blank" rel="noopener">Cinépolis</a><span class="dom">cinepolis.com · taquilla de cine</span><p class="small">Cartelera con afiches verticales y selección de butacas con el dedo, con reloj de reserva. Modelo de la taquilla.</p></div>
+  </div>
+</section>
+
+<section id="demo" data-dir="a">
+  <div class="acto">Acto II · Diseño</div>
+  <h2>Tres direcciones de diseño. Elige una.</h2>
+  <p class="muted">El prototipo de abajo es interactivo: cambia de dirección y verás el mismo sitio con otro carácter. Pasa el cursor por el menú, deja correr el carrusel y elige butacas.</p>
+
+  <div class="selector" role="group" aria-label="Dirección de diseño">
+    <button type="button" data-d="a" aria-pressed="true"><b>A · Telón</b><span>Clásico: vino, oro y serif</span></button>
+    <button type="button" data-d="b" aria-pressed="false"><b>B · Foco</b><span>Blanco y negro del logo + luz ámbar</span></button>
+    <button type="button" data-d="c" aria-pressed="false"><b>C · Marquesina</b><span>Cartelera con bombillas, más juvenil</span></button>
+  </div>
+
+  <p class="dirnote a"><b>Telón.</b> El teatro de siempre: terciopelo vino a los lados del escenario, títulos en serif con cursivas doradas. Transmite tradición y seriedad a los representantes. Es la que mejor responde a tu pedido de colores oscuros con telón.</p>
+  <p class="dirnote b"><b>Foco.</b> Sale del propio logo, que es un trazo negro sobre blanco. Fotos en blanco y negro, títulos enormes y un solo color de luz. Es la más contemporánea y la que más protagonismo da a las fotos de los alumnos.</p>
+  <p class="dirnote c"><b>Marquesina.</b> La entrada de un teatro de noche: bombillas, azul profundo y letras de cartel. Es la más cercana a niños y adolescentes y la que más se parece a una cartelera de cine.</p>
+
+  <div class="rotulo">Inicio · menú, carrusel, novedades y cartelera</div>
+  <div class="marco">
+    <div class="barra"><i></i><i></i><i></i><span>aneloescenico.com</span></div>
+    <div class="p">
+      <nav class="pnav" id="pnav" aria-label="Menú del prototipo">
+        <img src="assets/logo.png" alt="">
+        <span class="marca">A-Nelo Escénico</span>
+        <button type="button" class="ham" id="ham" aria-expanded="false">Menú</button>
+        <ul>
+          <li class="on"><a href="#demo">Inicio</a></li>
+          <li><a href="#demo">Clases Actuación</a>
+            <div class="sub"><a href="#demo">Kids<small>Los más pequeños</small></a><a href="#demo">Teen<small>Preadolescentes</small></a><a href="#demo">Teenagers<small>Adolescentes</small></a><a href="#demo">Inscripciones<small>Abiertas</small></a></div></li>
+          <li><a href="#demo">Funciones de Teatro</a>
+            <div class="sub"><a href="#demo">Cartelera<small>Compra tus entradas</small></a><a href="#demo">Funciones pasadas<small>Archivo y fotos</small></a></div></li>
+          <li><a href="#demo">Protagonistas</a></li>
+          <li><a href="#demo">Blog</a></li>
+          <li><a href="#demo">Sobre nosotros</a></li>
+          <li><a href="#demo">Contáctanos</a></li>
+        </ul>
+      </nav>
+
+      <div class="hero" id="hero">
+        <div class="slide on">
+          <div class="fondo" style="background-image:url(assets/escena.jpg)"></div>
+          <div><div class="eyebrow">Formación teatral · Acarigua</div><h4>Un escenario para <i>pequeños y grandes</i> artistas</h4><p>Niveles Kids, Teen y Teenagers. Clases de actuación con muestra en teatro al cierre de cada ciclo.</p><a class="btn" href="#demo">Inscripciones abiertas</a></div>
+          <div class="foto"><img src="assets/escena.jpg" alt="Tres alumnos en escena frente al telón"></div>
+        </div>
+        <div class="slide">
+          <div class="fondo" style="background-image:url(assets/director.jpg)"></div>
+          <div><div class="eyebrow">Dirección general</div><h4>Aprender teatro <i>haciendo teatro</i></h4><p>Conoce al director y al equipo de cátedra que acompaña a cada grupo.</p><a class="btn" href="#demo">Sobre nosotros</a></div>
+          <div class="foto"><img src="assets/director.jpg" alt="El director de la escuela con una claqueta"></div>
+        </div>
+        <div class="slide">
+          <div class="fondo" style="background-image:url(assets/retrato.jpg)"></div>
+          <div><div class="eyebrow">En cartelera · Domingo 13 de diciembre</div><h4>El recuerdo de aquella <i>Navidad</i></h4><p>“Volviendo a casa en una foto”. Preventa hasta el 30 de noviembre.</p><a class="btn" href="#taquilla">Comprar entradas</a></div>
+          <div class="foto"><img src="assets/retrato.jpg" alt="Retrato de una alumna"></div>
+        </div>
+        <div class="puntos" id="puntos"></div>
+      </div>
+
+      <div class="bloque">
+        <header><h5>Novedades</h5><a href="#demo">Ir al blog →</a></header>
+        <div class="news">
+          <article><span class="tag">Inscripciones</span><h6>Abiertas las inscripciones para Kids, Teen y Teenagers</h6><time>Ejemplo · destacada en Inicio</time></article>
+          <article><span class="tag">Funciones</span><h6>Ya puedes elegir tu butaca para “El recuerdo de aquella Navidad”</h6><time>Ejemplo · destacada en Inicio</time></article>
+          <article><span class="tag">Escuela</span><h6>Así fue la sesión de fotos del elenco</h6><time>Ejemplo · destacada en Inicio</time></article>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <header><h5>Cartelera</h5><a href="#demo">Todas las funciones →</a></header>
+        <div class="cartelera">
+          <div class="poster"><div class="img po1"><span class="chip">Preventa</span><b>El recuerdo de aquella Navidad</b><small>Volviendo a casa en una foto</small></div><div class="meta"><strong>Dom 13 dic</strong><span id="quedan">Quedan 121 de 184</span><div class="aforo"><i style="width:34%"></i></div></div></div>
+          <div class="poster"><div class="img po2"><span class="chip">Ejemplo</span><b>Muestra Kids</b><small>Cierre de ciclo</small></div><div class="meta"><strong>Fecha por anunciar</strong>Entradas próximamente<div class="aforo"><i style="width:0"></i></div></div></div>
+          <div class="poster"><div class="img po3"><span class="chip">Ejemplo</span><b>Muestra Teen</b><small>Cierre de ciclo</small></div><div class="meta"><strong>Fecha por anunciar</strong>Entradas próximamente<div class="aforo"><i style="width:0"></i></div></div></div>
+        </div>
+        <p style="font-size:.8rem;color:var(--p-muted);margin:14px 0 0">En el sitio real cada afiche es una imagen que subes desde el panel. Se recorta sola a formato vertical 2:3, como en el cine.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rotulo" id="taquilla">Taquilla · el plano real de la sala, 184 butacas</div>
+  <div class="marco">
+    <div class="barra"><i></i><i></i><i></i><span>aneloescenico.com/funciones/el-recuerdo-de-aquella-navidad</span></div>
+    <div class="p">
+      <div class="taq">
+        <div class="sala">
+          <div class="escenario">ESCENARIO</div>
+          <div class="scroll"><div class="plano" id="plano"></div></div>
+          <div class="leyenda"><span><i style="background:#e3bd5e"></i>VIP</span><span><i style="background:#8fa3b8"></i>General</span><span><i style="background:#4fd08a"></i>Tu selección</span><span><i style="background:#5b4d6e"></i>Apartada por otra persona</span><span><i style="box-shadow:inset 0 0 0 1px var(--p-muted)"></i>Vendida</span></div>
+        </div>
+        <aside>
+          <h5 style="font-size:1.25rem">Tus entradas</h5>
+          <p style="font-size:.8rem;color:var(--p-muted);margin:4px 0 12px">Dom 13 dic · Preventa: VIP $10 · General $8</p>
+          <div class="reloj" id="reloj" aria-live="off">15:00</div>
+          <p style="font-size:.78rem;color:var(--p-muted);margin:2px 0 0" id="relojTxt">Elige butacas para apartarlas 15 minutos.</p>
+          <dl id="resumen"><dt>Sin butacas</dt><dd>—</dd></dl>
+          <button type="button" class="btn" id="pagar" disabled style="width:100%">Reportar pago</button>
+          <button type="button" class="link" id="vencer">Simular que pasan los 15 minutos</button>
+          <div class="aviso" id="aviso" hidden></div>
+        </aside>
+      </div>
+      <div style="padding:0 22px"><h5 style="font-size:1.15rem;margin-bottom:10px">Elenco</h5></div>
+      <div class="elenco" id="elenco"></div>
+    </div>
+  </div>
+
+  <div class="rotulo">Protagonistas · ficha de artista</div>
+  <div class="marco">
+    <div class="barra"><i></i><i></i><i></i><span>aneloescenico.com/protagonistas/nombre-del-artista</span></div>
+    <div class="p">
+      <div class="fichaA">
+        <div class="ret"><img src="assets/retrato.jpg" alt="Foto de ejemplo de una alumna"></div>
+        <div>
+          <div style="font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--p-accent);font-weight:700">Nivel Teenagers · en la escuela desde 2024</div>
+          <h4>Nombre de la artista</h4>
+          <div class="gustos"><span>Improvisación</span><span>Comedia</span><span>Canto</span><span>Danza</span></div>
+          <div class="tabla"><table>
+            <tr><th>Obra</th><th>Personaje</th><th>Año</th></tr>
+            <tr><td>El recuerdo de aquella Navidad</td><td>Papel y descripción del personaje</td><td>2026</td></tr>
+            <tr><td>Muestra de cierre</td><td>Papel y descripción del personaje</td><td>2025</td></tr>
+          </table></div>
+          <p style="font-size:.8rem;color:var(--p-muted);margin:12px 0 0">Datos de ejemplo. La ficha solo se publica si el administrador la activa en la ficha del estudiante y el representante dio su autorización.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="acto">Acto III · Detrás del telón</div>
+  <h2>El panel de administración</h2>
+  <p class="muted">Un solo lugar para todo. Al entrar por primera vez, una guía de primeros pasos lleva de la mano; el manual queda siempre a un toque.</p>
+  <div class="marco" style="--p-bg:#121012">
+    <div class="barra"><i></i><i></i><i></i><span>aneloescenico.com/admin</span></div>
+    <div class="admin">
+      <nav><span class="on">Inicio</span><span>Taquilla</span><span>Funciones</span><span>Pagos</span><span>Estudiantes</span><span>Inscripciones</span><span>Blog</span><span>Protagonistas</span><span>Apariencia</span><span>Usuarios</span><span>Manual</span></nav>
+      <div class="cuerpo">
+        <div class="pasos">
+          <b>Primeros pasos · 3 de 7</b><div class="barraP"><i></i></div>
+          <ol><li class="ok">Sube el logo y elige los colores</li><li class="ok">Crea los niveles y el monto de la mensualidad</li><li class="ok">Registra tus datos de pago</li><li>Crea tu primera función y su plano de butacas</li><li>Publica la primera novedad en el blog</li><li>Invita a un vendedor de taquilla</li><li>Instala la app en tu teléfono</li></ol>
+        </div>
+        <div class="tabla"><table>
+          <tr><th>Pagos por confirmar</th><th>Concepto</th><th>Monto</th><th>Estado</th></tr>
+          <tr><td>Representante (ejemplo)</td><td>Mensualidad diciembre · Kids</td><td>$ —</td><td><span class="est p">Por confirmar</span></td></tr>
+          <tr><td>Comprador (ejemplo)</td><td>2 entradas VIP · butacas 51 y 52</td><td>$20</td><td><span class="est p">Por confirmar</span></td></tr>
+          <tr><td>Representante (ejemplo)</td><td>Inscripción · Teen</td><td>$ —</td><td><span class="est o">Confirmado</span></td></tr>
+          <tr><td>Representante (ejemplo)</td><td>Mensualidad noviembre · Teenagers</td><td>$ —</td><td><span class="est m">En mora</span></td></tr>
+        </table></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:34px">Quién puede hacer qué</h3>
+  <div class="tabla"><table>
+    <tr><th>Acción</th><th>Master</th><th>Administrador</th><th>Vendedor</th><th>Representante</th></tr>
+    <tr><td>Vender entradas en taquilla</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">—</td></tr>
+    <tr><td>Confirmar o rechazar pagos</td><td class="si">Sí</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">—</td></tr>
+    <tr><td>Crear funciones, planos y precios</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">—</td><td class="no">—</td></tr>
+    <tr><td>Estudiantes, inscripciones y mensualidades</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">—</td><td class="no">Solo sus hijos</td></tr>
+    <tr><td>Blog y fichas de Protagonistas</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">—</td><td class="no">—</td></tr>
+    <tr><td>Colores, tipografía, logo</td><td class="si">Sí</td><td class="si">Sí</td><td class="no">—</td><td class="no">—</td></tr>
+    <tr><td>Crear usuarios y ver el historial de acciones</td><td class="si">Sí</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+    <tr><td>Reportar pagos y descargar recibos</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="si">Sí</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <div class="acto">Acto IV · Alcance</div>
+  <h2>Todo lo que incluye</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><h3>Sitio público</h3><ul><li>Inicio con carrusel de fotos grandes y novedades destacadas</li><li>Clases Actuación por nivel: Kids, Teen, Teenagers</li><li>Funciones de Teatro en formato cartelera</li><li>Protagonistas, Blog, Sobre nosotros, Contáctanos</li><li>Botón directo a WhatsApp e Instagram</li></ul></div>
+    <div class="card"><h3>Taquilla en línea</h3><ul><li>Plano de butacas que se toca con el dedo, con zoom</li><li>Butacas apartadas 15 minutos; si no hay pago, se liberan solas</li><li>Pago reportado con referencia y captura; el equipo lo confirma</li><li>Entrada digital con código QR para validar en la puerta</li><li>Contador de entradas disponibles en cada afiche</li></ul></div>
+    <div class="card"><h3>Portal de representantes</h3><ul><li>Inscripción en línea del estudiante</li><li>Estado de cuenta: mensualidades pagadas, pendientes y en mora</li><li>Reporte de pago y recibo en PDF</li><li>Recordatorio antes del vencimiento</li></ul></div>
+    <div class="card"><h3>Panel de administración</h3><ul><li>Taquilla presencial para vender a quien llega a la sala</li><li>Ficha de cada estudiante con su control de pagos</li><li>Editor de blog con destacados para Inicio</li><li>Apariencia: colores, tamaño de letra, logo y carrusel</li><li>Reportes de ventas y cobranza, exportables a Excel</li></ul></div>
+    <div class="card"><h3>App instalable</h3><ul><li>Se instala en el teléfono desde el navegador, con el logo de la escuela</li><li>Funciona en Android, iPhone y computadora</li><li>Pensada primero para el móvil</li></ul></div>
+    <div class="card"><h3>Si dos personas quieren la misma butaca</h3><ul><li>La butaca apartada queda bloqueada para todos, también en taquilla</li><li>Si un pago llega después de vencer el apartado y la butaca ya se vendió, el sistema avisa al comprador</li><li>El comprador elige: otras butacas disponibles o reembolso</li><li>Todo queda registrado en el historial</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <div class="acto">Acto V · Tecnología</div>
+  <h2>Sobre qué se construye</h2>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card"><h3>GitHub</h3><p class="small muted">El código y toda esta documentación viven en el repositorio. Cada cambio queda con historial.</p></div>
+    <div class="card"><h3>Vercel</h3><p class="small muted">Publica el sitio y lo actualiza solo con cada cambio aprobado. Next.js con TypeScript.</p></div>
+    <div class="card"><h3>Neon</h3><p class="small muted">Base de datos Postgres para estudiantes, pagos, funciones, butacas y blog.</p></div>
+    <div class="card"><h3>Fotos: Vercel Blob</h3><p class="small muted">Recomendado para empezar: todo en un solo proveedor. Las imágenes se recortan al subir y se sirven optimizadas. Cloudinary queda como alternativa si la galería crece mucho.</p></div>
+    <div class="card"><h3>Correo: Resend</h3><p class="small muted">Recibos, confirmaciones de entradas y avisos de vencimiento por correo, con enlace a WhatsApp.</p></div>
+    <div class="card"><h3>Seguridad</h3><p class="small muted">Claves cifradas, sesiones por rol, historial de acciones y datos de menores visibles solo con autorización del representante.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="acto">Acto VI · Plan</div>
+  <h2>Cómo lo construimos, por entregas</h2>
+  <div class="fases" style="margin-top:18px">
+    <div class="card"><h3>Sitio público y apariencia</h3><p class="small muted">Diseño elegido, menú, Inicio con carrusel, páginas de contenido, blog, acceso master, editor de colores y logo, app instalable.</p></div>
+    <div class="card"><h3>Funciones y taquilla</h3><p class="small muted">Cartelera, plano de butacas, apartado de 15 minutos, reporte y confirmación de pagos, entrada con QR, venta presencial, rol Vendedor.</p></div>
+    <div class="card"><h3>Escuela</h3><p class="small muted">Inscripciones, fichas de estudiantes, mensualidades, portal de representantes, recibos, recordatorios.</p></div>
+    <div class="card"><h3>Protagonistas y cierre</h3><p class="small muted">Fichas de artistas con trayectoria, reportes, guía de primeros pasos, manual y capacitación.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="acto">Epílogo</div>
+  <h2>Lo que necesitamos de ti para empezar</h2>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><h3>Decisiones</h3><ul><li>Dirección de diseño: A, B o C (se pueden mezclar)</li><li>Nombre de la sección de artistas: recomendamos mantener <b style="color:var(--fg)">Protagonistas</b>; alternativas: Elenco, Nuestros Artistas</li><li>Métodos de pago que aceptan: Pago Móvil, transferencia, Zelle, efectivo</li><li>Si los precios se muestran solo en dólares o también en bolívares</li></ul></div>
+    <div class="card"><h3>Material</h3><ul><li>Logo en alta resolución</li><li>Fotos grandes de clases para el carrusel</li><li>Niveles, horarios y montos de inscripción y mensualidad</li><li>Texto de Sobre nosotros y datos de contacto</li><li>Dominio, si ya tienen uno</li></ul></div>
+  </div>
+</section>
+
+<footer>
+  La especificación completa está en el repositorio: <b>docs/PROPUESTA.md</b>, <b>docs/ESPECIFICACION-TECNICA.md</b> y <b>docs/PLAN-DE-TRABAJO.md</b>. Las fotos de este documento son las de muestra que envió la escuela; el sitio final usará fotos en alta resolución.
+</footer>
+</div>
+
+<script>
+(function(){
+  var demo=document.getElementById('demo');
+  // Selector de dirección
+  var bs=demo.querySelectorAll('.selector button');
+  bs.forEach(function(b){b.addEventListener('click',function(){
+    demo.dataset.dir=b.dataset.d;
+    bs.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
+    try{localStorage.setItem('anelo-dir',b.dataset.d)}catch(e){}
+  })});
+  try{var g=localStorage.getItem('anelo-dir');if(g){var t=demo.querySelector('.selector button[data-d="'+g+'"]');if(t)t.click()}}catch(e){}
+
+  // Menú móvil
+  var ham=document.getElementById('ham'),nav=document.getElementById('pnav');
+  ham.addEventListener('click',function(){var a=nav.classList.toggle('abierto');ham.setAttribute('aria-expanded',a)});
+  nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault()})});
+
+  // Carrusel
+  var slides=[].slice.call(document.querySelectorAll('#hero .slide')),puntos=document.getElementById('puntos'),i=0,timer;
+  function ir(n){i=(n+slides.length)%slides.length;slides.forEach(function(s,k){s.classList.toggle('on',k===i)});
+    [].forEach.call(puntos.children,function(p,k){p.setAttribute('aria-current',k===i?'true':'false')})}
+  slides.forEach(function(_,k){var b=document.createElement('button');b.type='button';b.setAttribute('aria-label','Foto '+(k+1));
+    b.addEventListener('click',function(){ir(k);auto()});puntos.appendChild(b)});
+  function auto(){clearInterval(timer);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)timer=setInterval(function(){ir(i+1)},5500)}
+  ir(0);auto();
+
+  // Plano de butacas (distribución real del plano de la escuela)
+  var plano=document.getElementById('plano');
+  var centro=[[49,55],[56,63],[64,70],[71,78],[79,85],[86,93],[94,100],[101,108],[109,115],[116,123],[124,130],[131,136]];
+  function filas4(desde){var r=[];for(var k=0;k<12;k++)r.push([desde+k*4,desde+k*4+3]);return r}
+  var vendidas={3:1,4:1,7:1,8:1,14:1,15:1,22:1,49:1,50:1,56:1,57:1,58:1,59:1,64:1,65:1,66:1,72:1,73:1,74:1,75:1,80:1,81:1,87:1,88:1,89:1,90:1,95:1,96:1,102:1,103:1,104:1,110:1,111:1,117:1,118:1,137:1,138:1,141:1,142:1,143:1,145:1,146:1,150:1,151:1,155:1,156:1,160:1,161:1,165:1,170:1,171:1,172:1,125:1,126:1,30:1,31:1,35:1,36:1,41:1,42:1,45:1,46:1,132:1};
+  var apartadas={60:1,61:1,82:1,83:1,84:1,147:1,148:1};
+  function esVip(n){return n<=12||(n>=49&&n<=100)||(n>=137&&n<=148)}
+  var sel=[];
+  function lado(nombre,filas){var d=document.createElement('div');d.className='lado';
+    filas.forEach(function(f){var r=document.createElement('div');r.className='fila';
+      for(var n=f[0];n<=f[1];n++){(function(n){var b=document.createElement('button');b.type='button';b.textContent=n;b.dataset.n=n;
+        var est=vendidas[n]?'ven':apartadas[n]?'apa':(esVip(n)?'vip':'gen');b.className='as '+est;
+        var zona=esVip(n)?'VIP':'General';
+        b.setAttribute('aria-label','Butaca '+n+', '+zona+(est==='ven'?', vendida':est==='apa'?', apartada':', disponible'));
+        if(est==='ven'||est==='apa')b.disabled=true;else b.addEventListener('click',function(){tocar(n,b)});
+        r.appendChild(b)})(n)}
+      d.appendChild(r)});
+    var s=document.createElement('span');s.textContent=nombre;d.appendChild(s);plano.appendChild(d)}
+  lado('LADO IZQUIERDO',filas4(1));lado('LADO CENTRAL',centro);lado('LADO DERECHO',filas4(137));
+
+  var reloj=document.getElementById('reloj'),relojTxt=document.getElementById('relojTxt'),resumen=document.getElementById('resumen'),
+      pagar=document.getElementById('pagar'),aviso=document.getElementById('aviso'),resta=900,cuenta=null;
+  function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+  function pintar(){
+    var vip=sel.filter(esVip).length,gen=sel.length-vip,h='';
+    if(!sel.length)h='<dt>Sin butacas</dt><dd>—</dd>';
+    else{h='<dt>Butacas</dt><dd>'+sel.slice().sort(function(a,b){return a-b}).join(', ')+'</dd>';
+      if(vip)h+='<dt>'+vip+' × VIP</dt><dd>$'+vip*10+'</dd>';
+      if(gen)h+='<dt>'+gen+' × General</dt><dd>$'+gen*8+'</dd>';
+      h+='<dt class="total">Total</dt><dd class="total">$'+(vip*10+gen*8)+'</dd>'}
+    resumen.innerHTML=h;pagar.disabled=!sel.length;
+    document.getElementById('quedan').textContent='Quedan '+(184-Object.keys(vendidas).length-Object.keys(apartadas).length-sel.length)+' de 184';
+  }
+  function parar(){clearInterval(cuenta);cuenta=null;resta=900;reloj.textContent='15:00';reloj.classList.remove('urge')}
+  function liberar(msg){sel.forEach(function(n){var b=plano.querySelector('[data-n="'+n+'"]');b.classList.remove('sel');b.setAttribute('aria-pressed','false')});
+    sel=[];parar();pintar();relojTxt.textContent='Elige butacas para apartarlas 15 minutos.';if(msg){aviso.hidden=false;aviso.textContent=msg}}
+  function tic(){resta--;reloj.textContent=fmt(resta);reloj.classList.toggle('urge',resta<=60);
+    if(resta<=0)liberar('Se cumplieron los 15 minutos sin pago. Tus butacas quedaron libres para otras personas. Puedes elegirlas de nuevo si siguen disponibles.')}
+  function tocar(n,b){aviso.hidden=true;var k=sel.indexOf(n);
+    if(k>-1){sel.splice(k,1);b.classList.remove('sel');b.setAttribute('aria-pressed','false')}
+    else{if(sel.length>=8){aviso.hidden=false;aviso.textContent='Máximo 8 butacas por compra.';return}
+      sel.push(n);b.classList.add('sel');b.setAttribute('aria-pressed','true')}
+    if(sel.length&&!cuenta){cuenta=setInterval(tic,1000);relojTxt.textContent='Tus butacas están apartadas. Completa el pago antes de que termine el tiempo.'}
+    if(!sel.length){parar();relojTxt.textContent='Elige butacas para apartarlas 15 minutos.'}
+    pintar()}
+  document.getElementById('vencer').addEventListener('click',function(){if(!sel.length){aviso.hidden=false;aviso.textContent='Primero elige al menos una butaca.';return}resta=6});
+  pagar.addEventListener('click',function(){aviso.hidden=false;
+    aviso.textContent='En el sitio real aquí verás los datos de pago, escribirás la referencia y subirás la captura. El reloj se detiene y tus butacas quedan “por confirmar” hasta que taquilla apruebe el pago.'});
+  pintar();
+
+  // Elenco
+  var el=document.getElementById('elenco');
+  [['Actriz','Personaje principal','assets/retrato.jpg'],['AM','Personaje'],['LR','Personaje'],['CP','Personaje'],['VG','Personaje'],['DS','Personaje'],['MT','Personaje'],['JF','Personaje']].forEach(function(a,k){
+    var f=document.createElement('figure');
+    f.innerHTML='<div class="av">'+(a[2]?'<img src="'+a[2]+'" alt="">':a[0])+'</div><figcaption>Nombre del actor '+(k+1)+'<small>'+a[1]+'</small></figcaption>';
+    el.appendChild(f)});
+})();
+</script>

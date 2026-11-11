@@ -75,7 +75,7 @@ export function PagarCargos({ cargos, cobros, tasa }: { cargos: Cargo[]; cobros:
       </div>
       <dl className="cuenta">
         <dt className="total">Total a pagar</dt><dd className="total">{usd(total)}</dd>
-        {totalBs != null && <><dt>En bolívares (tasa BCV Bs {tasa!.toLocaleString("es-VE", { minimumFractionDigits: 2 })})</dt><dd><strong>Bs {totalBs.toLocaleString("es-VE", { minimumFractionDigits: 2 })}</strong></dd></>}
+        {totalBs != null && <><dt>En bolívares (tasa BCV Bs {tasa!.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</dt><dd><strong>Bs {totalBs.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></dd></>}
       </dl>
       {hayPM || hayTR ? (
         <>

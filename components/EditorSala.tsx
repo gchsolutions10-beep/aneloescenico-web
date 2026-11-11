@@ -24,7 +24,7 @@ export default function EditorSala({ id, nombreInicial, inicial, error }: { id: 
 
       <section className="panel">
         <div className="cab"><h2>1. Zonas de precio</h2>
-          <button type="button" className="btn sec chico" disabled={d.zonas.length >= 8} onClick={() => cambiar((c) => { c.zonas.push({ clave: `z${Date.now().toString(36)}`, nombre: "Nueva zona", color: COLORES[c.zonas.length % COLORES.length], precioPreventa: "", precioRegular: "10" }); })}>Agregar zona</button>
+          <button type="button" className="btn sec chico" disabled={d.zonas.length >= 8} onClick={() => cambiar((c) => { c.zonas.push({ clave: `z${Date.now().toString(36)}`, nombre: "Nueva zona", color: COLORES.find((x) => !c.zonas.some((z) => z.color.toLowerCase() === x)) ?? COLORES[0], precioPreventa: "", precioRegular: "10" }); })}>Agregar zona</button>
         </div>
         <p className="tenue" style={{ margin: 0 }}>Precios sugeridos en dólares. Se pueden ajustar en cada función.</p>
         <div className="tabla"><table>

@@ -29,7 +29,8 @@ async function main() {
   await e.aprobarInscripcion(a1.id, 5);
   let cs = await cargosDe(a1.id);
   assert.deepEqual(cs.map((c) => [c.tipo, Number(c.montoUsd)]), [["inscripcion", 20], ["mensualidad", 30]]);
-  assert.equal(cs[1].venceEl, `${periodo}-05`);
+  assert.equal(cs[1].venceEl, e.venceMensualidad(periodo, 5));
+  assert.notEqual(e.estadoCargo(cs[1]), "en_mora", "quien entra a mitad de mes no nace en mora");
   await falla(e.aprobarInscripcion(a1.id, 5), /ya fue atendida/);
   paso("aprobar una solicitud genera la inscripción y la primera mensualidad, una sola vez");
 

@@ -36,25 +36,39 @@ Cada fase termina con algo publicado en Vercel que el cliente puede probar.
 - [x] Usuarios Administrador y Vendedor
 - [x] Pruebas automáticas de las reglas (`npm run prueba`)
 
+**Añadido después:**
+- [x] Editor de salas: el administrador crea salas nuevas (zonas, bloques y filas) desde el panel.
+- [x] Correo configurable desde el panel (clave de Resend y remitente, con botón de prueba).
+
 **Pendiente de esta fase:**
-- Editor de planos para salas distintas (hoy existe una plantilla: la sala de 184 butacas).
-- Correos al comprador: están programados pero sin probar; requieren una cuenta de Resend (`RESEND_API_KEY` y `CORREO_REMITENTE`). Sin ellas el comprador consulta todo en el enlace de su orden.
-- Lector de QR dentro del panel: hoy se escanea con la cámara del teléfono, que abre el enlace de validación.
-- Cierre de caja y reportes exportables a Excel.
+- Probar el envío real de correos: requiere una cuenta de Resend con un dominio verificado.
+- Lector de QR dentro del panel: por decisión del cliente se mantiene el escaneo con la cámara del teléfono.
+- Cierre de caja y reportes exportables a Excel (pasan a la Fase 4).
 - Restablecer clave por correo.
 
-## Fase 3 · Escuela
-- Niveles, inscripciones en línea
-- Fichas de estudiantes y representantes
-- Mensualidades automáticas, mora, descuentos
-- Portal de representantes, recibos en PDF, recordatorios
+## Fase 3 · Escuela (construida)
+- [x] Cuenta de representante y solicitud de inscripción en línea
+- [x] Bandeja de Inscripciones: aprobar, no admitir, inscribir en persona
+- [x] Ficha del estudiante: datos, representante, nivel, beca, estado, notas internas
+- [x] Mensualidades automáticas por nivel, con beca aplicada y sin duplicados
+- [x] Portal del representante: estudiantes, estado de cuenta, reporte de pago en bolívares a tasa BCV
+- [x] Cobranza: confirmar o rechazar pagos, lista de mora con recordatorio por WhatsApp
+- [x] Cobro en la escuela (efectivo, punto) con recibo en el acto
+- [x] Recibos numerados de corrido, imprimibles o guardables como PDF desde el navegador
+- [x] Cargos adicionales (vestuario, talleres) y anulación de cargos
+- [x] Tarea diaria en Vercel: genera mensualidades y envía recordatorios por correo
+- [x] Pruebas automáticas de las reglas (`npm run prueba`)
 
-**Se entrega:** cobro de inscripciones y mensualidades desde el portal.
+**Notas:**
+- El recibo es una página imprimible; el PDF se obtiene con "Guardar como PDF" del navegador.
+- Los recordatorios por correo solo salen si el correo está configurado, y la tarea diaria solo corre una vez desplegado en Vercel con `CRON_SECRET`. Ninguno de los dos se pudo probar aquí.
+- Sin correo, el recordatorio se hace con el botón de WhatsApp de la lista de mora.
+- No hay verificación del correo al crear una cuenta de representante ni restablecimiento de clave por correo; un administrador puede dar acceso desde la ficha.
 
 ## Fase 4 · Protagonistas y cierre
 - Fichas de artistas con trayectoria y autorización
 - Elenco enlazado en cada función
-- Reportes y exportación a Excel
+- Reportes, cierre de caja y exportación a Excel
 - Guía de primeros pasos, recorridos por pantalla, manual
 - Pruebas de punta a punta, capacitación al equipo
 

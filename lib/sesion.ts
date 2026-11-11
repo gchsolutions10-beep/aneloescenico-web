@@ -53,14 +53,15 @@ export async function exigirAdmin(): Promise<Sesion> {
   if (!s) redirect("/ingresar");
   // Un vendedor que abre una pantalla de administración vuelve a su taquilla.
   if (s.rol === "vendedor") redirect("/admin/taquilla");
-  if (s.rol !== "master" && s.rol !== "admin") redirect("/ingresar");
+  if (s.rol !== "master" && s.rol !== "admin") redirect("/portal");
   return s;
 }
 
 /** Exige sesión de cualquier miembro del equipo: master, administrador o vendedor. */
 export async function exigirEquipo(): Promise<Sesion> {
   const s = await leerSesion();
-  if (!s || s.rol === "representante") redirect("/ingresar");
+  if (!s) redirect("/ingresar");
+  if (s.rol === "representante") redirect("/portal");
   return s;
 }
 

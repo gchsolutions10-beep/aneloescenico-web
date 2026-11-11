@@ -33,6 +33,12 @@ function vencimiento(periodo: string, dia: number) {
   return `${periodo}-${String(d).padStart(2, "0")}`;
 }
 
+/** Si la mensualidad se genera cuando su fecha ya pasó (alguien que entra a mitad de mes), se dan 7 días para pagarla. */
+export function venceMensualidad(periodo: string, dia: number): string {
+  const normal = vencimiento(periodo, dia);
+  return hoy() > normal ? new Date(Date.parse(`${hoy()}T12:00:00Z`) + 7 * 86400_000).toISOString().slice(0, 10) : normal;
+}
+
 /**
  * Crea la mensualidad del período para cada estudiante activo que aún no la tenga.
  * Se puede llamar las veces que sea: nunca duplica (restricción única por estudiante y período).
@@ -41,7 +47,7 @@ export async function generarMensualidades(periodo: string, diaVencimiento: numb
   const r = await tx.execute(sql`
     INSERT INTO cargos (estudiante_id, tipo, concepto, periodo, monto_usd, vence_el)
     SELECT e.id, 'mensualidad', ${`Mensualidad ${nombrePeriodo(periodo)} · `} || n.nombre, ${periodo},
-           round(n.monto_mensualidad * (100 - e.beca_pct) / 100.0, 2), ${vencimiento(periodo, diaVencimiento)}::date
+           round(n.monto_mensualidad * (100 - e.beca_pct) / 100.0, 2), ${venceMensualidad(periodo, diaVencimiento)}::date
     FROM estudiantes e JOIN niveles n ON n.id = e.nivel_id
     WHERE e.estado = 'activo' AND n.monto_mensualidad > 0 AND e.beca_pct < 100
       AND (e.fecha_ingreso IS NULL OR to_char(e.fecha_ingreso, 'YYYY-MM') <= ${periodo})

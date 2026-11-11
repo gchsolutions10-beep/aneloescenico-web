@@ -2,7 +2,7 @@
 
 Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de Teatro** (Acarigua). Niveles Kids, Teen y Teenagers.
 
-**Estado: Fases 1 y 2 construidas** (sitio público, panel, apariencia configurable, app instalable y taquilla con plano de butacas). Inscripciones, estudiantes, mensualidades y Protagonistas llegan en las fases siguientes; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
+**Estado: Fases 1, 2 y 3 construidas** (sitio público, panel, taquilla con plano de butacas y escuela con portal de representantes). Las fichas de Protagonistas y los reportes llegan en la Fase 4; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
 
 ## Qué funciona hoy
 
@@ -10,7 +10,9 @@ Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de T
 - **Panel** en `/admin` con ingreso master: Carrusel, Blog, Funciones, Niveles, Mensajes, Apariencia (logo, colores, letra), Datos de la escuela, guía de primeros pasos y manual.
 - **Fotos** que se recortan solas al formato correcto al subirlas (carrusel 16:9, afiche 2:3, logo cuadrado).
 - **Taquilla:** plano de 184 butacas, apartado de 15 minutos, precios en dólares con preventa, cobro en bolívares a tasa BCV, Pago Móvil, transferencia y bonos de regalo, entradas con QR, venta presencial y validación en puerta.
-- **Roles:** Master, Administrador y Vendedor.
+- **Salas:** editor para crear el plano de cualquier lugar (zonas, bloques y filas).
+- **Escuela:** inscripción en línea, fichas de estudiantes, mensualidades automáticas con becas, portal del representante, cobranza, mora y recibos numerados.
+- **Roles:** Master, Administrador, Vendedor y Representante.
 - **App instalable** (PWA) con el logo y los colores configurados.
 
 Para publicarlo: [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
@@ -45,4 +47,4 @@ Next.js 16 (App Router, TypeScript, Cache Components) en **Vercel** · Postgres 
 
 ## Próximo paso
 
-Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real y los datos de pago desde el panel, y seguir con la Fase 3 (inscripciones, estudiantes y mensualidades).
+Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real y los datos de pago desde el panel, y seguir con la Fase 4 (Protagonistas y reportes).

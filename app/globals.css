@@ -271,3 +271,4 @@ body:has(.plano-caja) .whatsapp, body:has(.reloj) .whatsapp { display: none; }
 .recibo .num { font-size: 1.4rem; font-weight: 800; }
 .recibo small { color: #6b5d55; }
 @media print { .recibo { border-radius: 0; padding: 0; max-width: none; } }
+body:has(.cargos) .whatsapp { display: none; }

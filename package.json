@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:generar": "drizzle-kit generate",
     "db:migrar": "node scripts/migrar.mjs",
-    "prueba": "tsx --conditions=react-server pruebas/taquilla.prueba.ts"
+    "prueba": "tsx --conditions=react-server pruebas/taquilla.prueba.ts && tsx --conditions=react-server pruebas/escuela.prueba.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.9.0",

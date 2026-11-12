@@ -272,3 +272,26 @@ body:has(.plano-caja) .whatsapp, body:has(.reloj) .whatsapp { display: none; }
 .recibo small { color: #6b5d55; }
 @media print { .recibo { border-radius: 0; padding: 0; max-width: none; } }
 body:has(.cargos) .whatsapp { display: none; }
+
+/* ---------- Protagonistas ---------- */
+.artistas { display: grid; gap: 26px 20px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.artista { text-decoration: none; color: inherit; display: grid; gap: 4px; text-align: center; }
+.artista b { font-family: var(--f-titulos); font-weight: var(--titulos-peso); text-transform: var(--titulos-may); font-size: 1.3rem; margin-top: 8px; }
+.artista small { color: var(--tenue); }
+.retrato { aspect-ratio: 3 / 4; max-width: 100%; position: relative; overflow: hidden; border-radius: var(--radio); border: 1px solid var(--linea); background: linear-gradient(160deg, color-mix(in srgb, var(--telon) 55%, #000), var(--fondo)); display: grid; place-items: center; transition: transform .18s, border-color .18s; }
+.retrato img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.retrato span { font-family: var(--f-titulos); font-size: 4rem; color: var(--acento); }
+.artista:hover .retrato { transform: translateY(-4px); border-color: var(--acento); }
+.ficha-artista { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: clamp(22px, 5vw, 50px); align-items: center; }
+@media (max-width: 700px) { .ficha-artista { grid-template-columns: 1fr; } .ficha-artista .retrato { max-width: 230px; } }
+.gustos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.gustos span { border: 1px solid var(--linea); border-radius: 30px; padding: 5px 14px; font-size: .9rem; background: var(--superficie); }
+.trayectoria { list-style: none; margin: 0; padding: 0; display: grid; }
+.trayectoria li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 18px; padding: 18px 0; border-top: 1px solid var(--linea); }
+.trayectoria .anio { font-family: var(--f-titulos); font-size: 1.5rem; color: var(--acento); line-height: 1.1; }
+.trayectoria a { color: var(--texto); font-size: 1.15rem; }
+.trayectoria .papel { display: block; color: var(--acento); font-weight: 600; margin-top: 2px; }
+.trayectoria p { color: var(--tenue); margin: 6px 0 0; max-width: 62ch; }
+.galeria { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.galeria div { aspect-ratio: 4 / 3; position: relative; border-radius: var(--radio); overflow: hidden; border: 1px solid var(--linea); }
+.galeria img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

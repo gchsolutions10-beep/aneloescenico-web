@@ -21,7 +21,8 @@ async function Detalle({ params, searchParams }: Props) {
   const id = Number((await params).id) || 0;
   const [f] = await db().select().from(schema.funciones).where(eq(schema.funciones.id, id));
   if (!f) notFound();
-  const [salas, zonas, elenco, plano, [dinero]] = await Promise.all([
+  const [alumnos, salas, zonas, elenco, plano, [dinero]] = await Promise.all([
+    db().select({ id: schema.estudiantes.id, nombres: schema.estudiantes.nombres, apellidos: schema.estudiantes.apellidos }).from(schema.estudiantes).where(sql`${schema.estudiantes.estado} IN ('activo', 'egresado')`).orderBy(asc(schema.estudiantes.nombres)),
     db().select().from(schema.salas).orderBy(asc(schema.salas.id)),
     db().select().from(schema.zonas).where(eq(schema.zonas.funcionId, id)).orderBy(asc(schema.zonas.orden)),
     db().select().from(schema.elenco).where(eq(schema.elenco.funcionId, id)).orderBy(asc(schema.elenco.orden), asc(schema.elenco.id)),
@@ -128,10 +129,15 @@ async function Detalle({ params, searchParams }: Props) {
           <input type="hidden" name="funcionId" value={f.id} />
           <input type="hidden" name="orden" value={elenco.length + 1} />
           <div className="fila">
-            <div className="campo"><label htmlFor="a-nombre">Nombre del actor</label><input id="a-nombre" name="nombre" required /></div>
+            <div className="campo"><label htmlFor="a-est">¿Es estudiante de la escuela?</label>
+              <select id="a-est" name="estudianteId" defaultValue=""><option value="">No (invitado)</option>{alumnos.map((a) => <option key={a.id} value={a.id}>{a.nombres} {a.apellidos}</option>)}</select>
+              <small>Si lo eliges, esta obra aparece en la trayectoria de su ficha de Protagonista.</small>
+            </div>
+            <div className="campo"><label htmlFor="a-nombre">Nombre a mostrar</label><input id="a-nombre" name="nombre" /><small>Vacío = el nombre de su ficha.</small></div>
             <div className="campo"><label htmlFor="a-pers">Personaje</label><input id="a-pers" name="personaje" /></div>
           </div>
-          <SubirImagen nombre="fotoUrl" aspecto={1} ancho={400} etiqueta="Foto (opcional)" />
+          <div className="campo"><label htmlFor="a-desc">Descripción del papel (opcional)</label><input id="a-desc" name="descripcion" /></div>
+          <SubirImagen nombre="fotoUrl" aspecto={1} ancho={400} etiqueta="Foto (opcional; si es estudiante se usa la de su ficha)" />
           <div><button className="btn sec">Agregar al elenco</button></div>
         </form>
       </section>

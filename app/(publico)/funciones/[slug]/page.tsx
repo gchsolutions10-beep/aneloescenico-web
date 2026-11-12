@@ -52,12 +52,15 @@ async function Detalle({ params }: Props) {
           <div className="contenedor">
             <div className="cabecera-seccion"><div><span className="ceja">En escena</span><h2>Elenco</h2></div></div>
             <div className="elenco">
-              {f.elenco.map((a) => (
-                <figure key={a.id}>
-                  <div className="foto">{a.fotoUrl ? <Image src={a.fotoUrl} alt="" fill sizes="100px" /> : a.nombre.slice(0, 1)}</div>
-                  <figcaption>{a.nombre}{a.personaje && <small>{a.personaje}</small>}</figcaption>
-                </figure>
-              ))}
+              {f.elenco.map((a) => {
+                const cuerpo = (
+                  <>
+                    <div className="foto">{a.fotoUrl ? <Image src={a.fotoUrl} alt="" fill sizes="100px" /> : a.nombre.slice(0, 1)}</div>
+                    <figcaption>{a.nombre}{a.personaje && <small>{a.personaje}</small>}</figcaption>
+                  </>
+                );
+                return <figure key={a.id}>{a.slugFicha ? <Link href={`/protagonistas/${a.slugFicha}`} style={{ color: "inherit", textDecoration: "none" }}>{cuerpo}</Link> : cuerpo}</figure>;
+              })}
             </div>
           </div>
         </section>

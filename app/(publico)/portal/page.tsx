@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { PagarCargos } from "@/components/Portal";
 import { db, schema } from "@/db";
 import { salir } from "@/lib/acciones";
+import { autorizarFicha } from "@/lib/acciones-protagonistas";
 import { getConfig } from "@/lib/datos";
 import { estadoCargo, ESTADOS_ESTUDIANTE, generarMensualidades, METODOS_ESCUELA, NOMBRE_ESTADO_CARGO, periodoActual } from "@/lib/escuela";
 import { exigirRepresentante } from "@/lib/sesion";
@@ -25,7 +26,8 @@ async function Portal({ searchParams }: Props) {
   const { estudiantes, cargos, niveles, reportesPago } = schema;
   const mios = await db().select({ e: estudiantes, nivel: niveles.nombre }).from(estudiantes).leftJoin(niveles, eq(estudiantes.nivelId, niveles.id)).where(eq(estudiantes.representanteId, s.id)).orderBy(estudiantes.id);
   const ids = mios.map((m) => m.e.id);
-  const [susCargos, pagos, tasa] = await Promise.all([
+  const [fichas, susCargos, pagos, tasa] = await Promise.all([
+    ids.length ? db().select().from(schema.fichasArtista).where(inArray(schema.fichasArtista.estudianteId, ids)) : [],
     ids.length ? db().select().from(cargos).where(and(inArray(cargos.estudianteId, ids), inArray(cargos.estado, ["pendiente", "por_confirmar", "pagado"]))).orderBy(cargos.venceEl) : [],
     db().select().from(reportesPago).where(eq(reportesPago.usuarioId, s.id)).orderBy(desc(reportesPago.id)).limit(24),
     getTasa(),
@@ -75,6 +77,23 @@ async function Portal({ searchParams }: Props) {
               ); })}
             </tbody>
           </table></div>
+        </div>
+      )}
+
+      {mios.some((m) => m.e.estado === "activo") && (
+        <div className="caja" id="protagonistas">
+          <h2>Ficha de Protagonista</h2>
+          <p className="tenue" style={{ margin: 0 }}>La escuela puede publicar en el sitio una ficha artística de cada estudiante: su nombre de pila, una foto y las obras en las que ha participado. Nunca se publican apellidos, fecha de nacimiento ni datos de contacto. Solo se muestra si tú la autorizas, y puedes retirar la autorización cuando quieras.</p>
+          <div className="desliza"><table className="tabla-simple"><tbody>
+            {mios.filter((m) => m.e.estado === "activo").map(({ e }) => { const f = fichas.find((x) => x.estudianteId === e.id); const ok = Boolean(f?.autorizadaEl); return (
+              <tr key={e.id}>
+                <td><b>{e.nombres}</b><br /><span className={`etiqueta ${ok ? "ok" : ""}`}>{ok ? (f!.publicada ? "Autorizada y publicada" : "Autorizada") : "Sin autorizar"}</span></td>
+                <td style={{ textAlign: "right" }}>
+                  <form action={autorizarFicha}><input type="hidden" name="estudianteId" value={e.id} /><button className="boton sec" name="accion" value={ok ? "retirar" : "autorizar"}>{ok ? "Retirar autorización" : "Autorizo publicarla"}</button></form>
+                </td>
+              </tr>
+            ); })}
+          </tbody></table></div>
         </div>
       )}
 

@@ -159,6 +159,8 @@ export const pagos = pgTable("pagos", {
   estado: text("estado").notNull().default("reportado"),
   revisadoPor: integer("revisado_por").references(() => usuarios.id),
   nota: text("nota").notNull().default(""),
+  /** Momento en que el dinero quedó confirmado; es la fecha que usa el cierre de caja. */
+  confirmadoEl: timestamp("confirmado_el", { withTimezone: true }),
   creadoEl,
 });
 
@@ -180,7 +182,11 @@ export const elenco = pgTable("elenco", {
   funcionId: integer("funcion_id").notNull().references(() => funciones.id, { onDelete: "cascade" }),
   nombre: text("nombre").notNull(),
   personaje: text("personaje").notNull().default(""),
+  /** Descripción del papel; aparece en la trayectoria del artista. */
+  descripcion: text("descripcion").notNull().default(""),
   fotoUrl: text("foto_url"),
+  /** Si el actor es estudiante de la escuela, esta participación alimenta su ficha de Protagonista. */
+  estudianteId: integer("estudiante_id"),
   orden: integer("orden").notNull().default(0),
 });
 
@@ -272,3 +278,35 @@ export const cargos = pgTable("cargos", {
   moraAvisadaEl: timestamp("mora_avisada_el", { withTimezone: true }),
   creadoEl,
 }, (t) => [unique("cargos_estudiante_tipo_periodo").on(t.estudianteId, t.tipo, t.periodo), index("cargos_estado_idx").on(t.estado)]);
+
+// ---------- Protagonistas ----------
+
+/** Ficha pública de un artista. Solo se muestra si está publicada Y el representante la autorizó. */
+export const fichasArtista = pgTable("fichas_artista", {
+  id: serial("id").primaryKey(),
+  estudianteId: integer("estudiante_id").notNull().unique().references(() => estudiantes.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
+  publicada: boolean("publicada").notNull().default(false),
+  /** Fecha en que el representante autorizó la publicación; null = sin autorización. */
+  autorizadaEl: timestamp("autorizada_el", { withTimezone: true }),
+  /** Cómo se dio la autorización: "portal" o el nombre de quien la registró en la escuela. */
+  autorizadaVia: text("autorizada_via").notNull().default(""),
+  nombreArtistico: text("nombre_artistico").notNull().default(""),
+  frase: text("frase").notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  gustos: text("gustos").notNull().default(""), // separados por coma
+  fotoUrl: text("foto_url"),
+  galeria: jsonb("galeria").notNull().$type<string[]>().default([]),
+  orden: integer("orden").notNull().default(0),
+  creadoEl,
+});
+
+/** Enlaces de un solo uso para restablecer la clave. Se guarda solo el hash del código. */
+export const tokensClave = pgTable("tokens_clave", {
+  id: serial("id").primaryKey(),
+  usuarioId: integer("usuario_id").notNull().references(() => usuarios.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  venceEl: timestamp("vence_el", { withTimezone: true }).notNull(),
+  usadoEl: timestamp("usado_el", { withTimezone: true }),
+  creadoEl,
+});

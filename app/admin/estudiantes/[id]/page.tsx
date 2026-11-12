@@ -32,7 +32,10 @@ async function Ficha({ params, searchParams }: Props) {
     <>
       <div className="cab">
         <h1>{e ? `${e.nombres} ${e.apellidos}` : "Nuevo estudiante"}</h1>
-        <Link className="btn sec" href={e?.estado === "solicitud" ? "/admin/inscripciones" : "/admin/estudiantes"}>← Volver</Link>
+        <div className="acciones">
+          {e && e.estado !== "solicitud" && <Link className="btn sec" href={`/admin/protagonistas/${e.id}`}>Ficha de Protagonista</Link>}
+          <Link className="btn sec" href={e?.estado === "solicitud" ? "/admin/inscripciones" : "/admin/estudiantes"}>← Volver</Link>
+        </div>
       </div>
       <Ayuda>
         <ul>

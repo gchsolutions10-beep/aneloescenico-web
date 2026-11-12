@@ -164,14 +164,20 @@ export async function accionBloquear(f: FormData) {
 export async function accionGuardarActor(f: FormData) {
   await exigirAdmin();
   const funcionId = entero(f, "funcionId");
-  const foto = txt(f, "fotoUrl");
-  const nombre = txt(f, "nombre");
+  const estudianteId = entero(f, "estudianteId") || null;
+  const esImagen = (v: string) => v.startsWith("/uploads/") || /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\//.test(v);
+  let nombre = txt(f, "nombre");
+  let foto = esImagen(txt(f, "fotoUrl")) ? txt(f, "fotoUrl") : null;
+  if (estudianteId) {
+    // Si es estudiante, se toman por defecto el nombre y la foto de su ficha de Protagonista.
+    const [e] = await db().select({ nombres: schema.estudiantes.nombres, ficha: schema.fichasArtista }).from(schema.estudiantes)
+      .leftJoin(schema.fichasArtista, eq(schema.fichasArtista.estudianteId, schema.estudiantes.id)).where(eq(schema.estudiantes.id, estudianteId));
+    nombre ||= e?.ficha?.nombreArtistico || e?.nombres || "";
+    foto ??= e?.ficha?.fotoUrl ?? null;
+  }
   if (nombre) {
-    await db().insert(schema.elenco).values({
-      funcionId, nombre, personaje: txt(f, "personaje"), orden: entero(f, "orden"),
-      fotoUrl: foto.startsWith("/uploads/") || /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\//.test(foto) ? foto : null,
-    });
-    updateTag("funciones");
+    await db().insert(schema.elenco).values({ funcionId, estudianteId, nombre, personaje: txt(f, "personaje"), descripcion: txt(f, "descripcion"), orden: entero(f, "orden"), fotoUrl: foto });
+    updateTag("funciones"); updateTag("protagonistas");
   }
   redirect(`/admin/funciones/${funcionId}?ok=1#elenco`);
 }
@@ -179,7 +185,7 @@ export async function accionGuardarActor(f: FormData) {
 export async function accionBorrarActor(f: FormData) {
   await exigirAdmin();
   await db().delete(schema.elenco).where(eq(schema.elenco.id, entero(f, "id")));
-  updateTag("funciones");
+  updateTag("funciones"); updateTag("protagonistas");
   redirect(`/admin/funciones/${entero(f, "funcionId")}?ok=1#elenco`);
 }
 

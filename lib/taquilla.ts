@@ -242,7 +242,7 @@ export async function reportarPago(codigo: string, d: DatosPago): Promise<Orden[
       return "por_confirmar";
     }
     // El bono cubrió todo: no hay nada que verificar.
-    await tx.update(pagos).set({ estado: "confirmado" }).where(eq(pagos.ordenId, o.id));
+    await tx.update(pagos).set({ estado: "confirmado", confirmadoEl: new Date() }).where(eq(pagos.ordenId, o.id));
     await tx.update(butacas).set({ estado: "vendida", apartadaHasta: null }).where(eq(butacas.ordenId, o.id));
     await tx.update(ordenes).set({ ...comprador, estado: "pagada", venceEl: null }).where(eq(ordenes.id, o.id));
     await emitirEntradas(tx, o);
@@ -263,7 +263,7 @@ export async function confirmarOrden(ordenId: number, usuarioId: number) {
   const codigo = await db().transaction(async (tx) => {
     const [o] = await tx.select().from(ordenes).where(eq(ordenes.id, ordenId)).for("update");
     if (!o || o.estado !== "por_confirmar") throw new ErrorTaquilla("Esta orden ya no está por confirmar.");
-    await tx.update(pagos).set({ estado: "confirmado", revisadoPor: usuarioId }).where(and(eq(pagos.ordenId, o.id), eq(pagos.estado, "reportado")));
+    await tx.update(pagos).set({ estado: "confirmado", revisadoPor: usuarioId, confirmadoEl: new Date() }).where(and(eq(pagos.ordenId, o.id), eq(pagos.estado, "reportado")));
     await tx.update(butacas).set({ estado: "vendida" }).where(eq(butacas.ordenId, o.id));
     await tx.update(ordenes).set({ estado: "pagada" }).where(eq(ordenes.id, o.id));
     await emitirEntradas(tx, o);
@@ -347,7 +347,7 @@ export async function venderEnTaquilla(v: VentaTaquilla): Promise<string> {
     }).returning();
     await tomarButacas(tx, f.id, numeros, o.id, "vendida", null);
     if (esCortesia) {
-      await tx.insert(pagos).values({ ordenId: o.id, metodo: "cortesia", montoUsd: "0", estado: "confirmado", revisadoPor: v.vendedorId });
+      await tx.insert(pagos).values({ ordenId: o.id, metodo: "cortesia", montoUsd: "0", estado: "confirmado", revisadoPor: v.vendedorId, confirmadoEl: new Date() });
     } else {
       const cubierto = v.bono ? await aplicarBono(tx, v.bono, o.id, total) : 0;
       const resto = Math.round((total - cubierto) * 100) / 100;
@@ -355,7 +355,7 @@ export async function venderEnTaquilla(v: VentaTaquilla): Promise<string> {
         if (v.metodo === "bono") throw new ErrorTaquilla(`El bono solo cubre $${n2(cubierto)}. Elige cómo paga los $${n2(resto)} restantes.`);
         await tx.insert(pagos).values({ ordenId: o.id, metodo: v.metodo, referencia: v.referencia.replace(/\s/g, ""), montoUsd: n2(resto), montoBs: v.tasa ? n2(enBs(resto, v.tasa)) : null });
       }
-      await tx.update(pagos).set({ estado: "confirmado", revisadoPor: v.vendedorId }).where(eq(pagos.ordenId, o.id));
+      await tx.update(pagos).set({ estado: "confirmado", revisadoPor: v.vendedorId, confirmadoEl: new Date() }).where(eq(pagos.ordenId, o.id));
     }
     await emitirEntradas(tx, o);
     return o.codigo;

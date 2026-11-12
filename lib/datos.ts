@@ -158,7 +158,46 @@ export async function getFuncion(slug: string) {
     db().select().from(schema.zonas).where(eq(schema.zonas.funcionId, f.id)).orderBy(asc(schema.zonas.orden)),
     db().select().from(schema.elenco).where(eq(schema.elenco.funcionId, f.id)).orderBy(asc(schema.elenco.orden), asc(schema.elenco.id)),
   ]);
-  return { ...f, zonas, elenco };
+  // Los actores que son estudiantes con ficha visible enlazan a su página de Protagonista.
+  const visibles = await fichasVisibles();
+  return { ...f, zonas, elenco: elenco.map((a) => ({ ...a, slugFicha: (a.estudianteId && visibles.find((v) => v.estudianteId === a.estudianteId)?.slug) || null })) };
+}
+
+/** Una ficha se muestra solo si está publicada, el representante la autorizó y el estudiante sigue o egresó. */
+async function fichasVisibles() {
+  const { fichasArtista: fa, estudiantes: e, niveles: n } = schema;
+  return db().select({ ficha: fa, estudianteId: e.id, slug: fa.slug, nombres: e.nombres, ingreso: e.fechaIngreso, estado: e.estado, nivel: n.nombre })
+    .from(fa).innerJoin(e, eq(fa.estudianteId, e.id)).leftJoin(n, eq(e.nivelId, n.id))
+    .where(sql`${fa.publicada} AND ${fa.autorizadaEl} IS NOT NULL AND ${e.estado} IN ('activo', 'egresado')`).orderBy(asc(fa.orden), asc(fa.id));
+}
+
+const nombrePublico = (f: { ficha: { nombreArtistico: string }; nombres: string }) => f.ficha.nombreArtistico || f.nombres;
+
+export async function getProtagonistas() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("protagonistas");
+  if (!hayBaseDeDatos()) return [];
+  return (await fichasVisibles()).map((f) => ({ slug: f.slug, nombre: nombrePublico(f), fotoUrl: f.ficha.fotoUrl, nivel: f.nivel, egresado: f.estado === "egresado" }));
+}
+
+export async function getProtagonista(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("protagonistas");
+  cacheTag("funciones");
+  if (!hayBaseDeDatos()) return null;
+  const f = (await fichasVisibles()).find((x) => x.slug === slug);
+  if (!f) return null;
+  const { elenco: el, funciones: fu } = schema;
+  const trayectoria = await db().select({ titulo: fu.titulo, slug: fu.slug, fecha: fu.fechaHora, personaje: el.personaje, descripcion: el.descripcion })
+    .from(el).innerJoin(fu, eq(el.funcionId, fu.id)).where(and(eq(el.estudianteId, f.estudianteId), ne(fu.estado, "borrador"))).orderBy(desc(fu.fechaHora));
+  return {
+    nombre: nombrePublico(f), nivel: f.nivel, egresado: f.estado === "egresado", desde: f.ingreso?.slice(0, 4) ?? null,
+    frase: f.ficha.frase, bio: f.ficha.bio, fotoUrl: f.ficha.fotoUrl, galeria: f.ficha.galeria,
+    gustos: f.ficha.gustos.split(",").map((g) => g.trim()).filter(Boolean),
+    trayectoria: trayectoria.map((t) => ({ ...t, anio: t.fecha ? new Intl.DateTimeFormat("es-VE", { year: "numeric", timeZone: "America/Caracas" }).format(t.fecha) : "" })),
+  };
 }
 
 /** Butacas libres por función para la cartelera. Se refresca cada minuto y al vender o apartar. */

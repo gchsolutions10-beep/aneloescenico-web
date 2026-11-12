@@ -2,7 +2,7 @@
 
 Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de Teatro** (Acarigua). Niveles Kids, Teen y Teenagers.
 
-**Estado: Fases 1, 2 y 3 construidas** (sitio público, panel, taquilla con plano de butacas y escuela con portal de representantes). Las fichas de Protagonistas y los reportes llegan en la Fase 4; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
+**Estado: las cuatro fases están construidas** (sitio público, panel, taquilla, escuela con portal de representantes, Protagonistas y reportes). Falta desplegar y cargar el contenido real; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
 
 ## Qué funciona hoy
 
@@ -12,6 +12,8 @@ Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de T
 - **Taquilla:** plano de 184 butacas, apartado de 15 minutos, precios en dólares con preventa, cobro en bolívares a tasa BCV, Pago Móvil, transferencia y bonos de regalo, entradas con QR, venta presencial y validación en puerta.
 - **Salas:** editor para crear el plano de cualquier lugar (zonas, bloques y filas).
 - **Escuela:** inscripción en línea, fichas de estudiantes, mensualidades automáticas con becas, portal del representante, cobranza, mora y recibos numerados.
+- **Protagonistas:** fichas de artistas con trayectoria, publicadas solo con autorización del representante.
+- **Reportes:** cierre de caja, ventas por función, cobranza y descargas para Excel.
 - **Roles:** Master, Administrador, Vendedor y Representante.
 - **App instalable** (PWA) con el logo y los colores configurados.
 
@@ -47,4 +49,4 @@ Next.js 16 (App Router, TypeScript, Cache Components) en **Vercel** · Postgres 
 
 ## Próximo paso
 
-Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real y los datos de pago desde el panel, y seguir con la Fase 4 (Protagonistas y reportes).
+Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real y los datos de pago desde el panel, configurar el correo y repetir las pruebas en el sitio publicado.

@@ -65,21 +65,34 @@ Cada fase termina con algo publicado en Vercel que el cliente puede probar.
 - Sin correo, el recordatorio se hace con el botón de WhatsApp de la lista de mora.
 - No hay verificación del correo al crear una cuenta de representante ni restablecimiento de clave por correo; un administrador puede dar acceso desde la ficha.
 
-## Fase 4 · Protagonistas y cierre
-- Fichas de artistas con trayectoria y autorización
-- Elenco enlazado en cada función
-- Reportes, cierre de caja y exportación a Excel
-- Guía de primeros pasos, recorridos por pantalla, manual
-- Pruebas de punta a punta, capacitación al equipo
+## Fase 4 · Protagonistas y cierre (construida)
+- [x] Fichas de Protagonistas: foto, frase, gustos, galería y trayectoria armada desde el elenco de cada función
+- [x] Doble condición para publicar: marcada como publicada y autorizada por el representante (desde su portal o registrada en la escuela); retirar la autorización la oculta de inmediato
+- [x] El elenco de cada función enlaza a la ficha del artista
+- [x] Cierre de caja por día, por persona y por método (el vendedor ve solo el suyo)
+- [x] Reportes por rango de fechas: totales, entradas por función, por persona, estudiantes y mora
+- [x] Descargas para Excel (CSV): movimientos, ventas por función y estudiantes con deudas
+- [x] Claves: cambiar la propia, que el administrador se la cambie a un representante, y "olvidé mi clave" con enlace por correo de un solo uso
+- [x] Manual del panel actualizado con todas las pantallas
 
-**Se entrega:** sistema completo y equipo capacitado.
+**Notas:**
+- Las descargas son archivos CSV que Excel abre directamente; no son libros .xlsx con formato.
+- "Olvidé mi clave" necesita el correo configurado. Sin él, la pantalla lo dice y el administrador cambia la clave desde la ficha del estudiante. El envío real del enlace no se pudo probar; el resto del flujo sí.
+- La capacitación al equipo y la carga de contenido real quedan para después del despliegue.
+
+## Pendiente general
+- Desplegar en Vercel con Neon y Blob y repetir las pruebas allí.
+- Configurar Resend y probar los correos (entradas, recibos, recordatorios, recuperación de clave).
+- Cargar contenido real: logo en alta, fotos, niveles con horarios y montos, datos de pago.
+- Lector de QR dentro del panel (hoy se usa la cámara del teléfono, por decisión del cliente).
+- Bonos de regalo aplicables a mensualidades (hoy solo a entradas).
 
 ---
 
 ## Decisiones pendientes del cliente
 
 1. ~~Dirección de diseño~~ → elegida A · Telón.
-2. **Nombre de la sección de artistas:** Protagonistas (recomendado), Elenco o Nuestros Artistas.
+2. ~~Nombre de la sección de artistas~~ → Protagonistas.
 3. ~~Métodos de pago~~ → Pago Móvil, transferencia y bonos de regalo en línea; en taquilla además efectivo y punto. Falta cargar los datos bancarios en Cobros y tasa.
 4. ~~Moneda~~ → precios en dólares, cobro en bolívares a tasa BCV del día.
 5. **Política de reembolso** cuando hay conflicto de butacas o se cancela una función.

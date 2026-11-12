@@ -39,7 +39,7 @@ async function Portal({ searchParams }: Props) {
     <div className="formulario">
       <div className="cabecera-seccion" style={{ marginBottom: 0 }}>
         <div><span className="ceja">Portal de representantes</span><h1>Hola, {s.nombre.split(" ")[0]}</h1></div>
-        <form action={salir}><button className="boton sec">Salir</button></form>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}><Link href="/cuenta">Cambiar mi clave</Link><form action={salir}><button className="boton sec">Salir</button></form></div>
       </div>
       {q.solicitud && <p className="aviso" role="status">Recibimos la solicitud de inscripción. La escuela la revisará y aquí verás la respuesta.</p>}
       {q.reportado && <p className="aviso" role="status">Recibimos tu reporte de pago. Lo verificaremos y aquí aparecerá tu recibo.</p>}

@@ -7,6 +7,7 @@ import { BotonBorrar } from "@/components/AdminPiezas";
 import { Ayuda, Resultado } from "@/components/Ayuda";
 import { db, schema } from "@/db";
 import { accionAnularCargo, agregarCargo, cobrarEnEscuela, darAccesoPortal, guardarEstudiante, quitarAccesoPortal } from "@/lib/acciones-escuela";
+import { restablecerClaveRepresentante } from "@/lib/acciones-clave";
 import { estadoCargo, ESTADOS_ESTUDIANTE, NOMBRE_ESTADO_CARGO } from "@/lib/escuela";
 import { exigirAdmin } from "@/lib/sesion";
 import { enlaceWhatsApp, fechaCorta, usd } from "@/lib/util";
@@ -93,6 +94,7 @@ async function Ficha({ params, searchParams }: Props) {
               <div className="acciones">
                 <span>Vinculado a la cuenta de <b>{cuenta.nombre}</b> ({cuenta.correo}).</span>
                 <form action={quitarAccesoPortal}><input type="hidden" name="id" value={e.id} /><button className="btn sec chico">Desvincular</button></form>
+                <form action={restablecerClaveRepresentante} className="acciones"><input type="hidden" name="estudianteId" value={e.id} /><input type="hidden" name="usuarioId" value={cuenta.id} /><input name="clave" type="password" minLength={8} required placeholder="Clave nueva" aria-label="Clave nueva del representante" autoComplete="new-password" style={{ width: 170 }} /><button className="btn sec chico">Cambiarle la clave</button></form>
               </div>
             ) : (
               <form action={darAccesoPortal} style={{ display: "grid", gap: 12 }}>

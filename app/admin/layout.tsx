@@ -28,6 +28,7 @@ async function Protegido({ children }: { children: React.ReactNode }) {
         <div className="quien"><b>{s.nombre}</b><span>{ROLES[s.rol] ?? s.rol}</span></div>
         <MenuAdmin rol={s.rol} />
         <div className="sep">
+          <Link href="/cuenta">Mi clave</Link>
           <Link href="/" target="_blank">Ver el sitio ↗</Link>
           <form action={salir}><button>Salir</button></form>
         </div>

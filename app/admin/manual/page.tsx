@@ -114,6 +114,32 @@ export default function Manual() {
       </section>
 
       <section className="panel">
+        <h2>Protagonistas</h2>
+        <ol>
+          <li>En Protagonistas, abre la ficha del estudiante: foto, frase, lo que le gusta, galería.</li>
+          <li>Para que se vea en el sitio hacen falta dos cosas: marcarla como publicada y la autorización del representante (la da él en su portal, o la registras tú si firmó una planilla).</li>
+          <li>La trayectoria se llena sola al agregarlo como estudiante en el elenco de una función.</li>
+        </ol>
+      </section>
+
+      <section className="panel">
+        <h2>Cierre de caja y reportes</h2>
+        <ul>
+          <li><b>Cierre de caja:</b> el dinero confirmado en un día, por persona y por método. El vendedor ve solo el suyo.</li>
+          <li><b>Reportes:</b> totales por rango de fechas, entradas por función y estudiantes con sus deudas. Cada reporte se descarga para abrirlo en Excel.</li>
+        </ul>
+      </section>
+
+      <section className="panel">
+        <h2>Claves</h2>
+        <ul>
+          <li>Cada quien cambia su clave en Mi clave.</li>
+          <li>Si un representante olvida la suya, puede pedir un enlace por correo desde la pantalla de ingreso (requiere el correo configurado), o se la cambias tú desde la ficha de su estudiante.</li>
+          <li>Las claves del equipo las cambia el master en Usuarios.</li>
+        </ul>
+      </section>
+
+      <section className="panel">
         <h2>Cambiar colores y letra</h2>
         <ol>
           <li>Entra a Apariencia.</li>

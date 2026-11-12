@@ -73,8 +73,8 @@ async function InicioAdmin() {
       </section>
 
       <section className="panel">
-        <h2>Lo que viene</h2>
-        <p className="tenue" style={{ margin: 0 }}>Las fichas de Protagonistas y los reportes llegan en la siguiente fase. Aparecerán aquí en el menú cuando estén listas.</p>
+        <h2>Ayuda</h2>
+        <p className="tenue" style={{ margin: 0 }}>¿Dudas? El Manual explica cada pantalla paso a paso. Aparecerán aquí en el menú cuando estén listas.</p>
       </section>
     </>
   );

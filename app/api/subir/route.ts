@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { put } from "@vercel/blob";
+import { hayBlob } from "@/lib/blob";
 import { NextResponse } from "next/server";
 import { leerSesion } from "@/lib/sesion";
 
@@ -21,12 +22,12 @@ export async function POST(req: Request) {
   if (archivo.size > MAXIMO) return NextResponse.json({ error: "La imagen pesa demasiado (máximo 4 MB)." }, { status: 400 });
 
   const nombre = `${randomBytes(12).toString("hex")}.${ext}`;
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (hayBlob()) {
     const blob = await put(`anelo/${nombre}`, archivo, { access: "public", contentType: archivo.type });
     return NextResponse.json({ url: blob.url });
   }
   if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Falta conectar Vercel Blob (BLOB_READ_WRITE_TOKEN)." }, { status: 500 });
+    return NextResponse.json({ error: "Falta conectar Vercel Blob al proyecto (Storage → Blob)." }, { status: 500 });
   }
   const carpeta = path.join(process.cwd(), "public", "uploads");
   await mkdir(carpeta, { recursive: true });

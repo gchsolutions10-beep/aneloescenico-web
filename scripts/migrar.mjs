@@ -4,7 +4,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pg from "pg";
 
-const url = process.env.DATABASE_URL;
+// Las migraciones van por la conexión directa (sin pooler) cuando existe; es la recomendada por Neon.
+const url = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 if (!url) {
   console.log("[migrar] Sin DATABASE_URL: se omiten las migraciones.");
   process.exit(0);

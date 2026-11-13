@@ -9,13 +9,14 @@ Pasos para poner el sitio en línea por primera vez. Se hacen una sola vez.
 
 ## 2. Conectar Neon
 1. En el proyecto de Vercel → **Storage → Create Database → Neon**.
-2. Al terminar, Vercel agrega sola la variable `DATABASE_URL`.
+2. Al terminar, Vercel agrega sola `DATABASE_URL` y `DATABASE_URL_UNPOOLED`. Las migraciones usan la segunda.
 
 Las tablas se crean solas: cada build ejecuta `scripts/migrar.mjs`, que aplica las migraciones y crea los niveles Kids, Teen y Teenagers la primera vez.
 
 ## 3. Conectar Vercel Blob (fotos)
 1. **Storage → Create Database → Blob**.
-2. Vercel agrega sola la variable `BLOB_READ_WRITE_TOKEN`.
+2. Vercel agrega sola `BLOB_STORE_ID` (o, en tiendas antiguas, `BLOB_READ_WRITE_TOKEN`). Cualquiera de las dos sirve.
+3. La tienda debe ser de acceso **público**: las fotos del sitio se muestran a cualquiera.
 
 ## 4. Variables de entorno
 En **Settings → Environment Variables** agrega:

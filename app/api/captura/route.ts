@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { put } from "@vercel/blob";
+import { hayBlob } from "@/lib/blob";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db, schema } from "@/db";
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
   if (archivo.size > 3 * 1024 * 1024) return NextResponse.json({ error: "La imagen pesa demasiado (máximo 3 MB)." }, { status: 400 });
 
   const nombre = `${randomBytes(16).toString("hex")}.${TIPOS[archivo.type]}`;
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (hayBlob()) {
     const blob = await put(`anelo/capturas/${nombre}`, archivo, { access: "public", contentType: archivo.type });
     return NextResponse.json({ url: blob.url });
   }

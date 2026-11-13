@@ -8,7 +8,8 @@ import { Ayuda, Resultado } from "@/components/Ayuda";
 import SubirImagen from "@/components/SubirImagen";
 import { db, schema } from "@/db";
 import { borrarFuncion, guardarFuncion } from "@/lib/acciones";
-import { aInputLocal, ESTADOS_FUNCION, fechaCorta, hora } from "@/lib/util";
+import { resumenFuncion } from "@/lib/taquilla";
+import { aInputLocal, ESTADOS_FUNCION, fechaCorta, hora, usd } from "@/lib/util";
 
 export const metadata = { title: "Funciones" };
 
@@ -16,6 +17,12 @@ async function Funciones({ searchParams }: { searchParams: Promise<Record<string
   await exigirAdmin();
   const q = await searchParams;
   const lista = await db().select().from(schema.funciones).orderBy(desc(schema.funciones.fechaHora));
+  const resumenes = Object.fromEntries(await Promise.all(lista.map(async (x) => [x.id, await resumenFuncion(x.id)] as const)));
+  const aviso = (id: number) => {
+    const r = resumenes[id];
+    if (!r || r.ordenes === 0) return "No tiene ventas.";
+    return `Tiene ${r.entradas} entradas emitidas y ${usd(r.cobrado)} cobrados. Se borrarán también esas compras, pagos y entradas, y desaparecerán de los reportes y del cierre de caja. Los bonos usados recuperan su saldo. Si la función fue real, mejor cámbiala a Finalizada o Cancelada.`;
+  };
   const id = Number(q.editar) || 0;
   const f = id ? (await db().select().from(schema.funciones).where(eq(schema.funciones.id, id)))[0] : undefined;
 
@@ -70,7 +77,7 @@ async function Funciones({ searchParams }: { searchParams: Promise<Record<string
                   <td><div className="acciones">
                     <Link className="btn chico" href={`/admin/funciones/${x.id}`}>Venta y butacas</Link>
                     <Link className="btn sec chico" href={`/admin/funciones?editar=${x.id}`}>Editar</Link>
-                    <form action={borrarFuncion}><input type="hidden" name="id" value={x.id} /><BotonBorrar que={`“${x.titulo}”`} /></form>
+                    <form action={borrarFuncion}><input type="hidden" name="id" value={x.id} /><BotonBorrar que={`la función “${x.titulo}”`} aviso={aviso(x.id)} /></form>
                   </div></td>
                 </tr>
               ))}

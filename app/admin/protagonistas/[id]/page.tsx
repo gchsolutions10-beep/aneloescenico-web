@@ -6,7 +6,8 @@ import Cargando from "@/app/admin/loading";
 import { Resultado } from "@/components/Ayuda";
 import SubirImagen from "@/components/SubirImagen";
 import { db, schema } from "@/db";
-import { guardarFicha } from "@/lib/acciones-protagonistas";
+import { borrarFicha, guardarFicha } from "@/lib/acciones-protagonistas";
+import { BotonBorrar } from "@/components/AdminPiezas";
 import { exigirAdmin } from "@/lib/sesion";
 import { fechaLarga } from "@/lib/util";
 
@@ -64,6 +65,12 @@ async function Ficha({ params, searchParams }: Props) {
         </div>
         <div><button className="btn">Guardar ficha</button></div>
       </form>
+      {f && (
+        <form action={borrarFicha} className="acciones">
+          <input type="hidden" name="estudianteId" value={e.id} />
+          <BotonBorrar que={`la ficha de ${e.nombres}`} aviso="Se borran la ficha y sus fotos. Su participación en las obras (elenco) se conserva, y el estudiante no se ve afectado." texto="Borrar ficha" />
+        </form>
+      )}
 
       <section className="panel">
         <h2>Trayectoria</h2>

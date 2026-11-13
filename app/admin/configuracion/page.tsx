@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { Ayuda, Resultado } from "@/components/Ayuda";
 import SubirImagen from "@/components/SubirImagen";
-import { guardarEscuela } from "@/lib/acciones";
+import { accionLimpiarArchivos, guardarEscuela } from "@/lib/acciones";
+import { inventario } from "@/lib/archivos";
 import { getConfig } from "@/lib/datos";
 
 export const metadata = { title: "Datos de la escuela" };
@@ -49,10 +50,34 @@ async function Configuracion({ searchParams }: { searchParams: Promise<Record<st
         <SubirImagen nombre="directorFotoUrl" inicial={e.directorFotoUrl} aspecto={3 / 4} ancho={900} etiqueta="Foto del director" />
         <div><button className="btn">Guardar datos</button></div>
       </form>
+
+      <Suspense fallback={<section className="panel"><h2>Archivos guardados</h2><p className="tenue">Revisando los archivos…</p></section>}>
+        <Archivos searchParams={searchParams} />
+      </Suspense>
     </>
   );
 }
 
 export default function Pagina(props: { searchParams: Promise<Record<string, string>> }) {
   return <Suspense fallback={<Cargando />}><Configuracion {...props} /></Suspense>;
+}
+
+async function Archivos({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
+  const q = await searchParams;
+  const inv = await inventario().catch(() => null);
+  const mb = (b: number) => `${(b / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
+  return (
+    <form action={accionLimpiarArchivos} className="panel" id="archivos">
+      <h2>Archivos guardados</h2>
+      {q.limpiados != null && <p className="nota" role="status">Se borraron {q.limpiados} archivos sin uso.</p>}
+      {!inv ? <p className="tenue" style={{ margin: 0 }}>No se pudo revisar el almacenamiento de fotos ahora.</p> : (
+        <>
+          <p style={{ margin: 0 }}>{inv.total} archivos · {mb(inv.bytes)} en total. Sin uso: <b>{inv.sinUso.length}</b> ({mb(inv.sinUso.reduce((s, a) => s + a.bytes, 0))}).</p>
+          <p className="tenue" style={{ margin: 0 }}>Al borrar algo, sus fotos se eliminan solas. Aun así pueden quedar fotos que se subieron en un formulario que nunca se guardó. Este botón borra las que nada usa y tienen más de un día.</p>
+          <div><button className="btn sec" disabled={inv.sinUso.length === 0}>Borrar archivos sin uso</button></div>
+        </>
+      )}
+    </form>
+  );
 }

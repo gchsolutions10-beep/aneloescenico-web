@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import type { Estado } from "./acciones";
 import { COBROS_INICIAL, getConfig, type Cobros } from "./datos";
+import { limpiarArchivos } from "./archivos";
 import { exigirAdmin, exigirEquipo, exigirMaster } from "./sesion";
 import * as t from "./taquilla";
 import { actualizarTasa, getTasa } from "./tasa";
@@ -184,7 +185,8 @@ export async function accionGuardarActor(f: FormData) {
 
 export async function accionBorrarActor(f: FormData) {
   await exigirAdmin();
-  await db().delete(schema.elenco).where(eq(schema.elenco.id, entero(f, "id")));
+  const [x] = await db().delete(schema.elenco).where(eq(schema.elenco.id, entero(f, "id"))).returning();
+  await limpiarArchivos([x?.fotoUrl]);
   updateTag("funciones"); updateTag("protagonistas");
   redirect(`/admin/funciones/${entero(f, "funcionId")}?ok=1#elenco`);
 }

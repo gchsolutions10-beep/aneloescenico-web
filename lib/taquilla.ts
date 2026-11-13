@@ -390,3 +390,38 @@ export async function validarEntrada(codigoCrudo: string, usuarioId: number, mar
   }
   return { resultado: "valida", ...base };
 }
+
+// ---------- Borrar una función ----------
+
+export type ResumenFuncion = { ordenes: number; entradas: number; cobrado: number };
+
+export async function resumenFuncion(funcionId: number): Promise<ResumenFuncion> {
+  const r = await db().execute<{ ordenes: number; entradas: number; cobrado: string }>(sql`
+    SELECT (SELECT count(*)::int FROM ordenes WHERE funcion_id = ${funcionId}) AS ordenes,
+           (SELECT count(*)::int FROM entradas WHERE funcion_id = ${funcionId}) AS entradas,
+           coalesce((SELECT sum(p.monto_usd) FROM pagos p JOIN ordenes o ON o.id = p.orden_id
+                     WHERE o.funcion_id = ${funcionId} AND p.estado = 'confirmado' AND p.metodo NOT IN ('bono', 'cortesia')), 0)::text AS cobrado`);
+  const x = r.rows[0];
+  return { ordenes: x.ordenes, entradas: x.entradas, cobrado: Number(x.cobrado) };
+}
+
+/**
+ * Borra una función con todo lo suyo: compras, pagos, entradas, butacas, zonas y elenco.
+ * Los bonos usados en esas compras recuperan su saldo. Devuelve las imágenes que quedaron
+ * sueltas (afiche, fotos del elenco, capturas de pago) para limpiarlas después.
+ */
+export async function eliminarFuncion(funcionId: number): Promise<string[]> {
+  return db().transaction(async (tx) => {
+    const [f] = await tx.select().from(funciones).where(eq(funciones.id, funcionId)).for("update");
+    if (!f) return [];
+    const os = await tx.select({ id: ordenes.id }).from(ordenes).where(eq(ordenes.funcionId, funcionId));
+    for (const o of os) await devolverBonos(tx, o.id);
+    const capturas = os.length ? await tx.select({ url: pagos.capturaUrl }).from(pagos).where(inArray(pagos.ordenId, os.map((o) => o.id))) : [];
+    const fotos = await tx.select({ url: schema.elenco.fotoUrl }).from(schema.elenco).where(eq(schema.elenco.funcionId, funcionId));
+    // Las butacas apuntan a las compras: se borran primero las de la función, luego las compras y al final la función.
+    await tx.delete(butacas).where(eq(butacas.funcionId, funcionId));
+    await tx.delete(ordenes).where(eq(ordenes.funcionId, funcionId));
+    await tx.delete(funciones).where(eq(funciones.id, funcionId));
+    return [f.aficheUrl, ...capturas.map((c) => c.url), ...fotos.map((x) => x.url)].filter((u): u is string => Boolean(u));
+  });
+}

@@ -26,10 +26,10 @@ export function MenuAdmin({ rol }: { rol: string }) {
 }
 
 /** Botón de borrar que pide confirmación antes de enviar el formulario. */
-export function BotonBorrar({ que }: { que: string }) {
+export function BotonBorrar({ que, aviso, texto = "Borrar" }: { que: string; aviso?: string; texto?: string }) {
   return (
-    <button className="btn peligro chico" onClick={(e) => { if (!window.confirm(`¿Borrar ${que}? Esta acción no se puede deshacer.`)) e.preventDefault(); }}>
-      Borrar
+    <button className="btn peligro chico" onClick={(e) => { if (!window.confirm(`¿Borrar ${que}?${aviso ? `\n\n${aviso}` : ""}\n\nEsta acción no se puede deshacer.`)) e.preventDefault(); }}>
+      {texto}
     </button>
   );
 }

@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
+import { limpiarArchivos } from "./archivos";
 import { exigirAdmin, exigirRepresentante } from "./sesion";
 import { slugify } from "./util";
 
@@ -41,13 +42,25 @@ export async function guardarFicha(f: FormData) {
   const autorizacion = ficha.autorizadaVia === "portal" ? {} : enFisico
     ? (ficha.autorizadaEl ? {} : { autorizadaEl: new Date(), autorizadaVia: `Registrada por ${s.nombre}` })
     : { autorizadaEl: null, autorizadaVia: "" };
+  const viejas = [ficha.fotoUrl, ...ficha.galeria];
   await db().update(fichasArtista).set({
     nombreArtistico, slug: await slugLibre(slugify(nombreArtistico || e.nombres), estudianteId), frase: txt(f, "frase"), bio: txt(f, "bio"), gustos: txt(f, "gustos"),
     fotoUrl: imagen(txt(f, "fotoUrl")) || null, galeria: ["galeria1", "galeria2", "galeria3", "galeria4"].map((k) => imagen(txt(f, k))).filter(Boolean),
     publicada: f.get("publicada") === "on", orden: Number(f.get("orden")) || 0, ...autorizacion,
   }).where(eq(fichasArtista.id, ficha.id));
+  await limpiarArchivos(viejas);
   updateTag("protagonistas"); updateTag("funciones");
   redirect(`/admin/protagonistas/${estudianteId}?ok=1`);
+}
+
+/** Borra la ficha y sus fotos. La participación en obras (elenco) se conserva. */
+export async function borrarFicha(f: FormData) {
+  await exigirAdmin();
+  const estudianteId = Number(f.get("estudianteId")) || 0;
+  const [x] = await db().delete(fichasArtista).where(eq(fichasArtista.estudianteId, estudianteId)).returning();
+  if (x) await limpiarArchivos([x.fotoUrl, ...x.galeria]);
+  updateTag("protagonistas"); updateTag("funciones");
+  redirect("/admin/protagonistas?ok=1");
 }
 
 /** El representante da o retira su autorización desde el portal. Retirarla oculta la ficha de inmediato. */

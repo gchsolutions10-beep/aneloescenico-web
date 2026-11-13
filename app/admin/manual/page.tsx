@@ -73,6 +73,7 @@ export default function Manual() {
         <h2>Vender en la sala y dar entrada</h2>
         <ol>
           <li>En Taquilla, toca las butacas, elige la forma de pago y pulsa Vender. Abre las entradas para imprimirlas o envíalas por WhatsApp.</li>
+          <li>El comprador puede descargar sus entradas en PDF (una página por entrada) para mostrarlas sin internet o imprimirlas. Desde la taquilla también hay un botón Descargar PDF.</li>
           <li>En la puerta, escanea el QR con la cámara del teléfono (con la sesión iniciada) y pulsa Dar entrada. Cada entrada sirve una sola vez.</li>
         </ol>
       </section>
@@ -127,6 +128,16 @@ export default function Manual() {
         <ul>
           <li><b>Cierre de caja:</b> el dinero confirmado en un día, por persona y por método. El vendedor ve solo el suyo.</li>
           <li><b>Reportes:</b> totales por rango de fechas, entradas por función y estudiantes con sus deudas. Cada reporte se descarga para abrirlo en Excel.</li>
+        </ul>
+      </section>
+
+      <section className="panel">
+        <h2>Borrar datos de prueba</h2>
+        <ul>
+          <li>Borrar una función elimina también sus compras, pagos, entradas, butacas, elenco y fotos. Los bonos usados recuperan su saldo. Antes de borrar, el aviso dice cuántas entradas y cuánto dinero tiene.</li>
+          <li>Para una función real que ya pasó, no la borres: cámbiala a Finalizada para conservarla en los reportes.</li>
+          <li>Al borrar una foto del carrusel, una entrada del blog, un actor o una ficha, sus imágenes se borran del almacenamiento si nada más las usa.</li>
+          <li>En Datos de la escuela → Archivos guardados puedes borrar las fotos que quedaron sin uso.</li>
         </ul>
       </section>
 

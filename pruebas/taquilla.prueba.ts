@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import * as t from "@/lib/taquilla";
+import { limpiarArchivos } from "@/lib/archivos";
 import { generarButacas, SALA_184, validarSala } from "@/lib/planos";
 import { parsearBcv } from "@/lib/tasa";
 
@@ -141,6 +142,38 @@ async function main() {
   assert.equal(parsearBcv('<div id="dolar" class="col-sm-12"><div class="field-content"><div class="row recuadrotsmc"><div class="col-sm-6"><span> USD</span></div><div class="col-sm-6 centrado"><strong> 901,61750000 </strong></div></div></div></div>'), 901.6175);
   assert.equal(parsearBcv("<html>sin dato</html>"), null);
   paso("lectura del formato de la página del BCV");
+
+  // Borrar la función: desaparece todo lo suyo y los bonos recuperan su saldo
+  const saldoAntes = Number((await db().select().from(bonos).where(eq(bonos.id, bono.id)))[0].saldoUsd);
+  assert.equal(saldoAntes, 5);
+  const resumen = await t.resumenFuncion(f.id);
+  assert.ok(resumen.ordenes > 5 && resumen.entradas > 5 && resumen.cobrado > 0);
+  await t.eliminarFuncion(f.id);
+  const quedan = await db().execute<{ n: number }>(sql`SELECT
+    (SELECT count(*) FROM ordenes WHERE funcion_id = ${f.id}) + (SELECT count(*) FROM entradas WHERE funcion_id = ${f.id}) +
+    (SELECT count(*) FROM butacas WHERE funcion_id = ${f.id}) + (SELECT count(*) FROM zonas WHERE funcion_id = ${f.id}) +
+    (SELECT count(*) FROM funciones WHERE id = ${f.id}) + (SELECT count(*) FROM pagos) AS n`);
+  assert.equal(Number(quedan.rows[0].n), 0);
+  assert.equal(Number((await db().select().from(bonos).where(eq(bonos.id, bono.id)))[0].saldoUsd), 25, "el bono recupera lo que se había gastado");
+  paso("borrar una función elimina compras, pagos, entradas, butacas y zonas, y devuelve el saldo de los bonos");
+
+  // Fotos: solo se borran cuando ya nada las usa
+  const { mkdir, writeFile, access } = await import("node:fs/promises");
+  const path = await import("node:path");
+  const carpeta = path.join(process.cwd(), "public", "uploads");
+  await mkdir(carpeta, { recursive: true });
+  const archivo = "0123456789abcdef0123456789abcdef.jpg", url = `/uploads/${archivo}`;
+  await writeFile(path.join(carpeta, archivo), "x");
+  const existe = () => access(path.join(carpeta, archivo)).then(() => true, () => false);
+  const [s1] = await db().insert(schema.carrusel).values({ imagenUrl: url, titulo: "prueba" }).returning();
+  const [s2] = await db().insert(schema.carrusel).values({ imagenUrl: url, titulo: "prueba 2" }).returning();
+  await db().delete(schema.carrusel).where(eq(schema.carrusel.id, s1.id));
+  await limpiarArchivos([url]);
+  assert.equal(await existe(), true, "otra foto del carrusel todavía la usa");
+  await db().delete(schema.carrusel).where(eq(schema.carrusel.id, s2.id));
+  await limpiarArchivos([url, "https://ejemplo.com/ajena.jpg", "/uploads/../../package.json"]);
+  assert.equal(await existe(), false);
+  paso("una foto se borra solo cuando ningún registro la usa; nunca se tocan archivos ajenos");
 
   await db().execute(sql`TRUNCATE entradas, pagos, butacas, zonas, ordenes, bonos RESTART IDENTITY CASCADE; DELETE FROM funciones WHERE slug LIKE 'prueba-%'`);
   await db().delete(schema.salas).where(eq(schema.salas.id, sala.id));

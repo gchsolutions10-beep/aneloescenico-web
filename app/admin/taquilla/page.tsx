@@ -43,7 +43,8 @@ async function Taquilla({ searchParams }: Props) {
         <section className="nota">
           <b>Venta registrada:</b> {vendida.detalle.length === 1 ? "butaca" : "butacas"} {vendida.detalle.map((d) => d.numero).join(", ")} · {usd(vendida.totalUsd)}
           <div className="acciones" style={{ marginTop: 10 }}>
-            <Link className="btn" href={`/orden/${vendida.codigo}`} target="_blank">Abrir entradas para imprimir ↗</Link>
+            <Link className="btn" href={`/orden/${vendida.codigo}`} target="_blank">Abrir entradas ↗</Link>
+            <a className="btn sec" href={`/api/entradas/${vendida.codigo}`}>Descargar PDF</a>
             {vendida.telefono && <a className="btn sec" target="_blank" rel="noopener" href={enlaceWhatsApp(vendida.telefono, `Tus entradas de A-Nelo Escénico: ${base}/orden/${vendida.codigo}`)}>Enviar por WhatsApp</a>}
           </div>
         </section>

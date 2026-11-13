@@ -6,6 +6,7 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db, schema } from "@/db";
+import { limpiarArchivos } from "./archivos";
 import { ESCUELA_INICIAL, type Escuela } from "./datos";
 import { cerrarSesion, crearSesion, exigirAdmin } from "./sesion";
 import { sanearTema } from "./tema";
@@ -118,7 +119,9 @@ export async function guardarLogo(f: FormData) {
   await exigirAdmin();
   const logoUrl = imagen(f, "logoUrl");
   if (!logoUrl) redirect("/admin/apariencia?error=logo");
-  await guardarConfig("escuela", { ...(await escuelaActual()), logoUrl, icono192: imagen(f, "icono192"), icono512: imagen(f, "icono512") });
+  const antes = await escuelaActual();
+  await guardarConfig("escuela", { ...antes, logoUrl, icono192: imagen(f, "icono192"), icono512: imagen(f, "icono512") });
+  await limpiarArchivos([antes.logoUrl, antes.icono192, antes.icono512]);
   redirect("/admin/apariencia?ok=1");
 }
 
@@ -141,6 +144,7 @@ export async function guardarEscuela(f: FormData) {
     directorBio: txt(f, "directorBio"),
     directorFotoUrl: imagen(f, "directorFotoUrl"),
   } satisfies Escuela);
+  await limpiarArchivos([actual.directorFotoUrl]);
   redirect("/admin/configuracion?ok=1");
 }
 
@@ -166,15 +170,18 @@ export async function guardarSlide(f: FormData) {
     activo: marcado(f, "activo"),
   };
   if (!datos.imagenUrl || !datos.titulo) redirect(`/admin/carrusel?error=faltan${id ? `&editar=${id}` : ""}`);
+  const [antes] = id ? await db().select().from(schema.carrusel).where(eq(schema.carrusel.id, id)) : [];
   if (id) await db().update(schema.carrusel).set(datos).where(eq(schema.carrusel.id, id));
   else await db().insert(schema.carrusel).values(datos);
+  await limpiarArchivos([antes?.imagenUrl]);
   updateTag("carrusel");
   redirect("/admin/carrusel?ok=1");
 }
 
 export async function borrarSlide(f: FormData) {
   await exigirAdmin();
-  await db().delete(schema.carrusel).where(eq(schema.carrusel.id, entero(f, "id")));
+  const [x] = await db().delete(schema.carrusel).where(eq(schema.carrusel.id, entero(f, "id"))).returning();
+  await limpiarArchivos([x?.imagenUrl]);
   updateTag("carrusel");
   redirect("/admin/carrusel?ok=1");
 }
@@ -197,12 +204,14 @@ export async function guardarNivel(f: FormData) {
     orden: entero(f, "orden"),
     activo: marcado(f, "activo"),
   };
+  const [antes] = id ? await db().select().from(schema.niveles).where(eq(schema.niveles.id, id)) : [];
   if (id) await db().update(schema.niveles).set(datos).where(eq(schema.niveles.id, id));
   else {
     const base = slugify(nombre);
     const [existe] = await db().select({ id: schema.niveles.id }).from(schema.niveles).where(eq(schema.niveles.slug, base));
     await db().insert(schema.niveles).values({ ...datos, slug: existe ? `${base}-${Date.now().toString(36)}` : base });
   }
+  await limpiarArchivos([antes?.imagenUrl]);
   updateTag("niveles");
   redirect("/admin/niveles?ok=1");
 }
@@ -230,13 +239,15 @@ export async function guardarEntrada(f: FormData) {
   };
   if (id) await db().update(schema.entradasBlog).set(datos).where(eq(schema.entradasBlog.id, id));
   else await db().insert(schema.entradasBlog).values(datos);
+  await limpiarArchivos([previa?.portadaUrl]);
   updateTag("blog");
   redirect("/admin/blog?ok=1");
 }
 
 export async function borrarEntrada(f: FormData) {
   await exigirAdmin();
-  await db().delete(schema.entradasBlog).where(eq(schema.entradasBlog.id, entero(f, "id")));
+  const [x] = await db().delete(schema.entradasBlog).where(eq(schema.entradasBlog.id, entero(f, "id"))).returning();
+  await limpiarArchivos([x?.portadaUrl]);
   updateTag("blog");
   redirect("/admin/blog?ok=1");
 }
@@ -260,20 +271,23 @@ export async function guardarFuncion(f: FormData) {
     estado: estado in ESTADOS_FUNCION ? estado : "borrador",
   };
   let destino = "/admin/funciones?ok=1";
+  const [antes] = id ? await db().select().from(schema.funciones).where(eq(schema.funciones.id, id)) : [];
   if (id) await db().update(schema.funciones).set(datos).where(eq(schema.funciones.id, id));
   else {
     // Recién creada: se sigue en su pantalla de venta para crear el plano y los precios.
     const [nueva] = await db().insert(schema.funciones).values(datos).returning({ id: schema.funciones.id });
     destino = `/admin/funciones/${nueva.id}`;
   }
+  await limpiarArchivos([antes?.aficheUrl]);
   updateTag("funciones");
   redirect(destino);
 }
 
 export async function borrarFuncion(f: FormData) {
   await exigirAdmin();
-  await db().delete(schema.funciones).where(eq(schema.funciones.id, entero(f, "id")));
-  updateTag("funciones");
+  const { eliminarFuncion } = await import("./taquilla");
+  await limpiarArchivos(await eliminarFuncion(entero(f, "id")));
+  updateTag("funciones"); updateTag("cupos"); updateTag("protagonistas");
   redirect("/admin/funciones?ok=1");
 }
 
@@ -306,4 +320,13 @@ export async function borrarMensaje(f: FormData) {
   await exigirAdmin();
   await db().delete(schema.mensajes).where(eq(schema.mensajes.id, entero(f, "id")));
   redirect("/admin/mensajes");
+}
+
+// ---------- Archivos ----------
+
+export async function accionLimpiarArchivos() {
+  await exigirAdmin();
+  const { borrarSinUso } = await import("./archivos");
+  const n = await borrarSinUso();
+  redirect(`/admin/configuracion?limpiados=${n}#archivos`);
 }

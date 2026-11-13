@@ -108,7 +108,9 @@ async function Orden({ params }: Props) {
       <div className="formulario">
         <div className="no-imprimir">
           <h1>¡Listo! Estas son tus entradas</h1>
-          <p className="tenue">Muestra cada código QR en la puerta, desde el teléfono o impreso. Guarda este enlace o toma una captura.</p>
+          <p className="tenue">Muestra cada código QR en la puerta. Descarga el PDF para tenerlas en el teléfono sin necesidad de internet, o imprímelo.</p>
+          <p><a className="boton" href={`/api/entradas/${o.codigo}`} download>Descargar entradas en PDF</a></p>
+          <p className="aviso">Cuida este enlace y el PDF: quien los tenga puede usar estas entradas. Cada código QR deja pasar a una sola persona, la primera que lo presente.</p>
         </div>
         <div className="entradas">
           {entradas.map((e, i) => (

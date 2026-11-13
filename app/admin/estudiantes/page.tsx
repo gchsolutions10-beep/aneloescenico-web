@@ -34,6 +34,7 @@ async function Estudiantes({ searchParams }: Props) {
           <li>Usa las pestañas para ver retirados o egresados.</li>
         </ul>
       </Ayuda>
+      {q.borrado && <p className="nota" role="status">Estudiante borrado.</p>}
       <div className="acciones">
         {["activo", "retirado", "egresado", "rechazado"].map((x) => <Link key={x} className={`btn chico${estado === x ? "" : " sec"}`} href={`/admin/estudiantes?estado=${x}`}>{ESTADOS_ESTUDIANTE[x]}s</Link>)}
         <form className="acciones" style={{ marginLeft: "auto" }}><input type="hidden" name="estado" value={estado} /><input name="q" defaultValue={q.q} placeholder="Buscar por nombre" aria-label="Buscar" style={{ width: 200 }} /><button className="btn sec chico">Buscar</button></form>

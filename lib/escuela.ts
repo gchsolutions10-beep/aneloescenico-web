@@ -148,3 +148,79 @@ export async function cargosPorAvisar(diasAntes = 3) {
   const enMora = await base().where(sql`${cargos.estado} = 'pendiente' AND ${cargos.moraAvisadaEl} IS NULL AND ${cargos.venceEl} < ${hoy()}::date`);
   return { porVencer, enMora };
 }
+
+// ---------- Borrar un estudiante ----------
+
+export type ResumenBorrado = {
+  cargosPendientes: number; cargosPagados: number;
+  /** Pagos que solo cubren cargos de este estudiante: se borran con él. */
+  pagosPropios: number; montoPropio: number; recibos: number[];
+  /** Pagos que también cubren a otro estudiante (hermanos): se conservan. */
+  pagosCompartidos: number;
+  tieneFicha: boolean; obras: number;
+  cuenta: { id: number; correo: string; otrosEstudiantes: number } | null;
+};
+
+async function pagosDe(tx: Tx | ReturnType<typeof db>, estudianteId: number) {
+  return (await tx.execute<{ id: number; estado: string; monto: string; recibo: number | null; captura: string | null; compartido: boolean }>(sql`
+    SELECT r.id, r.estado, r.monto_usd AS monto, r.numero_recibo AS recibo, r.captura_url AS captura,
+           EXISTS (SELECT 1 FROM cargos c2 WHERE c2.reporte_id = r.id AND c2.estudiante_id <> ${estudianteId}) AS compartido
+    FROM reportes_pago r WHERE r.id IN (SELECT reporte_id FROM cargos WHERE estudiante_id = ${estudianteId} AND reporte_id IS NOT NULL)`)).rows;
+}
+
+export async function resumenBorrado(estudianteId: number): Promise<ResumenBorrado | null> {
+  const [e] = await db().select().from(estudiantes).where(eq(estudiantes.id, estudianteId));
+  if (!e) return null;
+  const [cs, ps, ficha, obras, cuenta] = await Promise.all([
+    db().select({ estado: cargos.estado }).from(cargos).where(eq(cargos.estudianteId, estudianteId)),
+    pagosDe(db(), estudianteId),
+    db().select({ id: schema.fichasArtista.id }).from(schema.fichasArtista).where(eq(schema.fichasArtista.estudianteId, estudianteId)),
+    db().select({ id: schema.elenco.id }).from(schema.elenco).where(eq(schema.elenco.estudianteId, estudianteId)),
+    e.representanteId ? db().execute<{ id: number; correo: string; otros: number }>(sql`
+      SELECT u.id, u.correo, (SELECT count(*)::int FROM estudiantes x WHERE x.representante_id = u.id AND x.id <> ${estudianteId}) AS otros
+      FROM usuarios u WHERE u.id = ${e.representanteId} AND u.rol = 'representante'`).then((r) => r.rows[0]) : undefined,
+  ]);
+  const propios = ps.filter((p) => !p.compartido);
+  return {
+    cargosPendientes: cs.filter((c) => c.estado === "pendiente" || c.estado === "por_confirmar").length,
+    cargosPagados: cs.filter((c) => c.estado === "pagado").length,
+    pagosPropios: propios.length,
+    montoPropio: propios.filter((p) => p.estado === "confirmado").reduce((s, p) => s + Number(p.monto), 0),
+    recibos: propios.map((p) => p.recibo).filter((n): n is number => n != null).sort((a, b) => a - b),
+    pagosCompartidos: ps.length - propios.length,
+    tieneFicha: ficha.length > 0, obras: obras.length,
+    cuenta: cuenta ? { id: cuenta.id, correo: cuenta.correo, otrosEstudiantes: cuenta.otros } : null,
+  };
+}
+
+/**
+ * Borra un estudiante con sus cargos, sus pagos propios (y sus recibos) y su ficha de Protagonista.
+ * Los pagos que también cubren a un hermano se conservan. En los elencos se mantiene el nombre del
+ * actor, pero deja de enlazar a la ficha. Con `borrarCuenta`, también se borra la cuenta del
+ * representante si no tiene otros estudiantes. Devuelve las imágenes que quedaron sueltas.
+ */
+export async function eliminarEstudiante(estudianteId: number, borrarCuenta: boolean): Promise<string[]> {
+  return db().transaction(async (tx) => {
+    const [e] = await tx.select().from(estudiantes).where(eq(estudiantes.id, estudianteId)).for("update");
+    if (!e) return [];
+    const propios = (await pagosDe(tx, estudianteId)).filter((p) => !p.compartido);
+    const [ficha] = await tx.select().from(schema.fichasArtista).where(eq(schema.fichasArtista.estudianteId, estudianteId));
+    const archivos = [...propios.map((p) => p.captura), ficha?.fotoUrl, ...(ficha?.galeria ?? [])];
+
+    await tx.update(schema.elenco).set({ estudianteId: null }).where(eq(schema.elenco.estudianteId, estudianteId));
+    if (propios.length) await tx.delete(reportesPago).where(inArray(reportesPago.id, propios.map((p) => p.id)));
+    await tx.delete(estudiantes).where(eq(estudiantes.id, estudianteId)); // arrastra cargos y ficha
+
+    if (borrarCuenta && e.representanteId) {
+      const [{ otros }] = (await tx.execute<{ otros: number }>(sql`SELECT count(*)::int AS otros FROM estudiantes WHERE representante_id = ${e.representanteId}`)).rows;
+      const [u] = await tx.select().from(schema.usuarios).where(eq(schema.usuarios.id, e.representanteId));
+      if (otros === 0 && u?.rol === "representante") {
+        // Sus pagos rechazados ya no apuntan a ningún cargo; se van con la cuenta.
+        const rechazados = await tx.delete(reportesPago).where(and(eq(reportesPago.usuarioId, u.id), eq(reportesPago.estado, "rechazado"))).returning({ captura: reportesPago.capturaUrl });
+        archivos.push(...rechazados.map((r) => r.captura));
+        await tx.delete(schema.usuarios).where(eq(schema.usuarios.id, u.id));
+      }
+    }
+    return archivos.filter((u): u is string => Boolean(u));
+  });
+}

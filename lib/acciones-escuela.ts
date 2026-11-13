@@ -201,3 +201,12 @@ export async function accionGenerarMensualidades() {
   const n = await e.generarMensualidades(e.periodoActual(), (await getConfig()).cobros.diaVencimiento);
   redirect(`/admin/cobranza?generadas=${n}`);
 }
+
+export async function accionEliminarEstudiante(f: FormData) {
+  await exigirAdmin();
+  const { limpiarArchivos } = await import("./archivos");
+  const { updateTag } = await import("next/cache");
+  await limpiarArchivos(await e.eliminarEstudiante(entero(f, "id"), f.get("borrarCuenta") === "on"));
+  updateTag("protagonistas"); updateTag("funciones");
+  redirect("/admin/estudiantes?borrado=1");
+}

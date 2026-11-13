@@ -137,6 +137,7 @@ export default function Manual() {
           <li>Borrar una función elimina también sus compras, pagos, entradas, butacas, elenco y fotos. Los bonos usados recuperan su saldo. Antes de borrar, el aviso dice cuántas entradas y cuánto dinero tiene.</li>
           <li>Para una función real que ya pasó, no la borres: cámbiala a Finalizada para conservarla en los reportes.</li>
           <li>Al borrar una foto del carrusel, una entrada del blog, un actor o una ficha, sus imágenes se borran del almacenamiento si nada más las usa.</li>
+          <li>Un estudiante se borra desde el final de su ficha. El aviso dice qué se pierde: cargos, pagos y recibos, ficha de Protagonista y, si quieres, la cuenta del portal. Los pagos que también cubren a un hermano se conservan. Para un estudiante real que se fue, usa el estado Retirado.</li>
           <li>En Datos de la escuela → Archivos guardados puedes borrar las fotos que quedaron sin uso.</li>
         </ul>
       </section>

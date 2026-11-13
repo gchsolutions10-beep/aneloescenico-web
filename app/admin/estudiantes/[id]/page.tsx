@@ -6,9 +6,9 @@ import Cargando from "@/app/admin/loading";
 import { BotonBorrar } from "@/components/AdminPiezas";
 import { Ayuda, Resultado } from "@/components/Ayuda";
 import { db, schema } from "@/db";
-import { accionAnularCargo, agregarCargo, cobrarEnEscuela, darAccesoPortal, guardarEstudiante, quitarAccesoPortal } from "@/lib/acciones-escuela";
+import { accionAnularCargo, accionEliminarEstudiante, agregarCargo, cobrarEnEscuela, darAccesoPortal, guardarEstudiante, quitarAccesoPortal } from "@/lib/acciones-escuela";
 import { restablecerClaveRepresentante } from "@/lib/acciones-clave";
-import { estadoCargo, ESTADOS_ESTUDIANTE, NOMBRE_ESTADO_CARGO } from "@/lib/escuela";
+import { estadoCargo, ESTADOS_ESTUDIANTE, NOMBRE_ESTADO_CARGO, resumenBorrado } from "@/lib/escuela";
 import { exigirAdmin } from "@/lib/sesion";
 import { enlaceWhatsApp, fechaCorta, usd } from "@/lib/util";
 
@@ -159,10 +159,39 @@ async function Ficha({ params, searchParams }: Props) {
           </section>
         </>
       )}
+
+      {e && <Suspense fallback={null}><ZonaBorrar id={e.id} nombre={`${e.nombres} ${e.apellidos}`} /></Suspense>}
     </>
   );
 }
 
 export default function Pagina(props: Props) {
   return <Suspense fallback={<Cargando />}><Ficha {...props} /></Suspense>;
+}
+
+const pl = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
+
+async function ZonaBorrar({ id, nombre }: { id: number; nombre: string }) {
+  const r = await resumenBorrado(id);
+  if (!r) return null;
+  const puntos = [
+    `Se borran sus datos y su historial en la escuela.`,
+    r.cargosPendientes + r.cargosPagados > 0 && `Se ${r.cargosPendientes + r.cargosPagados === 1 ? "borra su cargo" : `borran sus ${r.cargosPendientes + r.cargosPagados} cargos`} (${pl(r.cargosPagados, "pagado", "pagados")}, ${r.cargosPendientes} sin pagar).`,
+    r.pagosPropios > 0 && `Se ${r.pagosPropios === 1 ? "borra 1 pago" : `borran ${r.pagosPropios} pagos`} por ${usd(r.montoPropio)}${r.recibos.length ? ` y ${r.recibos.length === 1 ? "el recibo" : "los recibos"} N.º ${r.recibos.join(", ")}` : ""}. Ese dinero desaparece de Cobranza, Reportes y Cierre de caja${r.recibos.length ? ", y quedará un salto en la numeración de recibos" : ""}.`,
+    r.pagosCompartidos > 0 && `${r.pagosCompartidos} ${r.pagosCompartidos === 1 ? "pago cubre" : "pagos cubren"} también a otro estudiante: se ${r.pagosCompartidos === 1 ? "conserva" : "conservan"} con su recibo.`,
+    r.tieneFicha && `Se borra su ficha de Protagonista y sus fotos.`,
+    r.obras > 0 && `En el elenco de ${r.obras} ${r.obras === 1 ? "obra" : "obras"} se mantiene su nombre, pero deja de enlazar a su ficha.`,
+  ].filter(Boolean) as string[];
+  const puedeBorrarCuenta = r.cuenta && r.cuenta.otrosEstudiantes === 0;
+  return (
+    <form action={accionEliminarEstudiante} className="panel" style={{ borderColor: "var(--a-mal)" }}>
+      <h2>Borrar estudiante</h2>
+      <p className="tenue" style={{ margin: 0 }}>Para un estudiante real que dejó la escuela, cambia su estado a Retirado: así se conservan sus pagos y recibos. Borrar es para datos de prueba o errores.</p>
+      <ul style={{ margin: 0, paddingLeft: 20 }}>{puntos.map((p) => <li key={p}>{p}</li>)}</ul>
+      <input type="hidden" name="id" value={id} />
+      {puedeBorrarCuenta && <label className="casilla"><input type="checkbox" name="borrarCuenta" defaultChecked /> Borrar también la cuenta del portal ({r.cuenta!.correo}): no tiene otros estudiantes</label>}
+      {r.cuenta && !puedeBorrarCuenta && <p className="tenue" style={{ margin: 0 }}>La cuenta del portal ({r.cuenta.correo}) se conserva: tiene otros estudiantes.</p>}
+      <div><BotonBorrar que={`a ${nombre}`} aviso={puntos.join("\n")} texto="Borrar estudiante" /></div>
+    </form>
+  );
 }

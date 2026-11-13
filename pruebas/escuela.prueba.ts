@@ -84,6 +84,26 @@ async function main() {
   await falla(e.anularCargo(cs[0].id), /Solo se puede anular un cargo pendiente/);
   paso("un cargo vencido sin pagar está en mora; solo se anulan cargos pendientes");
 
+  // Borrar estudiantes
+  const a6 = await alumno("Hermano", ana, { estado: "activo" });
+  await e.generarMensualidades(periodo, 5);
+  const mensDe = async (id: number) => (await cargosDe(id)).find((c) => c.tipo === "mensualidad" && c.estado === "pendiente")!;
+  const compartido = await e.reportarPagoEscuela(pm(ana, [(await mensDe(a2.id)).id, (await mensDe(a6.id)).id]));
+  let r = (await e.resumenBorrado(a1.id))!;
+  assert.deepEqual([r.cargosPagados, r.pagosPropios, r.montoPropio, r.recibos, r.pagosCompartidos, r.cuenta?.otrosEstudiantes], [2, 1, 50, [1], 0, 2]);
+  await e.eliminarEstudiante(a1.id, true);
+  assert.equal((await db().select().from(reportesPago).where(eq(reportesPago.id, r1))).length, 0, "su pago propio se borra");
+  assert.equal((await db().select().from(usuarios).where(eq(usuarios.id, ana))).length, 1, "la cuenta se conserva: tiene otros estudiantes");
+  r = (await e.resumenBorrado(a2.id))!;
+  assert.equal(r.pagosCompartidos, 1);
+  await e.eliminarEstudiante(a2.id, true);
+  assert.equal((await db().select().from(reportesPago).where(eq(reportesPago.id, compartido))).length, 1, "el pago compartido con el hermano se conserva");
+  assert.equal((await cargosDe(a2.id)).length, 0);
+  await e.eliminarEstudiante(a6.id, true);
+  assert.equal((await db().select().from(reportesPago).where(eq(reportesPago.id, compartido))).length, 0, "con el último hermano, el pago se va");
+  assert.equal((await db().select().from(usuarios).where(eq(usuarios.id, ana))).length, 0, "sin estudiantes, la cuenta se borra");
+  paso("borrar un estudiante quita sus cargos y pagos propios, conserva los compartidos con hermanos y la cuenta si aún tiene estudiantes");
+
   await db().execute(sql`TRUNCATE cargos, reportes_pago, estudiantes RESTART IDENTITY CASCADE`);
   await db().execute(sql`DELETE FROM usuarios WHERE correo LIKE '%@escuela.prueba'`);
   await db().execute(sql`DELETE FROM niveles WHERE slug = 'nivel-prueba'`);

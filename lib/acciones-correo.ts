@@ -14,7 +14,7 @@ export async function guardarCorreo(f: FormData) {
     remitente: String(f.get("remitente") ?? "").trim(),
   };
   await db().insert(schema.configuracion).values({ clave: "correo", valor }).onConflictDoUpdate({ target: schema.configuracion.clave, set: { valor } });
-  redirect("/admin/correo?ok=1");
+  redirect(`/admin/correo?ok=${Date.now()}`);
 }
 
 export async function probarCorreo(f: FormData) {

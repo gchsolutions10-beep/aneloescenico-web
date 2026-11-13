@@ -9,9 +9,13 @@ export default function Manual() {
       <section className="panel">
         <h2>Lo básico</h2>
         <ul>
+          <li>El menú de la izquierda está agrupado: Taquilla, Funciones, Escuela, Sitio web, Reportes y Ajustes. Toca el nombre de un grupo para plegarlo. Los números dorados avisan de lo que espera atención.</li>
+          <li>Cada pantalla muestra primero su lista. Los formularios (nueva función, nuevo nivel, editar datos…) se abren en un panel a la derecha y se cierran solos al guardar; un aviso abajo confirma que se guardó.</li>
+          <li>Los tres puntos de cada fila tienen las acciones menos usadas: editar, cambiar el estado, borrar.</li>
+          <li>Antes de borrar algo importante, una ventana explica qué se pierde y pide confirmación.</li>
           <li>Todo lo que guardas aparece en el sitio de inmediato.</li>
           <li>Las fotos se ajustan solas al tamaño correcto al subirlas. No hace falta editarlas antes.</li>
-          <li>El panel funciona igual en el teléfono: el menú queda arriba y se desliza hacia los lados.</li>
+          <li>En el teléfono, el menú se abre con el botón de tres rayas de arriba a la izquierda.</li>
           <li>Al terminar en un equipo compartido, pulsa Salir.</li>
         </ul>
       </section>

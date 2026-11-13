@@ -1,37 +1,12 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useActionState } from "react";
 import { ingresar } from "@/lib/acciones";
+import { BotonBorrar as BotonBorrarModal } from "./panel/Confirmar";
 
-// [ruta, texto, quién lo ve]  e = todo el equipo, a = administradores, m = solo master
-const MENU: [string, string, "e" | "a" | "m"][] = [
-  ["/admin", "Inicio", "a"], ["/admin/taquilla", "Taquilla", "e"], ["/admin/pagos", "Pagos", "e"], ["/admin/validar", "Validar entradas", "e"], ["/admin/caja", "Cierre de caja", "e"],
-  ["/admin/inscripciones", "Inscripciones", "a"], ["/admin/estudiantes", "Estudiantes", "a"], ["/admin/cobranza", "Cobranza", "a"],
-  ["/admin/protagonistas", "Protagonistas", "a"], ["/admin/funciones", "Funciones", "a"], ["/admin/salas", "Salas", "a"], ["/admin/reportes", "Reportes", "a"], ["/admin/bonos", "Bonos de regalo", "a"], ["/admin/cobros", "Cobros y tasa", "a"],
-  ["/admin/carrusel", "Carrusel", "a"], ["/admin/blog", "Blog", "a"], ["/admin/niveles", "Niveles", "a"], ["/admin/mensajes", "Mensajes", "a"],
-  ["/admin/apariencia", "Apariencia", "a"], ["/admin/correo", "Correo", "a"], ["/admin/configuracion", "Datos de la escuela", "a"], ["/admin/usuarios", "Usuarios", "m"], ["/admin/manual", "Manual", "e"],
-];
-
-export function MenuAdmin({ rol }: { rol: string }) {
-  const ruta = usePathname();
-  const visible = (quien: string) => quien === "e" || (quien === "a" && rol !== "vendedor") || (quien === "m" && rol === "master");
-  return (
-    <>
-      {MENU.filter(([, , q]) => visible(q)).map(([href, texto]) => (
-        <Link key={href} href={href} aria-current={(href === "/admin" ? ruta === href : ruta.startsWith(href)) ? "page" : undefined}>{texto}</Link>
-      ))}
-    </>
-  );
-}
-
-/** Botón de borrar que pide confirmación antes de enviar el formulario. */
-export function BotonBorrar({ que, aviso, texto = "Borrar" }: { que: string; aviso?: string; texto?: string }) {
-  return (
-    <button className="btn peligro chico" onClick={(e) => { if (!window.confirm(`¿Borrar ${que}?${aviso ? `\n\n${aviso}` : ""}\n\nEsta acción no se puede deshacer.`)) e.preventDefault(); }}>
-      {texto}
-    </button>
-  );
+/** Botón de borrar con ventana de confirmación (ver components/panel/Confirmar). `aviso`: una consecuencia por línea. */
+export function BotonBorrar({ que, aviso, texto = "Borrar", fuerte }: { que: string; aviso?: string; texto?: string; fuerte?: boolean }) {
+  return <BotonBorrarModal que={que} texto={texto} fuerte={fuerte} consecuencias={aviso ? aviso.split("\n").filter(Boolean) : []} />;
 }
 
 export function FormularioIngreso() {

@@ -3,36 +3,20 @@ import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { BotonBorrar } from "@/components/AdminPiezas";
-import { Ayuda, Resultado } from "@/components/Ayuda";
+import { BotonBorrar } from "@/components/panel/Confirmar";
+import { Ayuda, Encabezado, Resultado } from "@/components/Ayuda";
+import Cajon from "@/components/panel/Cajon";
 import SubirImagen from "@/components/SubirImagen";
 import { db, schema } from "@/db";
 import { borrarSlide, guardarSlide } from "@/lib/acciones";
 
 export const metadata = { title: "Carrusel" };
 
-async function Carrusel({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  await exigirAdmin();
-  const q = await searchParams;
-  const slides = await db().select().from(schema.carrusel).orderBy(asc(schema.carrusel.orden), asc(schema.carrusel.id));
-  const id = Number(q.editar) || 0;
-  const s = id ? (await db().select().from(schema.carrusel).where(eq(schema.carrusel.id, id)))[0] : undefined;
+type Slide = typeof schema.carrusel.$inferSelect;
 
+function FormSlide({ s, orden }: { s?: Slide; orden: number }) {
   return (
-    <>
-      <h1>Carrusel de Inicio</h1>
-      <Ayuda>
-        <ol>
-          <li>Elige una foto grande y horizontal (idealmente de 1920 píxeles de ancho o más).</li>
-          <li>La foto se recorta sola a formato panorámico. Con Encuadre eliges qué parte se conserva.</li>
-          <li>Escribe el título. El texto y el botón son opcionales.</li>
-          <li>El número de Orden decide cuál sale primero (el menor va primero).</li>
-        </ol>
-      </Ayuda>
-      <Resultado searchParams={searchParams} errores={{ faltan: "Falta la foto o el título." }} />
-
-      <form action={guardarSlide} className="panel" key={s?.id ?? "nueva"}>
-        <h2>{s ? "Editar foto" : "Agregar foto"}</h2>
+      <form action={guardarSlide} className="formulario-cajon">
         <input type="hidden" name="id" value={s?.id ?? ""} />
         <SubirImagen nombre="imagenUrl" inicial={s?.imagenUrl} aspecto={16 / 9} ancho={1920} etiqueta="Foto" />
         <div className="fila">
@@ -43,14 +27,42 @@ async function Carrusel({ searchParams }: { searchParams: Promise<Record<string,
         <div className="fila">
           <div className="campo"><label htmlFor="s-bt">Texto del botón</label><input id="s-bt" name="botonTexto" defaultValue={s?.botonTexto} placeholder="Inscripciones abiertas" /></div>
           <div className="campo"><label htmlFor="s-be">Enlace del botón</label><input id="s-be" name="botonEnlace" defaultValue={s?.botonEnlace} placeholder="/clases" /><small>Una página del sitio (/clases, /funciones, /contacto) o un enlace https.</small></div>
-          <div className="campo"><label htmlFor="s-orden">Orden</label><input id="s-orden" name="orden" type="number" defaultValue={s?.orden ?? slides.length + 1} /></div>
+          <div className="campo"><label htmlFor="s-orden">Orden</label><input id="s-orden" name="orden" type="number" defaultValue={s?.orden ?? orden} /></div>
         </div>
         <label className="casilla"><input type="checkbox" name="activo" defaultChecked={s?.activo ?? true} /> Mostrar en el sitio</label>
-        <div className="acciones">
-          <button className="btn">{s ? "Guardar cambios" : "Agregar al carrusel"}</button>
-          {s && <Link className="btn sec" href="/admin/carrusel">Cancelar</Link>}
-        </div>
+        <div className="cajon-pie"><button className="btn">{s ? "Guardar cambios" : "Agregar al carrusel"}</button></div>
       </form>
+  );
+}
+
+async function Carrusel({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+  await exigirAdmin();
+  const q = await searchParams;
+  const slides = await db().select().from(schema.carrusel).orderBy(asc(schema.carrusel.orden), asc(schema.carrusel.id));
+  const id = Number(q.editar) || 0;
+  const s = id ? (await db().select().from(schema.carrusel).where(eq(schema.carrusel.id, id)))[0] : undefined;
+
+  return (
+    <>
+      <Encabezado titulo="Carrusel de Inicio" descripcion="Las fotos grandes de la portada del sitio.">
+        <Cajon key={q.ok ?? "nueva"} titulo="Agregar foto" boton="Agregar foto">
+          <FormSlide orden={slides.length + 1} />
+        </Cajon>
+      </Encabezado>
+      <Ayuda>
+        <ol>
+          <li>Elige una foto grande y horizontal (idealmente de 1920 píxeles de ancho o más).</li>
+          <li>La foto se recorta sola a formato panorámico. Con Encuadre eliges qué parte se conserva.</li>
+          <li>Escribe el título. El texto y el botón son opcionales.</li>
+          <li>El número de Orden decide cuál sale primero (el menor va primero).</li>
+        </ol>
+      </Ayuda>
+      <Resultado searchParams={searchParams} errores={{ faltan: "Falta la foto o el título." }} />
+      {s && (
+        <Cajon key={`editar-${s.id}`} titulo="Editar foto" abierto alCerrar="/admin/carrusel">
+          <FormSlide s={s} orden={s.orden} />
+        </Cajon>
+      )}
 
       <section className="panel">
         <h2>Fotos del carrusel</h2>
@@ -67,7 +79,7 @@ async function Carrusel({ searchParams }: { searchParams: Promise<Record<string,
                   <td><span className={`pastilla${x.activo ? " si" : ""}`}>{x.activo ? "Visible" : "Oculta"}</span></td>
                   <td><div className="acciones">
                     <Link className="btn sec chico" href={`/admin/carrusel?editar=${x.id}`}>Editar</Link>
-                    <form action={borrarSlide}><input type="hidden" name="id" value={x.id} /><BotonBorrar que="esta foto" /></form>
+                    <form action={borrarSlide}><input type="hidden" name="id" value={x.id} /><BotonBorrar que="esta foto del carrusel" consecuencias={["Deja de verse en la portada y su imagen se borra."]} /></form>
                   </div></td>
                 </tr>
               ))}

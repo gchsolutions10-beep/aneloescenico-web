@@ -50,7 +50,7 @@ export async function guardarFicha(f: FormData) {
   }).where(eq(fichasArtista.id, ficha.id));
   await limpiarArchivos(viejas);
   updateTag("protagonistas"); updateTag("funciones");
-  redirect(`/admin/protagonistas/${estudianteId}?ok=1`);
+  redirect(`/admin/protagonistas/${estudianteId}?ok=${Date.now()}`);
 }
 
 /** Borra la ficha y sus fotos. La participación en obras (elenco) se conserva. */
@@ -60,7 +60,7 @@ export async function borrarFicha(f: FormData) {
   const [x] = await db().delete(fichasArtista).where(eq(fichasArtista.estudianteId, estudianteId)).returning();
   if (x) await limpiarArchivos([x.fotoUrl, ...x.galeria]);
   updateTag("protagonistas"); updateTag("funciones");
-  redirect("/admin/protagonistas?ok=1");
+  redirect(`/admin/protagonistas?ok=${Date.now()}`);
 }
 
 /** El representante da o retira su autorización desde el portal. Retirarla oculta la ficha de inmediato. */

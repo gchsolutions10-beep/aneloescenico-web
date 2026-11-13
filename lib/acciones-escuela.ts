@@ -76,7 +76,7 @@ export async function pagarCargos(_: Estado, f: FormData): Promise<Estado> {
 export async function accionAprobar(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "id");
-  let destino = "/admin/inscripciones?ok=1";
+  let destino = `/admin/inscripciones?ok=${Date.now()}`;
   try {
     await e.aprobarInscripcion(id, (await getConfig()).cobros.diaVencimiento);
     const [est] = await db().select().from(estudiantes).where(eq(estudiantes.id, id));
@@ -88,7 +88,7 @@ export async function accionAprobar(f: FormData) {
 export async function accionRechazarSolicitud(f: FormData) {
   await exigirAdmin();
   await e.rechazarInscripcion(entero(f, "id"), txt(f, "motivo"));
-  redirect("/admin/inscripciones?ok=1");
+  redirect(`/admin/inscripciones?ok=${Date.now()}`);
 }
 
 export async function guardarEstudiante(f: FormData) {
@@ -103,11 +103,11 @@ export async function guardarEstudiante(f: FormData) {
   if (!datos.nombres || !datos.apellidos) redirect(`/admin/estudiantes/${id || "nuevo"}?error=${encodeURIComponent("Faltan los nombres o los apellidos.")}`);
   if (id) {
     await db().update(estudiantes).set({ ...datos, ...(estado in e.ESTADOS_ESTUDIANTE ? { estado } : {}) }).where(eq(estudiantes.id, id));
-    redirect(`/admin/estudiantes/${id}?ok=1`);
+    redirect(`/admin/estudiantes/${id}?ok=${Date.now()}`);
   }
   // Creado por el equipo: entra directamente como activo, con su inscripción y mensualidad.
   const [nuevo] = await db().insert(estudiantes).values(datos).returning();
-  let destino = `/admin/estudiantes/${nuevo.id}?ok=1`;
+  let destino = `/admin/estudiantes/${nuevo.id}?ok=${Date.now()}`;
   try { await e.aprobarInscripcion(nuevo.id, (await getConfig()).cobros.diaVencimiento); } catch (x) { destino = conError(`/admin/estudiantes/${nuevo.id}`, x); }
   redirect(destino);
 }
@@ -116,25 +116,25 @@ export async function guardarEstudiante(f: FormData) {
 export async function darAccesoPortal(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "id");
-  const ruta = `/admin/estudiantes/${id}`;
+  const ruta = `/admin/estudiantes/${id}?tab=portal`;
   const correo = txt(f, "correo").toLowerCase();
   const clave = String(f.get("clave") ?? "");
   const [est] = await db().select().from(estudiantes).where(eq(estudiantes.id, id));
-  if (!est || !correoValido(correo)) redirect(`${ruta}?error=${encodeURIComponent("Escribe un correo válido para el representante.")}`);
+  if (!est || !correoValido(correo)) redirect(`${ruta}&error=${encodeURIComponent("Escribe un correo válido para el representante.")}`);
   let [u] = await db().select().from(usuarios).where(eq(usuarios.correo, correo));
-  if (u && u.rol !== "representante") redirect(`${ruta}?error=${encodeURIComponent("Ese correo pertenece a un miembro del equipo.")}`);
+  if (u && u.rol !== "representante") redirect(`${ruta}&error=${encodeURIComponent("Ese correo pertenece a un miembro del equipo.")}`);
   if (!u) {
-    if (clave.length < 8) redirect(`${ruta}?error=${encodeURIComponent("Escribe una clave inicial de al menos 8 caracteres.")}`);
+    if (clave.length < 8) redirect(`${ruta}&error=${encodeURIComponent("Escribe una clave inicial de al menos 8 caracteres.")}`);
     [u] = await db().insert(usuarios).values({ nombre: est.repNombre || "Representante", correo, telefono: est.repTelefono, cedula: est.repCedula, claveHash: await bcrypt.hash(clave, 12), rol: "representante" }).returning();
   }
   await db().update(estudiantes).set({ representanteId: u.id, repCorreo: est.repCorreo || correo }).where(eq(estudiantes.id, id));
-  redirect(`${ruta}?ok=1`);
+  redirect(`${ruta}&ok=${Date.now()}`);
 }
 
 export async function quitarAccesoPortal(f: FormData) {
   await exigirAdmin();
   await db().update(estudiantes).set({ representanteId: null }).where(eq(estudiantes.id, entero(f, "id")));
-  redirect(`/admin/estudiantes/${entero(f, "id")}?ok=1`);
+  redirect(`/admin/estudiantes/${entero(f, "id")}?tab=portal&ok=${Date.now()}`);
 }
 
 // ---------- Panel: cargos y cobranza ----------
@@ -143,16 +143,16 @@ export async function agregarCargo(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "estudianteId");
   const monto = dinero(f, "monto");
-  if (!monto || !txt(f, "concepto")) redirect(`/admin/estudiantes/${id}?error=${encodeURIComponent("Escribe el concepto y el monto del cargo.")}`);
+  if (!monto || !txt(f, "concepto")) redirect(`/admin/estudiantes/${id}?tab=cuenta&error=${encodeURIComponent("Escribe el concepto y el monto del cargo.")}`);
   await db().insert(cargos).values({ estudianteId: id, tipo: "otro", concepto: txt(f, "concepto"), montoUsd: monto, venceEl: fecha(f, "venceEl") ?? e.hoy() });
-  redirect(`/admin/estudiantes/${id}?ok=1#cuenta`);
+  redirect(`/admin/estudiantes/${id}?tab=cuenta&ok=${Date.now()}`);
 }
 
 export async function accionAnularCargo(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "estudianteId");
-  let destino = `/admin/estudiantes/${id}?ok=1#cuenta`;
-  try { await e.anularCargo(entero(f, "id")); } catch (x) { destino = conError(`/admin/estudiantes/${id}`, x); }
+  let destino = `/admin/estudiantes/${id}?tab=cuenta&ok=${Date.now()}`;
+  try { await e.anularCargo(entero(f, "id")); } catch (x) { destino = conError(`/admin/estudiantes/${id}?tab=cuenta`, x); }
   redirect(destino);
 }
 
@@ -164,8 +164,8 @@ export async function cobrarEnEscuela(f: FormData) {
   try {
     const tasa = await getTasa();
     const r = await e.reportarPagoEscuela({ usuarioId: s.id, cargoIds: f.getAll("cargo").map(Number), metodo: txt(f, "metodo"), referencia: txt(f, "referencia"), capturaUrl: null, tasa: tasa?.valor ?? null, esEquipo: true });
-    destino = `/admin/estudiantes/${id}?recibo=${r}#cuenta`;
-  } catch (x) { destino = conError(`/admin/estudiantes/${id}`, x); }
+    destino = `/admin/estudiantes/${id}?tab=cuenta&recibo=${r}`;
+  } catch (x) { destino = conError(`/admin/estudiantes/${id}?tab=cuenta`, x); }
   redirect(destino);
 }
 
@@ -177,7 +177,7 @@ async function avisarReporte(id: number, asunto: string, texto: string) {
 export async function accionConfirmarReporte(f: FormData) {
   const s = await exigirAdmin();
   const id = entero(f, "id");
-  let destino = "/admin/cobranza?ok=1";
+  let destino = `/admin/cobranza?ok=${Date.now()}`;
   try {
     await e.confirmarReporte(id, s.id);
     await avisarReporte(id, "Pago confirmado: tu recibo está listo", `Confirmamos tu pago. Puedes ver e imprimir el recibo aquí:\n${urlBase()}/recibo/${id}`);
@@ -188,7 +188,7 @@ export async function accionConfirmarReporte(f: FormData) {
 export async function accionRechazarReporte(f: FormData) {
   const s = await exigirAdmin();
   const id = entero(f, "id");
-  let destino = "/admin/cobranza?ok=1";
+  let destino = `/admin/cobranza?ok=${Date.now()}`;
   try {
     await e.rechazarReporte(id, s.id, txt(f, "motivo"));
     await avisarReporte(id, "No pudimos verificar tu pago", `Motivo: ${txt(f, "motivo") || "no encontramos el pago con esa referencia"}. Los cargos siguen pendientes; puedes reportar el pago de nuevo en el portal:\n${urlBase()}/portal`);

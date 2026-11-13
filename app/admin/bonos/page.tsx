@@ -1,7 +1,8 @@
 import { desc } from "drizzle-orm";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
-import { Ayuda, Resultado } from "@/components/Ayuda";
+import { Ayuda, Encabezado, Resultado } from "@/components/Ayuda";
+import Cajon from "@/components/panel/Cajon";
 import { db, schema } from "@/db";
 import { accionAlternarBono, accionCrearBono } from "@/lib/acciones-taquilla";
 import { exigirAdmin } from "@/lib/sesion";
@@ -16,7 +17,19 @@ async function Bonos({ searchParams }: Props) {
   const bonos = await db().select().from(schema.bonos).orderBy(desc(schema.bonos.id)).limit(200);
   return (
     <>
-      <h1>Bonos de regalo</h1>
+      <Encabezado titulo="Bonos de regalo" descripcion="Cupones con saldo en dólares para pagar entradas.">
+        <Cajon key={q.nuevo ?? "nuevo"} titulo="Generar bono" boton="Generar bono" descripcion="Se crea un código único para entregar.">
+      <form action={accionCrearBono} className="formulario-cajon">
+          <div className="fila">
+            <div className="campo"><label htmlFor="b-monto">Monto (USD)</label><input id="b-monto" name="monto" inputMode="decimal" required /></div>
+            <div className="campo"><label htmlFor="b-para">Para quién es</label><input id="b-para" name="beneficiario" /></div>
+            <div className="campo"><label htmlFor="b-vence">Vence el (opcional)</label><input id="b-vence" name="venceEl" type="date" /></div>
+          </div>
+          <div className="campo"><label htmlFor="b-nota">Nota interna</label><input id="b-nota" name="nota" placeholder="Premio de la rifa, cortesía a patrocinante…" /></div>
+          <div className="cajon-pie"><button className="btn">Generar código</button></div>
+        </form>
+        </Cajon>
+      </Encabezado>
       <Ayuda>
         <ul>
           <li>Un bono es un cupón con saldo en dólares. Quien lo tenga escribe el código al pagar sus entradas.</li>
@@ -28,21 +41,12 @@ async function Bonos({ searchParams }: Props) {
       </Ayuda>
       <Resultado searchParams={searchParams} />
       {q.nuevo && (
-        <section className="nota" role="status">
-          Bono creado. Entrega este código: <b style={{ fontSize: "1.4rem", letterSpacing: ".14em", userSelect: "all" }}>{q.nuevo}</b>
+        <section className="panel" role="status" style={{ background: "var(--a-ok-fondo)", borderColor: "#bfe3cd" }}>
+          <span style={{ color: "var(--a-ok)", fontWeight: 600 }}>Bono creado. Entrega este código:</span>
+          <b style={{ fontSize: "1.8rem", letterSpacing: ".16em", userSelect: "all", fontVariantNumeric: "tabular-nums" }}>{q.nuevo}</b>
         </section>
       )}
 
-      <form action={accionCrearBono} className="panel">
-        <h2>Generar bono</h2>
-        <div className="fila">
-          <div className="campo"><label htmlFor="b-monto">Monto (USD)</label><input id="b-monto" name="monto" inputMode="decimal" required /></div>
-          <div className="campo"><label htmlFor="b-para">Para quién es</label><input id="b-para" name="beneficiario" /></div>
-          <div className="campo"><label htmlFor="b-vence">Vence el (opcional)</label><input id="b-vence" name="venceEl" type="date" /></div>
-        </div>
-        <div className="campo"><label htmlFor="b-nota">Nota interna</label><input id="b-nota" name="nota" placeholder="Premio de la rifa, cortesía a patrocinante…" /></div>
-        <div><button className="btn">Generar código</button></div>
-      </form>
 
       <section className="panel">
         <h2>Bonos emitidos</h2>

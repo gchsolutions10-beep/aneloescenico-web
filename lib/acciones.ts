@@ -112,7 +112,7 @@ export async function guardarTema(f: FormData) {
     mostrarTelon: marcado(f, "mostrarTelon"),
   });
   await guardarConfig("tema", tema);
-  redirect("/admin/apariencia?ok=1");
+  redirect(`/admin/apariencia?ok=${Date.now()}`);
 }
 
 export async function guardarLogo(f: FormData) {
@@ -122,7 +122,7 @@ export async function guardarLogo(f: FormData) {
   const antes = await escuelaActual();
   await guardarConfig("escuela", { ...antes, logoUrl, icono192: imagen(f, "icono192"), icono512: imagen(f, "icono512") });
   await limpiarArchivos([antes.logoUrl, antes.icono192, antes.icono512]);
-  redirect("/admin/apariencia?ok=1");
+  redirect(`/admin/apariencia?ok=${Date.now()}`);
 }
 
 export async function guardarEscuela(f: FormData) {
@@ -145,7 +145,7 @@ export async function guardarEscuela(f: FormData) {
     directorFotoUrl: imagen(f, "directorFotoUrl"),
   } satisfies Escuela);
   await limpiarArchivos([actual.directorFotoUrl]);
-  redirect("/admin/configuracion?ok=1");
+  redirect(`/admin/configuracion?ok=${Date.now()}`);
 }
 
 export async function marcarAppInstalada() {
@@ -175,7 +175,7 @@ export async function guardarSlide(f: FormData) {
   else await db().insert(schema.carrusel).values(datos);
   await limpiarArchivos([antes?.imagenUrl]);
   updateTag("carrusel");
-  redirect("/admin/carrusel?ok=1");
+  redirect(`/admin/carrusel?ok=${Date.now()}`);
 }
 
 export async function borrarSlide(f: FormData) {
@@ -183,7 +183,7 @@ export async function borrarSlide(f: FormData) {
   const [x] = await db().delete(schema.carrusel).where(eq(schema.carrusel.id, entero(f, "id"))).returning();
   await limpiarArchivos([x?.imagenUrl]);
   updateTag("carrusel");
-  redirect("/admin/carrusel?ok=1");
+  redirect(`/admin/carrusel?ok=${Date.now()}`);
 }
 
 // ---------- Niveles ----------
@@ -213,7 +213,7 @@ export async function guardarNivel(f: FormData) {
   }
   await limpiarArchivos([antes?.imagenUrl]);
   updateTag("niveles");
-  redirect("/admin/niveles?ok=1");
+  redirect(`/admin/niveles?ok=${Date.now()}`);
 }
 
 // ---------- Blog ----------
@@ -241,7 +241,7 @@ export async function guardarEntrada(f: FormData) {
   else await db().insert(schema.entradasBlog).values(datos);
   await limpiarArchivos([previa?.portadaUrl]);
   updateTag("blog");
-  redirect("/admin/blog?ok=1");
+  redirect(`/admin/blog?ok=${Date.now()}`);
 }
 
 export async function borrarEntrada(f: FormData) {
@@ -249,7 +249,7 @@ export async function borrarEntrada(f: FormData) {
   const [x] = await db().delete(schema.entradasBlog).where(eq(schema.entradasBlog.id, entero(f, "id"))).returning();
   await limpiarArchivos([x?.portadaUrl]);
   updateTag("blog");
-  redirect("/admin/blog?ok=1");
+  redirect(`/admin/blog?ok=${Date.now()}`);
 }
 
 // ---------- Funciones (cartelera; la venta de entradas llega en la Fase 2) ----------
@@ -270,17 +270,41 @@ export async function guardarFuncion(f: FormData) {
     lugar: txt(f, "lugar"),
     estado: estado in ESTADOS_FUNCION ? estado : "borrador",
   };
-  let destino = "/admin/funciones?ok=1";
+  let destino = `/admin/funciones?ok=${Date.now()}`;
   const [antes] = id ? await db().select().from(schema.funciones).where(eq(schema.funciones.id, id)) : [];
   if (id) await db().update(schema.funciones).set(datos).where(eq(schema.funciones.id, id));
   else {
-    // Recién creada: se sigue en su pantalla de venta para crear el plano y los precios.
-    const [nueva] = await db().insert(schema.funciones).values(datos).returning({ id: schema.funciones.id });
-    destino = `/admin/funciones/${nueva.id}`;
+    // Creación en dos pasos: datos de la obra, y luego sala, precios y preventa.
+    const [nueva] = await db().insert(schema.funciones).values({
+      ...datos,
+      estado: marcado(f, "publicar") ? "a_la_venta" : "borrador",
+      preventaHasta: deInputLocal(txt(f, "preventaHasta")),
+      maxPorCompra: Math.min(20, Math.max(1, entero(f, "maxPorCompra") || 8)),
+    }).returning({ id: schema.funciones.id });
+    const salaId = entero(f, "sala");
+    if (salaId) {
+      const { crearPlano } = await import("./taquilla");
+      await crearPlano(nueva.id, salaId);
+      const zonas = await db().select().from(schema.zonas).where(eq(schema.zonas.funcionId, nueva.id));
+      for (const z of zonas) {
+        const reg = dinero(f, `reg_${z.clave}`);
+        await db().update(schema.zonas).set({ precioPreventa: dinero(f, `pre_${z.clave}`), ...(reg ? { precioRegular: reg } : {}) }).where(eq(schema.zonas.id, z.id));
+      }
+      updateTag("cupos");
+    }
+    destino = `/admin/funciones?ok=${Date.now()}&nueva=${nueva.id}`;
   }
   await limpiarArchivos([antes?.aficheUrl]);
   updateTag("funciones");
   redirect(destino);
+}
+
+export async function cambiarEstadoFuncion(f: FormData) {
+  await exigirAdmin();
+  const estado = txt(f, "estado");
+  if (estado in ESTADOS_FUNCION) await db().update(schema.funciones).set({ estado }).where(eq(schema.funciones.id, entero(f, "id")));
+  updateTag("funciones"); updateTag("cupos");
+  redirect(`/admin/funciones?ok=${Date.now()}`);
 }
 
 export async function borrarFuncion(f: FormData) {
@@ -288,7 +312,7 @@ export async function borrarFuncion(f: FormData) {
   const { eliminarFuncion } = await import("./taquilla");
   await limpiarArchivos(await eliminarFuncion(entero(f, "id")));
   updateTag("funciones"); updateTag("cupos"); updateTag("protagonistas");
-  redirect("/admin/funciones?ok=1");
+  redirect(`/admin/funciones?ok=${Date.now()}`);
 }
 
 // ---------- Mensajes de contacto ----------

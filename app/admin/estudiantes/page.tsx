@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
 import { Ayuda } from "@/components/Ayuda";
+import Aviso from "@/components/panel/Aviso";
 import { db, schema } from "@/db";
 import { ESTADOS_ESTUDIANTE, hoy } from "@/lib/escuela";
 import { exigirAdmin } from "@/lib/sesion";
@@ -34,23 +35,25 @@ async function Estudiantes({ searchParams }: Props) {
           <li>Usa las pestañas para ver retirados o egresados.</li>
         </ul>
       </Ayuda>
-      {q.borrado && <p className="nota" role="status">Estudiante borrado.</p>}
-      <div className="acciones">
-        {["activo", "retirado", "egresado", "rechazado"].map((x) => <Link key={x} className={`btn chico${estado === x ? "" : " sec"}`} href={`/admin/estudiantes?estado=${x}`}>{ESTADOS_ESTUDIANTE[x]}s</Link>)}
-        <form className="acciones" style={{ marginLeft: "auto" }}><input type="hidden" name="estado" value={estado} /><input name="q" defaultValue={q.q} placeholder="Buscar por nombre" aria-label="Buscar" style={{ width: 200 }} /><button className="btn sec chico">Buscar</button></form>
+      {q.borrado && <Aviso mensaje="Estudiante borrado." />}
+      <div className="cab">
+        <nav className="pestanas" aria-label="Filtrar por estado">
+          {["activo", "retirado", "egresado", "rechazado"].map((x) => <Link key={x} href={`/admin/estudiantes?estado=${x}`} aria-current={estado === x ? "page" : undefined}>{ESTADOS_ESTUDIANTE[x]}s</Link>)}
+        </nav>
+        <form className="acciones" role="search"><input type="hidden" name="estado" value={estado} /><input type="search" name="q" defaultValue={q.q} placeholder="Buscar por nombre o representante" aria-label="Buscar" style={{ width: 260 }} /><button className="btn sec">Buscar</button></form>
       </div>
-      <section className="panel">
+      <section className="panel" style={{ paddingTop: 6 }}>
         {lista.length === 0 ? <p className="tenue">No hay estudiantes en esta lista.</p> : (
           <div className="tabla"><table>
             <thead><tr><th>Estudiante</th><th>Nivel</th><th>Representante</th><th>Debe</th><th></th></tr></thead>
             <tbody>
               {lista.map(({ e, nivel, debe, mora }) => (
                 <tr key={e.id}>
-                  <td><Link href={`/admin/estudiantes/${e.id}`}><b>{e.apellidos}, {e.nombres}</b></Link>{e.becaPct > 0 && <> <span className="pastilla oro">Beca {e.becaPct}%</span></>}</td>
+                  <td><Link href={`/admin/estudiantes/${e.id}`} style={{ color: "var(--a-texto)", textDecoration: "none" }}><b>{e.apellidos}, {e.nombres}</b></Link>{e.becaPct > 0 && <> <span className="pastilla oro">Beca {e.becaPct}%</span></>}</td>
                   <td>{nivel ?? "—"}</td>
                   <td>{e.repNombre || "—"}<br /><span className="tenue">{e.repTelefono}</span></td>
                   <td>{Number(debe) > 0 ? <b>{usd(debe)}</b> : <span className="tenue">Al día</span>}</td>
-                  <td>{mora > 0 && <span className="pastilla" style={{ color: "var(--a-mal)" }}>En mora</span>}</td>
+                  <td>{mora > 0 && <span className="pastilla mal">En mora</span>}</td>
                 </tr>
               ))}
             </tbody>

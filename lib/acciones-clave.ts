@@ -31,13 +31,13 @@ export async function cambiarMiClave(_: Estado, f: FormData): Promise<Estado> {
 export async function restablecerClaveRepresentante(f: FormData) {
   await exigirAdmin();
   const estudianteId = Number(f.get("estudianteId")) || 0;
-  const ruta = `/admin/estudiantes/${estudianteId}`;
+  const ruta = `/admin/estudiantes/${estudianteId}?tab=portal`;
   const clave = String(f.get("clave") ?? "");
-  if (clave.length < 8) redirect(`${ruta}?error=${encodeURIComponent("La clave nueva debe tener al menos 8 caracteres.")}`);
+  if (clave.length < 8) redirect(`${ruta}&error=${encodeURIComponent("La clave nueva debe tener al menos 8 caracteres.")}`);
   // Solo cuentas de representante: las del equipo se cambian en Usuarios.
   await db().update(usuarios).set({ claveHash: await bcrypt.hash(clave, 12), intentosFallidos: 0, bloqueadoHasta: null })
     .where(and(eq(usuarios.id, Number(f.get("usuarioId")) || 0), eq(usuarios.rol, "representante")));
-  redirect(`${ruta}?ok=1`);
+  redirect(`${ruta}&ok=${Date.now()}`);
 }
 
 /** "Olvidé mi clave": envía un enlace de un solo uso. La respuesta es la misma exista o no la cuenta. */

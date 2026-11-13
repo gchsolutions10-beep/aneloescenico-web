@@ -82,7 +82,7 @@ export async function accionPedirReembolso(f: FormData) {
 
 export async function accionConfirmar(f: FormData) {
   const s = await exigirEquipo();
-  let destino = "/admin/pagos?ok=1";
+  let destino = `/admin/pagos?ok=${Date.now()}`;
   try { await t.confirmarOrden(entero(f, "id"), s.id); } catch (e) { destino = conError("/admin/pagos", e); }
   updateTag("cupos");
   redirect(destino);
@@ -90,7 +90,7 @@ export async function accionConfirmar(f: FormData) {
 
 export async function accionRechazar(f: FormData) {
   const s = await exigirEquipo();
-  let destino = "/admin/pagos?ok=1";
+  let destino = `/admin/pagos?ok=${Date.now()}`;
   try { await t.rechazarOrden(entero(f, "id"), s.id, txt(f, "motivo")); } catch (e) { destino = conError("/admin/pagos", e); }
   updateTag("cupos");
   redirect(destino);
@@ -98,7 +98,7 @@ export async function accionRechazar(f: FormData) {
 
 export async function accionReembolsar(f: FormData) {
   const s = await exigirAdmin();
-  let destino = "/admin/pagos?ok=1";
+  let destino = `/admin/pagos?ok=${Date.now()}`;
   try { await t.reembolsarOrden(entero(f, "id"), s.id, txt(f, "referencia")); } catch (e) { destino = conError("/admin/pagos", e); }
   updateTag("cupos");
   redirect(destino);
@@ -135,7 +135,7 @@ export async function accionValidar(f: FormData) {
 export async function accionCrearPlano(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "id");
-  let destino = `/admin/funciones/${id}?ok=1`;
+  let destino = `/admin/funciones/${id}?ok=${Date.now()}`;
   try { await t.crearPlano(id, entero(f, "sala")); } catch (e) { destino = conError(`/admin/funciones/${id}`, e); }
   updateTag("funciones"); updateTag("cupos");
   redirect(destino);
@@ -150,14 +150,14 @@ export async function accionGuardarVenta(f: FormData) {
     await db().update(schema.zonas).set({ precioPreventa: dinero(f, `pre_${z.id}`), precioRegular: dinero(f, `reg_${z.id}`) ?? z.precioRegular }).where(eq(schema.zonas.id, z.id));
   }
   updateTag("funciones");
-  redirect(`/admin/funciones/${id}?ok=1`);
+  redirect(`/admin/funciones/${id}?ok=${Date.now()}`);
 }
 
 export async function accionBloquear(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "id");
-  let destino = `/admin/funciones/${id}?ok=1#butacas`;
-  try { for (const n of numeros(f)) await t.alternarBloqueo(id, n); } catch (e) { destino = conError(`/admin/funciones/${id}`, e); }
+  let destino = `/admin/funciones/${id}?tab=butacas&ok=${Date.now()}`;
+  try { for (const n of numeros(f)) await t.alternarBloqueo(id, n); } catch (e) { destino = conError(`/admin/funciones/${id}?tab=butacas`, e); }
   updateTag("cupos");
   redirect(destino);
 }
@@ -180,7 +180,7 @@ export async function accionGuardarActor(f: FormData) {
     await db().insert(schema.elenco).values({ funcionId, estudianteId, nombre, personaje: txt(f, "personaje"), descripcion: txt(f, "descripcion"), orden: entero(f, "orden"), fotoUrl: foto });
     updateTag("funciones"); updateTag("protagonistas");
   }
-  redirect(`/admin/funciones/${funcionId}?ok=1#elenco`);
+  redirect(`/admin/funciones/${funcionId}?tab=elenco&ok=${Date.now()}`);
 }
 
 export async function accionBorrarActor(f: FormData) {
@@ -188,7 +188,7 @@ export async function accionBorrarActor(f: FormData) {
   const [x] = await db().delete(schema.elenco).where(eq(schema.elenco.id, entero(f, "id"))).returning();
   await limpiarArchivos([x?.fotoUrl]);
   updateTag("funciones"); updateTag("protagonistas");
-  redirect(`/admin/funciones/${entero(f, "funcionId")}?ok=1#elenco`);
+  redirect(`/admin/funciones/${entero(f, "funcionId")}?tab=elenco&ok=${Date.now()}`);
 }
 
 // ---------- Bonos de regalo ----------
@@ -210,7 +210,7 @@ export async function accionAlternarBono(f: FormData) {
   await exigirAdmin();
   const [b] = await db().select().from(schema.bonos).where(eq(schema.bonos.id, entero(f, "id")));
   if (b) await db().update(schema.bonos).set({ activo: !b.activo }).where(eq(schema.bonos.id, b.id));
-  redirect("/admin/bonos?ok=1");
+  redirect(`/admin/bonos?ok=${Date.now()}`);
 }
 
 // ---------- Cobros y tasa ----------
@@ -227,13 +227,13 @@ export async function accionGuardarCobros(f: FormData) {
   };
   await db().insert(schema.configuracion).values({ clave: "cobros", valor }).onConflictDoUpdate({ target: schema.configuracion.clave, set: { valor } });
   updateTag("config");
-  redirect("/admin/cobros?ok=1");
+  redirect(`/admin/cobros?ok=${Date.now()}`);
 }
 
 export async function accionActualizarTasa() {
   await exigirAdmin();
   const nueva = await actualizarTasa();
-  redirect(nueva ? "/admin/cobros?ok=1" : "/admin/cobros?error=" + encodeURIComponent("No se pudo consultar la tasa ahora. Se sigue usando la última guardada; también puedes fijarla a mano."));
+  redirect(nueva ? `/admin/cobros?ok=${Date.now()}` : "/admin/cobros?error=" + encodeURIComponent("No se pudo consultar la tasa ahora. Se sigue usando la última guardada; también puedes fijarla a mano."));
 }
 
 // ---------- Usuarios (solo master) ----------
@@ -249,7 +249,7 @@ export async function accionCrearUsuario(f: FormData) {
   const [ya] = await db().select({ id: schema.usuarios.id }).from(schema.usuarios).where(eq(schema.usuarios.correo, correo));
   if (ya) error("Ya existe un usuario con ese correo.");
   await db().insert(schema.usuarios).values({ nombre: txt(f, "nombre"), correo, claveHash: await bcrypt.hash(clave, 12), rol });
-  redirect("/admin/usuarios?ok=1");
+  redirect(`/admin/usuarios?ok=${Date.now()}`);
 }
 
 export async function accionEditarUsuario(f: FormData) {
@@ -266,5 +266,5 @@ export async function accionEditarUsuario(f: FormData) {
   }
   // El master no se puede desactivar ni modificar desde aquí.
   await db().update(schema.usuarios).set(cambios).where(and(eq(schema.usuarios.id, id), ne(schema.usuarios.rol, "master")));
-  redirect("/admin/usuarios?ok=1");
+  redirect(`/admin/usuarios?ok=${Date.now()}`);
 }

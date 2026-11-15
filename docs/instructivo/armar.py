@@ -17,7 +17,7 @@ html = html.replace("{{logo}}", datos(raiz / "public" / "logo.png", "image/png")
 html = html.replace("{{direccion}}", direccion)
 html = re.sub(r"\{\{img ([\w-]+)\}\}", lambda m: datos(aqui / "capturas" / f"{m.group(1)}.jpg", "image/jpeg"), html)
 if direccion.startswith("http"):
-    html = html.replace('<span class="rellenar">', '<span>')
+    html = html.replace(f'<span class="rellenar">{direccion}</span>/ingresar', f'<a href="{direccion}/ingresar">{direccion}/ingresar</a>')
 falta = re.findall(r"\{\{[^}]+\}\}", html)
 if falta:
     sys.exit(f"Quedaron marcas sin reemplazar: {falta}")

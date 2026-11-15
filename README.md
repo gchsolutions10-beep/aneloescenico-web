@@ -27,6 +27,7 @@ Para publicarlo: [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 | [`docs/PROPUESTA.md`](docs/PROPUESTA.md) | Propuesta funcional completa: secciones del sitio, módulos, roles, reglas de negocio. |
 | [`docs/ESPECIFICACION-TECNICA.md`](docs/ESPECIFICACION-TECNICA.md) | Arquitectura, modelo de datos en Neon, lógica del apartado de butacas, seguridad, PWA. |
 | [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md) | Fases de entrega, qué se necesita del cliente y decisiones pendientes. |
+| [`docs/instructivo/Guia-del-panel-A-Nelo-Escenico.html`](docs/instructivo/Guia-del-panel-A-Nelo-Escenico.html) | Guía para el cliente: cómo entrar, configurar la escuela, crear funciones, vender, manejar estudiantes y crear Protagonistas. Un solo archivo con capturas; se regenera con `python3 docs/instructivo/armar.py https://tu-dominio`. |
 | [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) | Cómo publicar en Vercel con Neon y cómo trabajar en local. |
 
 `propuesta/propuesta.html` es la fuente de la propuesta visual; `propuesta/build.sh` genera `index.html` a partir de ella.

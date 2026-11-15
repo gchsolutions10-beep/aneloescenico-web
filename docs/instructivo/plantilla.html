@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía del panel · A-Nelo Escénico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --vino: #8f1d2c; --vino-osc: #6b1420; --oro: #d6ab52; --noche: #1a0d10;
+  --fondo: #f5f3f1; --papel: #ffffff; --linea: #e6e1dc; --texto: #1d1517; --tenue: #5f5450;
+  --ok: #1f6b44; --ok-f: #e3f3ea; --ambar: #6e4b00; --ambar-f: #fbf3df; --mal: #a32a2a; --mal-f: #fde8e5; --azul: #24508a; --azul-f: #e8eef7;
+  --serif: "Bodoni Moda", Didot, Georgia, serif; --sans: Figtree, "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.65 var(--sans); }
+a { color: var(--vino); }
+img { max-width: 100%; height: auto; }
+
+.portada { background: radial-gradient(ellipse at 80% -10%, #5a1822 0%, transparent 60%), var(--noche); color: #f6ecdf; padding: 56px 20px 64px; }
+.portada .dentro { max-width: 1100px; margin: 0 auto; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.portada img { width: 104px; height: 104px; border-radius: 50%; background: #fff; flex: none; }
+.portada small { display: block; color: var(--oro); letter-spacing: .2em; text-transform: uppercase; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.portada h1 { font: 500 clamp(2.1rem, 5vw, 3.4rem)/1.08 var(--serif); margin: 0 0 12px; }
+.portada h1 em { color: var(--oro); }
+.portada p { margin: 0; color: #d9cbc3; max-width: 60ch; font-size: 17px; }
+
+.marco { max-width: 1100px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; }
+.indice { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; padding: 32px 0; font-size: 14px; }
+.indice b { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--tenue); margin-bottom: 10px; }
+.indice ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: i; }
+.indice li { counter-increment: i; }
+.indice a { display: flex; gap: 10px; padding: 7px 10px; border-radius: 8px; text-decoration: none; color: var(--texto); }
+.indice a::before { content: counter(i); color: var(--vino); font-weight: 700; min-width: 1.2em; }
+.indice a:hover { background: #ece8e4; }
+main { padding: 32px 0 80px; min-width: 0; }
+@media (max-width: 860px) { .marco { grid-template-columns: 1fr; gap: 0; } .indice { position: static; max-height: none; padding-bottom: 0; } }
+
+section.cap { background: var(--papel); border: 1px solid var(--linea); border-radius: 16px; padding: clamp(20px, 4vw, 36px); margin-bottom: 24px; }
+.cap > h2 { font: 500 clamp(1.6rem, 3.4vw, 2.1rem)/1.15 var(--serif); margin: 0 0 6px; display: flex; gap: 14px; align-items: baseline; }
+.cap > h2 span { font: 700 14px/1 var(--sans); color: #fff; background: var(--vino); border-radius: 50%; width: 30px; height: 30px; display: inline-grid; place-items: center; flex: none; transform: translateY(-4px); }
+.cap > .sub { color: var(--tenue); margin: 0 0 22px; }
+h3 { font-size: 1.15rem; margin: 30px 0 10px; }
+h3:first-of-type { margin-top: 12px; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+.ruta { display: inline-block; background: #f0ece8; border: 1px solid var(--linea); border-radius: 6px; padding: 1px 8px; font-size: .92em; font-weight: 600; white-space: nowrap; }
+.boton { display: inline-block; background: var(--vino); color: #fff; border-radius: 6px; padding: 0 8px; font-size: .9em; font-weight: 600; white-space: nowrap; }
+.boton.sec { background: #fff; color: var(--texto); border: 1px solid #cfc6bf; }
+
+.pasos { list-style: none; padding: 0; counter-reset: p; display: grid; gap: 14px; margin: 16px 0 18px; }
+.pasos > li { counter-increment: p; position: relative; padding-left: 46px; margin: 0; }
+.pasos > li::before { content: counter(p); position: absolute; left: 0; top: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--fondo); border: 2px solid var(--vino); color: var(--vino); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+.pasos > li > b:first-child { display: block; }
+
+.nota { border-radius: 12px; padding: 14px 16px; margin: 16px 0; font-size: 15px; }
+.nota b:first-child { display: block; margin-bottom: 3px; }
+.nota p:last-child, .nota ul:last-child { margin-bottom: 0; }
+.consejo { background: var(--ok-f); color: #174d33; }
+.importante { background: var(--ambar-f); color: #573c00; }
+.cuidado { background: var(--mal-f); color: #7d2020; }
+.info { background: var(--azul-f); color: #1d416f; }
+
+figure { margin: 18px 0 22px; }
+figure img { display: block; border-radius: 12px; border: 1px solid var(--linea); box-shadow: 0 10px 30px rgba(29,21,23,.08); }
+figcaption { font-size: 13.5px; color: var(--tenue); margin-top: 8px; }
+
+.dato { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; background: var(--fondo); border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+.dato dt { font-weight: 600; color: var(--tenue); }
+.dato dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.rellenar { background: #fff3c4; border-bottom: 2px dashed #c79a1a; padding: 0 4px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 15px; margin: 12px 0 18px; }
+th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--tenue); }
+.tabla { overflow-x: auto; }
+
+details { border: 1px solid var(--linea); border-radius: 12px; padding: 12px 16px; margin: 10px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details[open] summary { margin-bottom: 8px; }
+
+.pie { text-align: center; color: var(--tenue); font-size: 14px; padding: 10px 0 40px; }
+
+@media print {
+  body { background: #fff; font-size: 12pt; }
+  .indice { display: none; }
+  .marco { display: block; padding: 0; }
+  section.cap { border: 0; padding: 0; break-before: page; }
+  figure { break-inside: avoid; }
+  figure img { box-shadow: none; }
+  .portada { padding: 30px; }
+}
+</style>
+</head>
+<body>
+
+<header class="portada">
+  <div class="dentro">
+    <img src="{{logo}}" alt="Logo de A-Nelo Escénico">
+    <div>
+      <small>Guía para empezar</small>
+      <h1>El panel de <em>A-Nelo Escénico</em></h1>
+      <p>Cómo entrar, dejar todo configurado y hacer el trabajo de todos los días: funciones, venta de entradas, estudiantes, mensualidades y Protagonistas.</p>
+    </div>
+  </div>
+</header>
+
+<div class="marco">
+  <nav class="indice" aria-label="Contenido">
+    <b>Contenido</b>
+    <ol>
+      <li><a href="#entrar">Cómo entrar</a></li>
+      <li><a href="#panel">Conoce el panel</a></li>
+      <li><a href="#configurar">Configuración inicial</a></li>
+      <li><a href="#funcion">Crear una función</a></li>
+      <li><a href="#vender">Vender entradas</a></li>
+      <li><a href="#escuela">Estudiantes y mensualidades</a></li>
+      <li><a href="#protagonistas">Crear un Protagonista</a></li>
+      <li><a href="#reportes">Reportes y cierre de caja</a></li>
+      <li><a href="#preguntas">Preguntas frecuentes</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+<!-- ===================================================== 1 -->
+<section class="cap" id="entrar">
+  <h2><span>1</span>Cómo entrar</h2>
+  <p class="sub">El panel es la parte privada del sitio, donde la escuela administra todo.</p>
+
+  <dl class="dato">
+    <dt>Dirección</dt><dd><span class="rellenar">{{direccion}}</span>/ingresar</dd>
+    <dt>Correo</dt><dd>aneloescenico@admin.com</dd>
+    <dt>Clave</dt><dd>Te la enviamos por separado</dd>
+  </dl>
+  <p>También puedes llegar desde el sitio: al final de cualquier página está el enlace <span class="ruta">Acceso del equipo</span>.</p>
+
+  <figure><img src="{{img 01-ingreso}}" alt="Pantalla de ingreso con los campos Correo y Clave"><figcaption>La pantalla de ingreso.</figcaption></figure>
+
+  <div class="nota importante"><b>Lo primero: cambia tu clave</b><p>Apenas entres, ve a <span class="ruta">Mi clave</span> (abajo en el menú de la izquierda), escribe la clave que te enviamos y elige una nueva que solo tú conozcas.</p></div>
+  <div class="nota info"><b>Si te equivocas de clave</b><p>Después de 5 intentos fallidos, la cuenta se bloquea 15 minutos por seguridad. Espera y vuelve a intentar.</p></div>
+</section>
+
+<!-- ===================================================== 2 -->
+<section class="cap" id="panel">
+  <h2><span>2</span>Conoce el panel</h2>
+  <p class="sub">Todas las pantallas funcionan igual. Si aprendes una, sabes usarlas todas.</p>
+
+  <figure><img src="{{img 02-inicio}}" alt="Inicio del panel con el menú lateral y la lista de primeros pasos"><figcaption>Inicio del panel. A la izquierda, el menú; arriba, la ruta y la tasa BCV del día.</figcaption></figure>
+
+  <h3>El menú de la izquierda</h3>
+  <p>Está agrupado por temas. Toca el nombre de un grupo para plegarlo o desplegarlo.</p>
+  <div class="tabla"><table>
+    <thead><tr><th>Grupo</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td><b>Inicio</b></td><td>Resumen del día: lo cobrado, lo que espera atención y las próximas funciones.</td></tr>
+      <tr><td><b>Taquilla</b></td><td>Vender entradas en la sala, confirmar pagos de entradas, validar entradas en la puerta y el cierre de caja.</td></tr>
+      <tr><td><b>Funciones</b></td><td>Las obras, las salas (planos de butacas) y los bonos de regalo.</td></tr>
+      <tr><td><b>Escuela</b></td><td>Inscripciones, estudiantes, cobranza de mensualidades, Protagonistas y niveles.</td></tr>
+      <tr><td><b>Sitio web</b></td><td>Lo que ve el público: fotos de portada, blog, mensajes recibidos y apariencia.</td></tr>
+      <tr><td><b>Reportes</b></td><td>Totales por fechas y descargas para Excel.</td></tr>
+      <tr><td><b>Ajustes</b></td><td>Datos de la escuela, datos de pago y tasa, correo y usuarios del equipo.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Los <b>números dorados</b> junto a una opción avisan de lo que espera tu atención: pagos por confirmar, solicitudes de inscripción o mensajes sin leer.</p>
+
+  <h3>Cómo se trabaja en cada pantalla</h3>
+  <ul>
+    <li><b>Primero ves la lista.</b> Por ejemplo, en Funciones ves todas las funciones.</li>
+    <li><b>Los formularios se abren a la derecha</b> con el botón de la pantalla (<span class="boton">+ Nueva función</span>, <span class="boton sec">Editar</span>…). Para cerrar sin guardar, toca la <b>✕</b> o la tecla Esc.</li>
+    <li><b>Al guardar</b>, el formulario se cierra solo y abajo a la derecha aparece un aviso verde que confirma que se guardó.</li>
+    <li><b>Los tres puntos ⋮</b> al final de cada fila guardan las acciones menos usadas: editar, cambiar el estado o borrar.</li>
+    <li><b>Antes de borrar algo importante</b>, una ventana explica qué se pierde y pide confirmación.</li>
+    <li>Cada pantalla tiene un recuadro <span class="ruta">¿Cómo se usa esta pantalla?</span> con instrucciones cortas, y en el menú está el <span class="ruta">Manual</span> completo.</li>
+  </ul>
+  <div class="nota consejo"><b>En el teléfono</b><p>El panel funciona igual en el celular. El menú se abre con el botón de tres rayas ☰ arriba a la izquierda.</p></div>
+</section>
+
+<!-- ===================================================== 3 -->
+<section class="cap" id="configurar">
+  <h2><span>3</span>Configuración inicial</h2>
+  <p class="sub">Hazlo una sola vez, en este orden. El Inicio del panel muestra una lista de "Primeros pasos" con tu avance.</p>
+
+  <h3>3.1 · Logo y colores</h3>
+  <p>Ve a <span class="ruta">Sitio web › Apariencia</span>.</p>
+  <ol class="pasos">
+    <li><b>Sube el logo.</b> Elige la imagen (mejor cuadrada y en PNG) y pulsa <span class="boton">Guardar logo</span>. Ese logo también será el ícono de la app en el teléfono.</li>
+    <li><b>Elige los colores.</b> Parte de una plantilla (<b>Telón</b> es el diseño original de la escuela) o cambia cada color tocando su recuadro. La vista previa muestra el resultado.</li>
+    <li><b>Revisa los avisos.</b> Si aparece un aviso de legibilidad, ese color hace que el texto se lea mal: ajústalo.</li>
+    <li>Pulsa <span class="boton">Guardar apariencia</span>. El sitio cambia de inmediato.</li>
+  </ol>
+  <figure><img src="{{img 03-apariencia}}" alt="Pantalla de Apariencia con el logo subido"><figcaption>Apariencia: el logo arriba y los colores debajo.</figcaption></figure>
+
+  <h3>3.2 · Datos de la escuela</h3>
+  <p>Ve a <span class="ruta">Ajustes › Datos de la escuela</span> y completa:</p>
+  <ul>
+    <li><b>Nombre, lema y ciudad.</b></li>
+    <li><b>Descripción corta:</b> se ve en el pie del sitio y al compartir el enlace por WhatsApp.</li>
+    <li><b>Teléfono, correo, Instagram y dirección.</b></li>
+    <li><b>WhatsApp</b> con el código del país y sin signos, así: <b>584220333231</b>. Al llenarlo aparece el botón verde de WhatsApp en todo el sitio.</li>
+    <li><b>Sobre nosotros:</b> la historia de la escuela, y el nombre, la reseña y la foto del director. Deja una línea en blanco entre párrafos.</li>
+  </ul>
+  <figure><img src="{{img 04-datos}}" alt="Formulario de datos de la escuela"><figcaption>Datos de la escuela.</figcaption></figure>
+
+  <h3>3.3 · Datos de pago y tasa BCV</h3>
+  <p>Ve a <span class="ruta">Ajustes › Cobros y tasa BCV</span>. Es lo que ven las personas cuando pagan entradas o mensualidades.</p>
+  <ul>
+    <li><b>Pago Móvil:</b> banco, teléfono, cédula o RIF y titular.</li>
+    <li><b>Transferencia:</b> banco, número de cuenta, cédula o RIF y titular. Si dejas un método vacío, no se ofrece.</li>
+    <li><b>Minutos de apartado:</b> el tiempo que tiene un comprador para pagar antes de que sus butacas se liberen. Recomendado: 15.</li>
+    <li><b>Día de vencimiento de la mensualidad:</b> pasado ese día del mes, lo no pagado queda "en mora".</li>
+  </ul>
+  <div class="nota info"><b>Cómo funciona la tasa</b><p>Los precios se ponen en dólares. El sitio consulta solo la tasa oficial del BCV una vez al día y muestra el monto en bolívares. Si algún día no se puede consultar, se usa la última conocida y lo verás avisado en esta pantalla. Si quieres cobrar con otra tasa, escríbela en <b>Tasa manual</b>; déjala vacía para volver a la automática.</p></div>
+  <figure><img src="{{img 05-cobros}}" alt="Pantalla Cobros y tasa con la tasa del día y los datos de Pago Móvil"><figcaption>Cobros y tasa BCV.</figcaption></figure>
+
+  <h3>3.4 · Niveles, horarios y montos</h3>
+  <p>Ve a <span class="ruta">Escuela › Niveles</span>. Ya están creados <b>Kids, Teen y Teenagers</b>. En cada uno pulsa <span class="boton sec">Editar</span> y completa:</p>
+  <ul>
+    <li><b>Edades y horario</b> (por ejemplo: "De 6 a 9 años", "Sábados de 9:00 a 11:00 a. m.").</li>
+    <li><b>Descripción:</b> qué se aprende. Aparece en su página de Clases Actuación.</li>
+    <li><b>Inscripción y mensualidad</b> en dólares. Con estos montos se generan solas las mensualidades cada mes.</li>
+    <li>Una <b>foto</b> del nivel (opcional).</li>
+  </ul>
+  <figure><img src="{{img 06-niveles}}" alt="Formulario de edición de un nivel abierto a la derecha"><figcaption>Editar un nivel: el formulario se abre a la derecha.</figcaption></figure>
+
+  <h3>3.5 · Fotos de la portada</h3>
+  <p>Ve a <span class="ruta">Sitio web › Carrusel</span> y pulsa <span class="boton">+ Agregar foto</span>.</p>
+  <ol class="pasos">
+    <li><b>Elige una foto grande y horizontal</b> de las clases. Se recorta sola a formato panorámico; con los botones de <b>Encuadre</b> eliges si se conserva la parte de arriba, el centro o la de abajo.</li>
+    <li><b>Escribe el título</b> y, si quieres, un texto corto.</li>
+    <li><b>Botón (opcional):</b> el texto ("Inscripciones abiertas") y a dónde lleva (<b>/clases</b>, <b>/funciones</b> o <b>/contacto</b>).</li>
+    <li>El número de <b>Orden</b> decide cuál sale primero. Agrega de 3 a 5 fotos.</li>
+  </ol>
+
+  <h3>3.6 · Primera novedad del blog</h3>
+  <p>Ve a <span class="ruta">Sitio web › Blog</span> y pulsa <span class="boton">Nueva entrada</span>. Escribe título, resumen, portada y contenido. Marca <b>Publicada</b> para que salga en el blog, y <b>Destacada</b> para que salga también en "Novedades" en la portada del sitio.</p>
+
+  <h3>3.7 · Tu equipo</h3>
+  <p>Ve a <span class="ruta">Ajustes › Usuarios</span> y pulsa <span class="boton">+ Nuevo usuario</span>. Cada persona entra con su propio correo y clave.</p>
+  <div class="tabla"><table>
+    <thead><tr><th>Rol</th><th>Qué puede hacer</th></tr></thead>
+    <tbody>
+      <tr><td><b>Administrador</b></td><td>Todo el panel, menos crear o desactivar usuarios.</td></tr>
+      <tr><td><b>Vendedor</b></td><td>Solo el grupo Taquilla: vender en la sala, confirmar pagos de entradas, validar en la puerta y ver su propio cierre de caja. No da cortesías ni reembolsos.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Si alguien deja el equipo, pulsa <span class="boton sec">Desactivar</span>: pierde el acceso al instante.</p>
+
+  <h3>3.8 · Correo (opcional)</h3>
+  <p>El sitio puede enviar correos (entradas confirmadas, recibos, recordatorios de mensualidad, recuperar clave). Sin configurarlo, todo funciona igual y cada persona ve su estado en el sitio. Para activarlo, sigue las instrucciones de <span class="ruta">Ajustes › Correo</span>: necesitas una cuenta gratuita en resend.com y un dominio propio verificado allí.</p>
+
+  <h3>3.9 · Instala la app en tu teléfono</h3>
+  <ul>
+    <li><b>Android (Chrome):</b> abre el sitio, toca los tres puntos ⋮ y elige "Instalar app" o "Agregar a pantalla principal".</li>
+    <li><b>iPhone (Safari):</b> abre el sitio, toca Compartir y elige "Agregar a inicio".</li>
+  </ul>
+  <p>Queda un ícono con el logo de la escuela, como cualquier otra aplicación.</p>
+</section>
+
+<!-- ===================================================== 4 -->
+<section class="cap" id="funcion">
+  <h2><span>4</span>Crear una función</h2>
+  <p class="sub">De la obra a la cartelera, con sus precios, butacas y elenco.</p>
+
+  <div class="nota info"><b>Antes de empezar: la sala</b><p>La <b>Sala principal de 184 butacas</b> (VIP y General) ya está creada. Si una función es en otro lugar, crea su plano en <span class="ruta">Funciones › Salas</span> con <span class="boton">Nueva sala</span>: defines las zonas de precio y armas cada bloque fila por fila; los números de butaca se ponen solos.</p></div>
+
+  <h3>Paso 1 · Los datos de la obra</h3>
+  <p>Ve a <span class="ruta">Funciones › Funciones</span> y pulsa <span class="boton">+ Nueva función</span>. Se abre el formulario a la derecha:</p>
+  <ul>
+    <li><b>Título</b> de la obra y <b>subtítulo</b> (opcional).</li>
+    <li><b>Fecha y hora</b> (hora de Venezuela) y <b>lugar</b>.</li>
+    <li><b>Afiche:</b> se recorta solo a formato de cartelera de cine (vertical).</li>
+    <li><b>Sinopsis</b> (opcional).</li>
+  </ul>
+  <p>Si escribes un título que ya existe, verás un aviso amarillo: así no creas la misma función dos veces por error. Pulsa <span class="boton">Siguiente: sala y precios</span>.</p>
+  <figure><img src="{{img 07-funcion-paso1}}" alt="Paso 1 de Nueva función con título, fecha, lugar y afiche"><figcaption>Paso 1: la obra.</figcaption></figure>
+
+  <h3>Paso 2 · Sala, precios y preventa</h3>
+  <ul>
+    <li><b>Sala:</b> elige dónde es la función.</li>
+    <li><b>Precios en dólares</b> por zona: el de <b>preventa</b> y el <b>regular</b>.</li>
+    <li><b>Preventa hasta:</b> fecha y hora en que termina la preventa. Desde ese momento se cobra el precio regular, sin que tengas que hacer nada. Déjalo vacío si no hay preventa.</li>
+    <li><b>Máximo por compra:</b> cuántas butacas puede llevar una persona en línea.</li>
+    <li><b>Ponerla a la venta al crearla:</b> si la marcas, aparece en la cartelera de inmediato. Si no, queda como <b>borrador</b> (no se ve) hasta que la publiques.</li>
+  </ul>
+  <p>Pulsa <span class="boton">Crear función</span>. El formulario se cierra, aparece el aviso verde y la función queda arriba en la lista, marcada como "Recién creada".</p>
+  <figure><img src="{{img 08-funcion-paso2}}" alt="Paso 2 con la sala, la tabla de precios y la fecha de preventa"><figcaption>Paso 2: sala, precios y preventa.</figcaption></figure>
+  <figure><img src="{{img 09-funciones-lista}}" alt="Lista de funciones con la nueva función resaltada"><figcaption>La función recién creada, resaltada en la lista.</figcaption></figure>
+
+  <h3>Paso 3 · Gestionar la función</h3>
+  <p>Pulsa <span class="boton sec">Gestionar</span> en la fila de la función. Tiene tres pestañas:</p>
+  <ul>
+    <li><b>Venta y precios:</b> cuántas butacas están vendidas, por confirmar y libres; lo cobrado; y los precios, por si quieres cambiarlos.</li>
+    <li><b>Butacas:</b> para sacar butacas de la venta (invitados, equipo técnico), tócalas en el plano y pulsa <span class="boton">Bloquear o liberar las elegidas</span>. Las bloqueadas tienen borde dorado.</li>
+    <li><b>Elenco:</b> los actores que aparecen en carrusel, con foto y personaje, en la página de la función.</li>
+  </ul>
+  <figure><img src="{{img 10b-venta}}" alt="Pantalla de una función con las pestañas Venta y precios, Butacas y Elenco"><figcaption>La pantalla de una función.</figcaption></figure>
+
+  <h3>Paso 4 · Agregar el elenco</h3>
+  <ol class="pasos">
+    <li>En la pestaña <b>Elenco</b>, pulsa <span class="boton">+ Agregar actor</span>.</li>
+    <li><b>¿Es estudiante de la escuela?</b> Si lo es, elígelo de la lista: esta obra aparecerá sola en su ficha de Protagonista, y se usan su nombre y foto. Si es un invitado, deja "No (invitado)" y escribe su nombre.</li>
+    <li>Escribe el <b>personaje</b> y, si quieres, una <b>descripción del papel</b>.</li>
+    <li>Pulsa <span class="boton">Agregar al elenco</span>. Repite con cada actor.</li>
+  </ol>
+  <figure><img src="{{img 10-elenco}}" alt="Formulario Agregar al elenco con un estudiante elegido"><figcaption>Agregar un actor que es estudiante: su trayectoria se actualiza sola.</figcaption></figure>
+
+  <h3>Paso 5 · Ponerla a la venta</h3>
+  <p>Si la dejaste como borrador: en la lista, toca los tres puntos ⋮ y elige <b>Poner a la venta</b>. Desde ese momento aparece en la cartelera del sitio con su afiche y la cantidad de entradas que quedan.</p>
+  <figure><img src="{{img 16-cartelera}}" alt="Cartelera del sitio con el afiche de la función"><figcaption>Así se ve en la cartelera del sitio.</figcaption></figure>
+
+  <div class="nota importante"><b>Cuando la función ya pasó</b><p>No la borres: toca ⋮ y elige <b>Marcar como finalizada</b>. Pasa al archivo de funciones pasadas y se conserva en los reportes. Borrar una función elimina también sus ventas, pagos y entradas; úsalo solo para errores o pruebas.</p></div>
+</section>
+
+<!-- ===================================================== 5 -->
+<section class="cap" id="vender">
+  <h2><span>5</span>Vender entradas</h2>
+  <p class="sub">En línea, en la sala y en la puerta.</p>
+
+  <h3>Cómo compra el público en el sitio</h3>
+  <ol class="pasos">
+    <li>Abre la función, toca sus butacas en el plano y pulsa <b>Apartar</b>. Quedan reservadas a su nombre durante 15 minutos, con un reloj a la vista.</li>
+    <li>Ve el total en dólares y en bolívares (tasa BCV del día) y tus datos de Pago Móvil o transferencia.</li>
+    <li>Paga desde su banco y reporta el <b>número de referencia</b> (y, si quiere, la captura). También puede usar un bono de regalo.</li>
+    <li>Sus butacas quedan "por confirmar" hasta que el equipo verifique el pago.</li>
+    <li>Cuando lo confirmas, en el mismo enlace aparecen sus entradas con código QR, que puede descargar en PDF.</li>
+  </ol>
+  <p>Si no reporta el pago en 15 minutos, las butacas se liberan solas para otras personas.</p>
+
+  <h3>Confirmar los pagos</h3>
+  <p>Ve a <span class="ruta">Taquilla › Pagos de entradas</span>. Arriba están los que esperan atención.</p>
+  <ol class="pasos">
+    <li>Abre tu banco y busca el pago por su <b>referencia</b> y su <b>monto en bolívares</b>.</li>
+    <li>Si llegó, pulsa <span class="boton">Confirmar pago</span>: las butacas quedan vendidas y el comprador recibe sus entradas.</li>
+    <li>Si no aparece, escribe el motivo y pulsa <span class="boton sec">Rechazar</span>: las butacas vuelven a quedar libres.</li>
+  </ol>
+  <div class="nota info"><b>Si alguien pagó tarde</b><p>Si una persona reporta su pago cuando ya pasaron sus 15 minutos y otra compró esas butacas, el sistema se lo dice y le deja elegir <b>otras butacas</b> de igual o menor valor, o <b>pedir el reembolso</b>. Lo verás en Pagos como "Butacas ya no disponibles". El reembolso lo marca un administrador después de devolver el dinero.</p></div>
+  <figure><img src="{{img 15-pagos}}" alt="Pantalla de pagos de entradas"><figcaption>Pagos de entradas.</figcaption></figure>
+
+  <h3>Vender en la sala</h3>
+  <p>Ve a <span class="ruta">Taquilla › Vender entradas</span> (o pulsa <span class="boton">Vender entradas</span> en el Inicio).</p>
+  <ol class="pasos">
+    <li>Elige la función.</li>
+    <li>Toca en el plano las butacas que pide el cliente. El plano se actualiza solo con lo que se vende en línea.</li>
+    <li>Elige la <b>forma de pago</b> (efectivo, Pago Móvil, transferencia, punto, bono o cortesía) y, si quieres, el nombre y teléfono del cliente.</li>
+    <li>Pulsa <span class="boton">Vender</span>. Luego puedes abrir las entradas para imprimirlas, descargarlas en PDF o enviarlas por WhatsApp.</li>
+  </ol>
+  <figure><img src="{{img 14-taquilla}}" alt="Taquilla con el plano de butacas y dos butacas elegidas"><figcaption>Taquilla: las butacas verdes son las elegidas.</figcaption></figure>
+
+  <h3>En la puerta</h3>
+  <ol class="pasos">
+    <li>Entra al panel desde el teléfono de quien recibe al público.</li>
+    <li>Con la cámara del teléfono, apunta al código QR de la entrada y abre el enlace que aparece.</li>
+    <li>Verás la butaca y el nombre. Pulsa <span class="boton">Dar entrada</span>. <b>Verde:</b> adelante. <b>Rojo:</b> esa entrada ya entró o no existe.</li>
+  </ol>
+  <p>Si un QR no se lee, en <span class="ruta">Taquilla › Validar entradas</span> puedes escribir el código de letras que aparece debajo del QR. Cada entrada deja pasar a una sola persona.</p>
+
+  <h3>Bonos de regalo</h3>
+  <p>En <span class="ruta">Funciones › Bonos de regalo</span> pulsa <span class="boton">+ Generar bono</span>, escribe el monto en dólares y entrega el código que aparece. La persona lo usa al pagar sus entradas: si cubre todo, recibe sus entradas al instante; si no, paga la diferencia. El saldo sobrante queda en el bono.</p>
+</section>
+
+<!-- ===================================================== 6 -->
+<section class="cap" id="escuela">
+  <h2><span>6</span>Estudiantes y mensualidades</h2>
+  <p class="sub">Inscripciones, fichas, cobros y recibos.</p>
+
+  <h3>Inscripciones</h3>
+  <ul>
+    <li><b>En línea:</b> el representante crea su cuenta en el sitio (botón "Inscribir en línea" de cada nivel) y envía la solicitud. Te llega a <span class="ruta">Escuela › Inscripciones</span>. Al pulsar <span class="boton">Aprobar</span>, el estudiante queda activo y se generan su inscripción y la mensualidad del mes, que el representante ve en su portal.</li>
+    <li><b>En persona:</b> en <span class="ruta">Escuela › Estudiantes</span> pulsa <span class="boton">Nuevo estudiante</span>. Después, en su ficha, pestaña <b>Acceso al portal</b>, puedes crearle la cuenta al representante.</li>
+  </ul>
+
+  <h3>La ficha del estudiante</h3>
+  <p>En <span class="ruta">Escuela › Estudiantes</span>, toca un nombre. La ficha tiene pestañas:</p>
+  <ul>
+    <li><b>Resumen:</b> sus datos y los del representante. <span class="boton sec">Editar</span> abre el formulario para cambiar el nivel, poner una <b>beca</b> (porcentaje de descuento en la mensualidad) o cambiar el estado.</li>
+    <li><b>Estado de cuenta:</b> sus cargos (inscripción, mensualidades, vestuario…). Para cobrar en la escuela, marca los cargos, elige la forma de pago y pulsa <span class="boton">Registrar cobro y emitir recibo</span>. Con <span class="boton sec">Agregar cargo</span> sumas otros cobros.</li>
+    <li><b>Acceso al portal:</b> dar acceso al representante o cambiarle la clave si la olvidó.</li>
+  </ul>
+  <figure><img src="{{img 11-estudiante}}" alt="Ficha de una estudiante con pestañas Resumen, Estado de cuenta y Acceso al portal"><figcaption>La ficha de un estudiante.</figcaption></figure>
+  <div class="nota importante"><b>Cuando un estudiante deja la escuela</b><p>Edita su ficha y cambia el estado a <b>Retirado</b>. Deja de generarse su mensualidad y se conservan sus pagos y recibos. Borrar un estudiante elimina todo su historial; úsalo solo para errores o pruebas.</p></div>
+
+  <h3>Mensualidades y cobranza</h3>
+  <ul>
+    <li>Cada mes se genera sola la mensualidad de cada estudiante activo, con su beca aplicada.</li>
+    <li>El representante la paga desde su portal y reporta la referencia. Tú la confirmas en <span class="ruta">Escuela › Cobranza</span> y se emite un <b>recibo numerado</b>.</li>
+    <li>Pasado el día de vencimiento, lo no pagado aparece <b>En mora</b>, con un botón para recordárselo por WhatsApp.</li>
+  </ul>
+</section>
+
+<!-- ===================================================== 7 -->
+<section class="cap" id="protagonistas">
+  <h2><span>7</span>Crear un Protagonista</h2>
+  <p class="sub">La ficha artística de un estudiante: foto, lo que le gusta y las obras en las que ha participado.</p>
+
+  <div class="nota info"><b>Requisito</b><p>El artista debe ser un <b>estudiante activo</b> (o egresado) en <span class="ruta">Escuela › Estudiantes</span>. Si aún no está, inscríbelo primero.</p></div>
+
+  <ol class="pasos">
+    <li><b>Abre su ficha.</b> Ve a <span class="ruta">Escuela › Protagonistas</span> y pulsa <span class="boton sec">Editar ficha</span> en su fila. También llegas desde la ficha del estudiante, pestaña "Protagonista".</li>
+    <li><b>Escribe el contenido.</b>
+      <ul>
+        <li><b>Nombre a mostrar:</b> si lo dejas vacío se usan solo sus nombres, sin apellidos.</li>
+        <li><b>Una frase suya</b> y <b>lo que le gusta</b> (separado por comas: "Improvisación, comedia, canto").</li>
+        <li><b>Sobre el artista:</b> un texto corto.</li>
+        <li><b>Foto principal</b> (vertical) y hasta <b>4 fotos</b> de galería.</li>
+      </ul>
+    </li>
+    <li><b>Publícala con autorización.</b> Como son menores, la ficha solo se ve en el sitio si se cumplen <b>dos cosas</b>:
+      <ul>
+        <li>Marcas <b>Publicar esta ficha en Protagonistas</b>.</li>
+        <li>El representante la <b>autorizó</b>: desde su portal (botón "Autorizo publicarla"), o por escrito en una planilla; en ese caso marca <b>El representante autorizó la publicación por escrito</b>.</li>
+      </ul>
+    </li>
+    <li>Pulsa <span class="boton">Guardar ficha</span>. En la lista de Protagonistas verás <b>"Visible en el sitio"</b>. Si dice "Espera autorización", falta la del representante.</li>
+    <li><b>La trayectoria se llena sola:</b> cada vez que lo agregas como estudiante al elenco de una función (paso 4 de la sección 4), esa obra aparece en su ficha con su personaje.</li>
+  </ol>
+  <figure><img src="{{img 12-protagonista}}" alt="Ficha de Protagonista con las casillas de publicación y autorización y el contenido"><figcaption>La ficha de Protagonista: publicación arriba y contenido debajo.</figcaption></figure>
+  <figure><img src="{{img 13-protagonistas}}" alt="Lista de Protagonistas con el estado de cada ficha"><figcaption>La lista muestra si cada ficha está autorizada y visible.</figcaption></figure>
+  <div class="nota consejo"><b>Privacidad</b><p>En el sitio nunca se muestran apellidos (salvo que los escribas en "Nombre a mostrar"), fecha de nacimiento ni datos de contacto. Si el representante retira la autorización, la ficha deja de verse al instante.</p></div>
+</section>
+
+<!-- ===================================================== 8 -->
+<section class="cap" id="reportes">
+  <h2><span>8</span>Reportes y cierre de caja</h2>
+  <ul>
+    <li><b>Cierre de caja</b> (<span class="ruta">Taquilla › Cierre de caja</span>): el dinero confirmado en un día, por persona y por forma de pago, en dólares y bolívares. Compara el efectivo con la caja y los pagos por banco con el estado de cuenta. Cada vendedor ve solo lo suyo.</li>
+    <li><b>Reportes</b> (<span class="ruta">Reportes</span>): elige las fechas y verás el total recibido, las entradas por función, lo cobrado por cada persona del equipo y los estudiantes con deudas. Cada reporte tiene un botón para <b>descargarlo y abrirlo en Excel</b>.</li>
+  </ul>
+</section>
+
+<!-- ===================================================== 9 -->
+<section class="cap" id="preguntas">
+  <h2><span>9</span>Preguntas frecuentes</h2>
+  <details><summary>¿Borro una función que ya pasó?</summary><p>No. Márcala como <b>finalizada</b> (⋮ › Marcar como finalizada). Así se conserva en los reportes. Borrar es solo para errores o pruebas.</p></details>
+  <details><summary>Un estudiante se fue de la escuela, ¿qué hago?</summary><p>Edita su ficha y cambia el estado a <b>Retirado</b>. Se conservan sus pagos y recibos y deja de generarse su mensualidad.</p></details>
+  <details><summary>Alguien del equipo olvidó su clave.</summary><p>Desde la cuenta principal, en <span class="ruta">Ajustes › Usuarios</span>, pulsa <span class="boton sec">Cambiar clave</span> en su fila y dale la nueva. Si el correo está configurado, también puede usar <b>Olvidé mi clave</b> en la pantalla de ingreso. La clave de la cuenta principal (aneloescenico@admin.com) no se recupera por correo: guárdala en un lugar seguro y, si la pierdes, escríbenos.</p></details>
+  <details><summary>Un representante olvidó su clave.</summary><p>En la ficha de su estudiante, pestaña <b>Acceso al portal</b>, pulsa <span class="boton sec">Cambiarle la clave</span> y dísela.</p></details>
+  <details><summary>La tasa BCV no se actualizó hoy.</summary><p>En <span class="ruta">Ajustes › Cobros y tasa BCV</span> pulsa <b>Consultar ahora</b>. Si sigue sin actualizarse, escribe la tasa del día en <b>Tasa manual</b> y bórrala al día siguiente.</p></details>
+  <details><summary>Una foto se ve cortada.</summary><p>Las fotos se recortan solas al formato de cada lugar. Al subirla, usa los botones de <b>Encuadre</b> (arriba, centro, abajo) para elegir qué parte se conserva.</p></details>
+  <details><summary>¿Quien recibe el enlace de unas entradas puede usarlas?</summary><p>Sí. El enlace y el PDF funcionan como una entrada en papel: cada código QR deja pasar a una sola persona, la primera que lo presente. Recomienda a los compradores compartirlo solo con sus invitados.</p></details>
+  <details><summary>¿Cómo borro las pruebas antes de empezar?</summary><p>Solo el usuario principal puede hacerlo: <span class="ruta">Ajustes › Datos de la escuela</span> › <b>Reiniciar datos…</b>. Borra todo lo cargado y deja la escuela como recién instalada. No se puede deshacer.</p></details>
+</section>
+
+<p class="pie">A-Nelo Escénico · Escuela de Teatro · Acarigua</p>
+  </main>
+</div>
+</body>
+</html>

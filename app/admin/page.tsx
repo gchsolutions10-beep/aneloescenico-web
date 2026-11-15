@@ -3,6 +3,7 @@ import type { PgTable } from "drizzle-orm/pg-core";
 import Link from "next/link";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
+import Aviso from "@/components/panel/Aviso";
 import { Icono } from "@/components/panel/Icono";
 import type { NombreIcono } from "@/components/panel/iconos";
 import { db, schema } from "@/db";
@@ -110,6 +111,7 @@ async function InicioAdmin({ searchParams }: Props) {
 
   return (
     <>
+      {q.reiniciado && <Aviso key={q.reiniciado} mensaje="Datos reiniciados. La escuela quedó como recién instalada." />}
       <div className="encabezado">
         <div>
           <h1>{saludo}</h1>

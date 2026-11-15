@@ -1,5 +1,6 @@
 import { exigirAdmin } from "@/lib/sesion";
 import { Suspense } from "react";
+import Link from "next/link";
 import Cargando from "@/app/admin/loading";
 import { Ayuda, Resultado } from "@/components/Ayuda";
 import SubirImagen from "@/components/SubirImagen";
@@ -10,7 +11,7 @@ import { getConfig } from "@/lib/datos";
 export const metadata = { title: "Datos de la escuela" };
 
 async function Configuracion({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  await exigirAdmin();
+  const s = await exigirAdmin();
   const { escuela: e } = await getConfig();
   return (
     <>
@@ -50,6 +51,14 @@ async function Configuracion({ searchParams }: { searchParams: Promise<Record<st
         <SubirImagen nombre="directorFotoUrl" inicial={e.directorFotoUrl} aspecto={3 / 4} ancho={900} etiqueta="Foto del director" />
         <div><button className="btn">Guardar datos</button></div>
       </form>
+
+      {s.rol === "master" && (
+        <section className="panel peligro-zona">
+          <h2>Reiniciar datos</h2>
+          <p className="tenue">Borra funciones, ventas, estudiantes, pagos, blog, fotos y configuración para empezar de cero. Solo el usuario master puede hacerlo.</p>
+          <div><Link className="btn peligro" href="/admin/reiniciar">Reiniciar datos…</Link></div>
+        </section>
+      )}
 
       <Suspense fallback={<section className="panel"><h2>Archivos guardados</h2><p className="tenue">Revisando los archivos…</p></section>}>
         <Archivos searchParams={searchParams} />

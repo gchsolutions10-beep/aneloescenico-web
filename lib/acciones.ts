@@ -354,3 +354,15 @@ export async function accionLimpiarArchivos() {
   const n = await borrarSinUso();
   redirect(`/admin/configuracion?limpiados=${n}#archivos`);
 }
+
+// ---------- Reinicio ----------
+
+export async function accionReiniciar(f: FormData) {
+  const { exigirMaster } = await import("./sesion");
+  const { FRASE_REINICIO, reiniciarTodo } = await import("./reinicio");
+  const s = await exigirMaster();
+  if (txt(f, "frase").toUpperCase() !== FRASE_REINICIO) redirect(`/admin/reiniciar?error=${encodeURIComponent(`Escribe ${FRASE_REINICIO} para confirmar.`)}`);
+  await reiniciarTodo(s.id);
+  for (const t of ["config", "carrusel", "niveles", "blog", "funciones", "cupos", "protagonistas"]) updateTag(t);
+  redirect(`/admin?reiniciado=${Date.now()}`);
+}

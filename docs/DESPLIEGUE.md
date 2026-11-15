@@ -29,6 +29,11 @@ En **Settings → Environment Variables** agrega:
 
 | `CRON_SECRET` | Texto aleatorio. Protege la tarea diaria que genera mensualidades y envía recordatorios (Vercel la ejecuta sola según `vercel.json`). |
 
+| `SOPORTE_USUARIO` | Opcional. Usuario de soporte técnico del desarrollador (por ejemplo `soporte`). |
+| `SOPORTE_CLAVE` | Opcional. Su clave, de 12 caracteres o más. |
+
+**Acceso de soporte técnico.** Con `SOPORTE_USUARIO` y `SOPORTE_CLAVE`, el desarrollador entra al panel con permisos de cuenta principal aunque la escuela cambie sus claves: la clave se compara con la variable, no con la base. La cuenta aparece en Usuarios como "Soporte técnico", la escuela no puede cambiarla ni desactivarla, y desde ella se puede poner una clave nueva a la cuenta principal si se pierde. Para cerrar el acceso, borra las dos variables y vuelve a desplegar. Para cambiar la clave, cambia `SOPORTE_CLAVE` y vuelve a desplegar.
+
 El correo se configura después desde el panel, en **Correo**. Opcionales: `RESEND_API_KEY` y `CORREO_REMITENTE` (avisos por correo al comprador) y `SITIO_URL` (dirección pública para los enlaces de esos correos).
 
 El usuario master se crea la primera vez que alguien intenta ingresar y todavía no existe ningún usuario. Después de ese primer ingreso, `MASTER_PASSWORD` ya no se usa y se puede borrar de Vercel.

@@ -17,7 +17,7 @@ export function FormularioIngreso() {
       <img src="/logo.png" alt="" />
       <h1 style={{ textAlign: "center" }}>Ingresar</h1>
       {estado?.error && <p className="nota mal" role="alert">{estado.error}</p>}
-      <div className="campo"><label htmlFor="i-correo">Correo</label><input id="i-correo" name="correo" type="email" required autoComplete="username" defaultValue={estado?.valores?.correo} /></div>
+      <div className="campo"><label htmlFor="i-correo">Usuario o correo</label><input id="i-correo" name="correo" required autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="username" defaultValue={estado?.valores?.correo} /></div>
       <div className="campo"><label htmlFor="i-clave">Clave</label><input id="i-clave" name="clave" type="password" required autoComplete="current-password" /></div>
       <button className="btn" disabled={enviando}>{enviando ? "Entrando…" : "Entrar"}</button>
       <Link href="/ingresar/olvide" style={{ textAlign: "center", fontSize: ".9rem" }}>Olvidé mi clave</Link>

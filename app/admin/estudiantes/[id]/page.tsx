@@ -242,7 +242,7 @@ async function Ficha({ params, searchParams }: Props) {
                 <Cajon key={q.ok ?? "clave"} titulo="Cambiar la clave del representante" boton="Cambiarle la clave" botonClase="btn sec">
                   <form action={restablecerClaveRepresentante} className="formulario-cajon">
                     <input type="hidden" name="estudianteId" value={e.id} /><input type="hidden" name="usuarioId" value={cuenta.id} />
-                    <div className="campo"><label htmlFor="rc-clave">Clave nueva</label><input id="rc-clave" name="clave" type="password" minLength={8} required autoComplete="new-password" /><small>Mínimo 8 caracteres. Díctasela al representante; podrá cambiarla en Mi clave.</small></div>
+                    <div className="campo"><label htmlFor="rc-clave">Clave nueva</label><input id="rc-clave" name="clave" type="password" minLength={8} required autoComplete="new-password" /><small>Mínimo 8 caracteres. Díctasela al representante; podrá cambiarla en Mi cuenta.</small></div>
                     <div className="cajon-pie"><button className="btn">Guardar clave</button></div>
                   </form>
                 </Cajon>

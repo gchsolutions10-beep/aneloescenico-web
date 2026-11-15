@@ -29,7 +29,7 @@ async function Reiniciar({ searchParams }: Props) {
         <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6, fontSize: 14 }}>
           <li>También la configuración: logo, colores, datos de la escuela, datos de pago, correo, y todas las fotos guardadas.</li>
           <li>Los niveles vuelven a ser Kids, Teen y Teenagers, sin horarios ni montos, y queda solo la Sala principal de 184 butacas.</li>
-          <li>Se conserva únicamente tu cuenta ({s.correo}), con la misma clave.</li>
+          <li>Se conservan las cuentas principales (la tuya, {s.correo}, y la de soporte técnico) con sus mismas claves.</li>
           <li>No se puede deshacer.</li>
         </ul>
         <form action={accionReiniciar} style={{ display: "grid", gap: 12, maxWidth: 420 }}>

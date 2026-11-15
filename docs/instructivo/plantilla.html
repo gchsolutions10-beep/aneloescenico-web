@@ -133,14 +133,14 @@ details[open] summary { margin-bottom: 8px; }
 
   <dl class="dato">
     <dt>Dirección</dt><dd><span class="rellenar">{{direccion}}</span>/ingresar</dd>
-    <dt>Correo</dt><dd>aneloescenico@admin.com</dd>
+    <dt>Usuario</dt><dd>aneloescenico@admin.com</dd>
     <dt>Clave</dt><dd>Te la enviamos por separado</dd>
   </dl>
   <p>También puedes llegar desde el sitio: al final de cualquier página está el enlace <span class="ruta">Acceso del equipo</span>.</p>
 
   <figure><img src="{{img 01-ingreso}}" alt="Pantalla de ingreso con los campos Correo y Clave"><figcaption>La pantalla de ingreso.</figcaption></figure>
 
-  <div class="nota importante"><b>Lo primero: cambia tu clave</b><p>Apenas entres, ve a <span class="ruta">Mi clave</span> (abajo en el menú de la izquierda), escribe la clave que te enviamos y elige una nueva que solo tú conozcas.</p></div>
+  <div class="nota importante"><b>Lo primero: tu usuario y tu clave</b><p>Apenas entres, ve a <span class="ruta">Mi cuenta</span> (abajo en el menú de la izquierda):</p><ul><li><b>Mi usuario:</b> si prefieres, cambia el correo por un nombre corto y fácil de recordar, por ejemplo <b>hgonzalez</b> (sin espacios).</li><li><b>Cambiar mi clave:</b> escribe la clave que te enviamos y elige una nueva que solo tú conozcas.</li></ul></div>
   <div class="nota info"><b>Si te equivocas de clave</b><p>Después de 5 intentos fallidos, la cuenta se bloquea 15 minutos por seguridad. Espera y vuelve a intentar.</p></div>
 </section>
 
@@ -239,7 +239,7 @@ details[open] summary { margin-bottom: 8px; }
   <p>Ve a <span class="ruta">Sitio web › Blog</span> y pulsa <span class="boton">Nueva entrada</span>. Escribe título, resumen, portada y contenido. Marca <b>Publicada</b> para que salga en el blog, y <b>Destacada</b> para que salga también en "Novedades" en la portada del sitio.</p>
 
   <h3>3.7 · Tu equipo</h3>
-  <p>Ve a <span class="ruta">Ajustes › Usuarios</span> y pulsa <span class="boton">+ Nuevo usuario</span>. Cada persona entra con su propio correo y clave.</p>
+  <p>Ve a <span class="ruta">Ajustes › Usuarios</span> y pulsa <span class="boton">+ Nuevo usuario</span>. Cada persona entra con su propio <b>usuario</b> (un nombre corto como <b>mlopez</b>, o un correo) y su clave. Cada quien puede cambiar luego su usuario y su clave en <span class="ruta">Mi cuenta</span>.</p>
   <div class="tabla"><table>
     <thead><tr><th>Rol</th><th>Qué puede hacer</th></tr></thead>
     <tbody>
@@ -248,6 +248,7 @@ details[open] summary { margin-bottom: 8px; }
     </tbody>
   </table></div>
   <p>Si alguien deja el equipo, pulsa <span class="boton sec">Desactivar</span>: pierde el acceso al instante.</p>
+  <div class="nota info"><b>La cuenta "Soporte técnico"</b><p>En la lista verás una cuenta marcada como <b>Soporte técnico</b>. Es el acceso del desarrollador para darte soporte: revisar un problema o ponerte una clave nueva si pierdes la tuya. Su clave no se guarda en el panel, por eso no se puede cambiar ni desactivar desde aquí.</p></div>
 
   <h3>3.8 · Correo (opcional)</h3>
   <p>El sitio puede enviar correos (entradas confirmadas, recibos, recordatorios de mensualidad, recuperar clave). Sin configurarlo, todo funciona igual y cada persona ve su estado en el sitio. Para activarlo, sigue las instrucciones de <span class="ruta">Ajustes › Correo</span>: necesitas una cuenta gratuita en resend.com y un dominio propio verificado allí.</p>
@@ -436,7 +437,7 @@ details[open] summary { margin-bottom: 8px; }
   <h2><span>9</span>Preguntas frecuentes</h2>
   <details><summary>¿Borro una función que ya pasó?</summary><p>No. Márcala como <b>finalizada</b> (⋮ › Marcar como finalizada). Así se conserva en los reportes. Borrar es solo para errores o pruebas.</p></details>
   <details><summary>Un estudiante se fue de la escuela, ¿qué hago?</summary><p>Edita su ficha y cambia el estado a <b>Retirado</b>. Se conservan sus pagos y recibos y deja de generarse su mensualidad.</p></details>
-  <details><summary>Alguien del equipo olvidó su clave.</summary><p>Desde la cuenta principal, en <span class="ruta">Ajustes › Usuarios</span>, pulsa <span class="boton sec">Cambiar clave</span> en su fila y dale la nueva. Si el correo está configurado, también puede usar <b>Olvidé mi clave</b> en la pantalla de ingreso. La clave de la cuenta principal (aneloescenico@admin.com) no se recupera por correo: guárdala en un lugar seguro y, si la pierdes, escríbenos.</p></details>
+  <details><summary>Alguien del equipo olvidó su clave.</summary><p>Desde la cuenta principal, en <span class="ruta">Ajustes › Usuarios</span>, pulsa <span class="boton sec">Cambiar clave</span> en su fila y dale la nueva. Si el correo está configurado, también puede usar <b>Olvidé mi clave</b> en la pantalla de ingreso. La clave de la cuenta principal no se recupera por correo: guárdala en un lugar seguro y, si la pierdes, escríbenos y te pondremos una nueva desde la cuenta de soporte técnico.</p></details>
   <details><summary>Un representante olvidó su clave.</summary><p>En la ficha de su estudiante, pestaña <b>Acceso al portal</b>, pulsa <span class="boton sec">Cambiarle la clave</span> y dísela.</p></details>
   <details><summary>La tasa BCV no se actualizó hoy.</summary><p>En <span class="ruta">Ajustes › Cobros y tasa BCV</span> pulsa <b>Consultar ahora</b>. Si sigue sin actualizarse, escribe la tasa del día en <b>Tasa manual</b> y bórrala al día siguiente.</p></details>
   <details><summary>Una foto se ve cortada.</summary><p>Las fotos se recortan solas al formato de cada lugar. Al subirla, usa los botones de <b>Encuadre</b> (arriba, centro, abajo) para elegir qué parte se conserva.</p></details>

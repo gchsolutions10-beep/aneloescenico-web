@@ -8,7 +8,8 @@ import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
 import type { Estado } from "./acciones";
 import { enviarCorreo, leerConfigCorreo } from "./correo";
-import { exigirAdmin, leerSesion } from "./sesion";
+import { crearSesion, exigirAdmin, leerSesion } from "./sesion";
+import { usuarioValido } from "./util";
 
 const { usuarios, tokensClave } = schema;
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -22,9 +23,29 @@ export async function cambiarMiClave(_: Estado, f: FormData): Promise<Estado> {
   if (nueva.length < 8) return { error: "La clave nueva debe tener al menos 8 caracteres." };
   if (nueva !== String(f.get("repetir") ?? "")) return { error: "Las dos claves nuevas no coinciden." };
   const [u] = await db().select().from(usuarios).where(eq(usuarios.id, s.id));
+  if (u.soporte) return { error: "La clave de soporte técnico se cambia en Vercel (variable SOPORTE_CLAVE), no aquí." };
   if (!(await bcrypt.compare(actual, u.claveHash))) return { error: "La clave actual no es correcta." };
   await db().update(usuarios).set({ claveHash: await bcrypt.hash(nueva, 12) }).where(eq(usuarios.id, s.id));
   return { ok: "Clave cambiada. Úsala la próxima vez que ingreses." };
+}
+
+/** Cambiar el usuario con el que se entra (solo el equipo; los representantes usan su correo). */
+export async function cambiarMiUsuario(_: Estado, f: FormData): Promise<Estado> {
+  const s = await leerSesion();
+  if (!s) redirect("/ingresar");
+  const nuevo = String(f.get("usuario") ?? "").trim().toLowerCase();
+  const valores = { usuario: nuevo };
+  const [u] = await db().select().from(usuarios).where(eq(usuarios.id, s.id));
+  if (u.rol === "representante") return { error: "Los representantes entran con su correo.", valores };
+  if (u.soporte) return { error: "El usuario de soporte técnico se cambia en Vercel (variable SOPORTE_USUARIO).", valores };
+  if (!usuarioValido(nuevo)) return { error: "Usa letras, números, punto o guion, sin espacios (por ejemplo hgonzalez). También puede ser un correo.", valores };
+  if (!(await bcrypt.compare(String(f.get("clave") ?? ""), u.claveHash))) return { error: "La clave no es correcta.", valores };
+  if (nuevo === u.correo) return { ok: "Ese ya es tu usuario." };
+  const [ya] = await db().select({ id: usuarios.id }).from(usuarios).where(eq(usuarios.correo, nuevo));
+  if (ya || nuevo === process.env.SOPORTE_USUARIO?.trim().toLowerCase()) return { error: "Ese usuario ya existe. Elige otro.", valores };
+  await db().update(usuarios).set({ correo: nuevo }).where(eq(usuarios.id, u.id));
+  await crearSesion({ id: u.id, nombre: u.nombre, correo: nuevo, rol: u.rol as "master" });
+  return { ok: `Listo. Desde ahora entras con el usuario “${nuevo}”.` };
 }
 
 /** Un administrador pone una clave nueva a un representante que la perdió. */

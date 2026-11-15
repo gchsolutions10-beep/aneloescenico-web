@@ -1,5 +1,5 @@
 // Reinicio completo de los datos: deja la escuela como recién instalada.
-// Solo lo puede ejecutar el usuario master, y su propia cuenta se conserva.
+// Solo lo puede ejecutar un usuario principal; las cuentas principales se conservan.
 import "server-only";
 import { del, list } from "@vercel/blob";
 import { readdir, unlink } from "node:fs/promises";
@@ -23,21 +23,22 @@ export async function contarDatos(masterId: number): Promise<Conteo> {
     (SELECT count(*)::int FROM bonos) AS bonos,
     (SELECT count(*)::int FROM entradas_blog) AS blog,
     (SELECT count(*)::int FROM carrusel) AS fotos,
-    (SELECT count(*)::int FROM usuarios WHERE id <> ${masterId}) AS usuarios`);
+    (SELECT count(*)::int FROM usuarios WHERE rol <> 'master' AND id <> ${masterId}) AS usuarios`);
   return r.rows[0];
 }
 
 /**
  * Borra todo lo cargado (funciones, ventas, pagos, estudiantes, blog, fotos, configuración y
- * demás usuarios) y vuelve a crear lo inicial: los niveles Kids, Teen y Teenagers y la sala de
- * 184 butacas. Después borra las imágenes guardadas. Conserva solo la cuenta `masterId`.
+ * demás usuarios del equipo y representantes) y vuelve a crear lo inicial: los niveles Kids, Teen y Teenagers y la sala de
+ * 184 butacas. Después borra las imágenes guardadas. Conserva las cuentas principales (la de la escuela y la de soporte técnico).
  */
 export async function reiniciarTodo(masterId: number) {
   await db().transaction(async (tx) => {
     await tx.execute(sql`TRUNCATE entradas, pagos, butacas, zonas, ordenes, bonos, elenco, funciones,
       reportes_pago, cargos, fichas_artista, estudiantes, mensajes, entradas_blog, carrusel, niveles, salas,
       configuracion, tokens_clave RESTART IDENTITY CASCADE`);
-    await tx.execute(sql`DELETE FROM usuarios WHERE id <> ${masterId}`);
+    // Se conservan las cuentas principales: la de la escuela y la de soporte técnico.
+    await tx.execute(sql`DELETE FROM usuarios WHERE rol <> 'master' AND id <> ${masterId}`);
     await tx.execute(sql`ALTER SEQUENCE recibos_seq RESTART WITH 1`);
     await tx.insert(schema.niveles).values([
       { slug: "kids", nombre: "Kids", descripcion: "El primer encuentro con el escenario: juego, imaginación y trabajo en grupo.", orden: 1 },

@@ -70,7 +70,7 @@ export default function Marco({ nombre, rol, rolNombre, contadores, tasa, salir,
         </nav>
         <div className="pm-pie">
           <Link href="/admin/manual" className="pm-item chico" aria-current={ruta === "/admin/manual" ? "page" : undefined}><Icono nombre="libro" /><span>Manual</span></Link>
-          <Link href="/cuenta" className="pm-item chico"><Icono nombre="llave" /><span>Mi clave</span></Link>
+          <Link href="/cuenta" className="pm-item chico"><Icono nombre="llave" /><span>Mi cuenta</span></Link>
           <a href="/" target="_blank" className="pm-item chico"><Icono nombre="externo" /><span>Ver el sitio</span></a>
           <form action={salir}><button className="pm-item chico"><Icono nombre="salir" /><span>Salir</span></button></form>
           <div className="pm-quien"><span aria-hidden="true">{nombre.slice(0, 1).toUpperCase()}</span><div><b>{nombre}</b><small>{rolNombre}</small></div></div>

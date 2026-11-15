@@ -149,7 +149,8 @@ export default function Manual() {
       <section className="panel">
         <h2>Claves</h2>
         <ul>
-          <li>Cada quien cambia su clave en Mi clave.</li>
+          <li>Cada quien cambia su usuario y su clave en Mi cuenta (abajo en el menú). El usuario puede ser un nombre corto, como hgonzalez.</li>
+          <li>La cuenta Soporte técnico es el acceso del desarrollador para darte soporte; su clave la administra él.</li>
           <li>Si un representante olvida la suya, puede pedir un enlace por correo desde la pantalla de ingreso (requiere el correo configurado), o se la cambias tú desde la ficha de su estudiante.</li>
           <li>Las claves del equipo las cambia el master en Usuarios.</li>
         </ul>

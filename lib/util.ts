@@ -57,3 +57,6 @@ export function enlaceWhatsApp(telefono: string, texto = ""): string {
   if (n.startsWith("0")) n = `58${n.slice(1)}`;
   return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ""}`;
 }
+
+/** Usuario de ingreso del equipo: un nombre (hgonzalez, h.gonzalez) o un correo. Sin espacios. */
+export const usuarioValido = (v: string) => /^[a-z0-9._@+-]{3,80}$/.test(v);

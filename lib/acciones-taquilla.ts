@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { and, eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db, schema } from "@/db";
@@ -11,7 +11,7 @@ import { limpiarArchivos } from "./archivos";
 import { exigirAdmin, exigirEquipo, exigirMaster } from "./sesion";
 import * as t from "./taquilla";
 import { actualizarTasa, getTasa } from "./tasa";
-import { deInputLocal } from "./util";
+import { deInputLocal, usuarioValido } from "./util";
 
 const txt = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const entero = (f: FormData, k: string) => Number.parseInt(txt(f, k), 10) || 0;
@@ -244,16 +244,16 @@ export async function accionCrearUsuario(f: FormData) {
   const clave = String(f.get("clave") ?? "");
   const rol = txt(f, "rol") === "admin" ? "admin" : "vendedor";
   const error = (m: string) => redirect("/admin/usuarios?error=" + encodeURIComponent(m));
-  if (!txt(f, "nombre") || !/^\S+@\S+\.\S+$/.test(correo)) error("Escribe el nombre y un correo válido.");
+  if (!txt(f, "nombre") || !usuarioValido(correo)) error("Escribe el nombre y un usuario válido: letras, números, punto o guion, sin espacios (por ejemplo hgonzalez), o un correo.");
   if (clave.length < 8) error("La clave debe tener al menos 8 caracteres.");
   const [ya] = await db().select({ id: schema.usuarios.id }).from(schema.usuarios).where(eq(schema.usuarios.correo, correo));
-  if (ya) error("Ya existe un usuario con ese correo.");
+  if (ya) error("Ese usuario ya existe. Elige otro.");
   await db().insert(schema.usuarios).values({ nombre: txt(f, "nombre"), correo, claveHash: await bcrypt.hash(clave, 12), rol });
   redirect(`/admin/usuarios?ok=${Date.now()}`);
 }
 
 export async function accionEditarUsuario(f: FormData) {
-  await exigirMaster();
+  const s = await exigirMaster();
   const id = entero(f, "id");
   const clave = String(f.get("clave") ?? "");
   const cambios: Partial<typeof schema.usuarios.$inferInsert> = {};
@@ -264,7 +264,11 @@ export async function accionEditarUsuario(f: FormData) {
     if (clave.length < 8) redirect("/admin/usuarios?error=" + encodeURIComponent("La clave nueva debe tener al menos 8 caracteres."));
     Object.assign(cambios, { claveHash: await bcrypt.hash(clave, 12), intentosFallidos: 0, bloqueadoHasta: null });
   }
-  // El master no se puede desactivar ni modificar desde aquí.
-  await db().update(schema.usuarios).set(cambios).where(and(eq(schema.usuarios.id, id), ne(schema.usuarios.rol, "master")));
+  // Las cuentas principales no se desactivan ni se modifican desde aquí, con una excepción:
+  // soporte técnico puede poner una clave nueva a la cuenta principal de la escuela si la olvidó.
+  const [yo] = await db().select({ soporte: schema.usuarios.soporte }).from(schema.usuarios).where(eq(schema.usuarios.id, s.id));
+  const [destino] = await db().select().from(schema.usuarios).where(eq(schema.usuarios.id, id));
+  const rescate = Boolean(yo?.soporte) && destino?.rol === "master" && !destino.soporte && cambios.claveHash !== undefined;
+  if (destino && (destino.rol !== "master" || rescate)) await db().update(schema.usuarios).set(cambios).where(eq(schema.usuarios.id, id));
   redirect(`/admin/usuarios?ok=${Date.now()}`);
 }

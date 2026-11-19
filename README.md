@@ -2,19 +2,21 @@
 
 Sitio web, taquilla en línea y sistema de gestión para **A-Nelo | Escuela de Teatro** (Acarigua). Niveles Kids, Teen y Teenagers.
 
-**Estado: las cuatro fases están construidas** (sitio público, panel, taquilla, escuela con portal de representantes, Protagonistas y reportes). Falta desplegar y cargar el contenido real; ver [`docs/PLAN-DE-TRABAJO.md`](docs/PLAN-DE-TRABAJO.md).
+**Estado: en producción** en https://aneloescenico.vercel.app. Las cuatro fases están construidas (sitio público, panel, taquilla, escuela con portal de representantes, Protagonistas y reportes). El contexto para trabajar en el código está en [`CLAUDE.md`](CLAUDE.md).
 
 ## Qué funciona hoy
 
 - **Sitio público** con diseño Telón: menú que crece al seleccionar, carrusel de fotos grandes, novedades destacadas, cartelera de afiches, niveles, blog, Sobre nosotros y Contáctanos.
 - **Panel** en `/admin` con ingreso master: Carrusel, Blog, Funciones, Niveles, Mensajes, Apariencia (logo, colores, letra), Datos de la escuela, guía de primeros pasos y manual.
 - **Fotos** que se recortan solas al formato correcto al subirlas (carrusel 16:9, afiche 2:3, logo cuadrado).
-- **Taquilla:** plano de 184 butacas, apartado de 15 minutos, precios en dólares con preventa, cobro en bolívares a tasa BCV, Pago Móvil, transferencia y bonos de regalo, entradas con QR, venta presencial y validación en puerta.
+- **Taquilla:** plano de 184 butacas, apartado de 15 minutos, precios en dólares con preventa, cobro en bolívares a tasa BCV, Pago Móvil, transferencia y bonos de regalo, entradas con QR y PDF.
+- **Venta en sala:** caja registradora con ticket, cálculo de vuelto y la caja del día de cada vendedor, unida al cierre de caja.
+- **Puerta:** escáner QR con la cámara, entrada rápida, salidas temporales y regresos, entrada en grupo e historial.
 - **Salas:** editor para crear el plano de cualquier lugar (zonas, bloques y filas).
 - **Escuela:** inscripción en línea, fichas de estudiantes, mensualidades automáticas con becas, portal del representante, cobranza, mora y recibos numerados.
 - **Protagonistas:** fichas de artistas con trayectoria, publicadas solo con autorización del representante.
 - **Reportes:** cierre de caja, ventas por función, cobranza y descargas para Excel.
-- **Roles:** Master, Administrador, Vendedor y Representante.
+- **Roles:** Master, Administrador, Vendedor y Representante, más la cuenta de soporte técnico del programador.
 - **App instalable** (PWA) con el logo y los colores configurados.
 
 Para publicarlo: [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
@@ -46,8 +48,8 @@ Para publicarlo: [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md).
 
 ## Tecnología
 
-Next.js 16 (App Router, TypeScript, Cache Components) en **Vercel** · Postgres en **Neon** con Drizzle ORM · imágenes en **Vercel Blob** · instalable como app (PWA). Correo con Resend a partir de la Fase 2.
+Next.js 16 (App Router, TypeScript, Cache Components) en **Vercel** · Postgres en **Neon** con Drizzle ORM · imágenes en **Vercel Blob** · instalable como app (PWA). Correo con Resend (configurable desde el panel).
 
 ## Próximo paso
 
-Publicar en Vercel siguiendo [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md), cargar el contenido real y los datos de pago desde el panel, configurar el correo y repetir las pruebas en el sitio publicado.
+Cargar el contenido real y los datos de pago desde el panel, configurar el correo y probar la puerta con el público.

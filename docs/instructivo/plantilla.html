@@ -342,22 +342,33 @@ details[open] summary { margin-bottom: 8px; }
   <figure><img src="{{img 15-pagos}}" alt="Pantalla de pagos de entradas"><figcaption>Pagos de entradas.</figcaption></figure>
 
   <h3>Vender en la sala</h3>
-  <p>Ve a <span class="ruta">Taquilla › Vender entradas</span> (o pulsa <span class="boton">Vender entradas</span> en el Inicio).</p>
+  <p>Ve a <span class="ruta">Taquilla › Vender entradas</span> (o pulsa <span class="boton">Vender entradas</span> en el Inicio). La pantalla funciona como una caja registradora: el plano a la izquierda y el ticket de venta a la derecha (en el teléfono, debajo).</p>
   <ol class="pasos">
-    <li>Elige la función.</li>
-    <li>Toca en el plano las butacas que pide el cliente. El plano se actualiza solo con lo que se vende en línea.</li>
-    <li>Elige la <b>forma de pago</b> (efectivo, Pago Móvil, transferencia, punto, bono o cortesía) y, si quieres, el nombre y teléfono del cliente.</li>
-    <li>Pulsa <span class="boton">Vender</span>. Luego puedes abrir las entradas para imprimirlas, descargarlas en PDF o enviarlas por WhatsApp.</li>
+    <li>Elige la función en las tarjetas de arriba. Solo se puede vender una función <b>A la venta</b>; las que están en <b>Borrador</b> aparecen apagadas, con el botón <span class="boton">Poner a la venta</span>.</li>
+    <li>Toca en el plano las butacas que pide el cliente. Cada una se suma al ticket con su precio; la <b>×</b> la quita. El plano se actualiza solo con lo que se vende en línea.</li>
+    <li>Elige la <b>forma de pago</b> tocando su botón. En <b>Efectivo</b>, escribe lo que te dieron (o toca $20, $50…) y la caja calcula el <b>vuelto</b> en dólares o en bolívares. En Pago Móvil y transferencia, escribe la referencia.</li>
+    <li>Si trae un bono o quieres enviarle las entradas por WhatsApp, abre <b>+ bono de regalo</b> o <b>+ Datos del cliente</b>.</li>
+    <li>Pulsa el botón verde <span class="boton">Cobrar</span>. Aparecen los botones para imprimir las entradas, descargarlas en PDF o enviarlas por WhatsApp.</li>
   </ol>
-  <figure><img src="{{img 14-taquilla}}" alt="Taquilla con el plano de butacas y dos butacas elegidas"><figcaption>Taquilla: las butacas verdes son las elegidas.</figcaption></figure>
+  <figure><img src="{{img 14-taquilla}}" alt="Taquilla con el plano de butacas, el ticket de venta y el cálculo del vuelto"><figcaption>Taquilla: dos butacas en el ticket, pago en efectivo y el vuelto calculado.</figcaption></figure>
+  <p>Debajo está <b>Tu caja de hoy</b>: lo que cobraste tú en el día, por forma de pago, y tus últimas ventas por si hay que volver a imprimir. La pestaña <b>Cierre de caja</b> está al lado de <b>Vender</b>: es la misma caja vista al final del turno.</p>
 
   <h3>En la puerta</h3>
+  <p>Ve a <span class="ruta">Taquilla › Validar entradas</span> desde el teléfono de quien recibe al público.</p>
   <ol class="pasos">
-    <li>Entra al panel desde el teléfono de quien recibe al público.</li>
-    <li>Con la cámara del teléfono, apunta al código QR de la entrada y abre el enlace que aparece.</li>
-    <li>Verás la butaca y el nombre. Pulsa <span class="boton">Dar entrada</span>. <b>Verde:</b> adelante. <b>Rojo:</b> esa entrada ya entró o no existe.</li>
+    <li>Pulsa <span class="boton">Abrir cámara</span> y apunta al QR (impreso o en el teléfono del cliente). La primera vez, el navegador pide permiso para usar la cámara: acéptalo.</li>
+    <li>Elige el modo de la puerta:
+      <ul>
+        <li><b>Preguntar:</b> muestra la entrada y tú eliges <span class="boton">Dar entrada</span>, <span class="boton">Registrar salida temporal</span> o <span class="boton">Volver a entrar</span>.</li>
+        <li><b>Entrada rápida:</b> para la fila de la apertura. Da entrada sola apenas lee el código y sigue leyendo.</li>
+        <li><b>Salida:</b> para el intermedio. Registra que la persona salió; al volver, la misma entrada la deja pasar otra vez.</li>
+      </ul>
+    </li>
+    <li><b>Verde con pitido agudo:</b> adelante. <b>Rojo con pitido grave:</b> no puede pasar (ya está adentro, la compra fue anulada o el código no existe).</li>
+    <li>Si una familia trae varias entradas de la misma compra, <span class="boton">Dar entrada a las 3</span> las pasa todas de una vez.</li>
   </ol>
-  <p>Si un QR no se lee, en <span class="ruta">Taquilla › Validar entradas</span> puedes escribir el código de letras que aparece debajo del QR. Cada entrada deja pasar a una sola persona.</p>
+  <figure><img src="{{img 14b-puerta}}" alt="Validador de entradas con la cámara y la ficha de la butaca"><figcaption>La puerta: la butaca, quién la compró y qué se puede hacer. Abajo, cuántas personas hay en la sala.</figcaption></figure>
+  <p>Si un QR no se lee, escribe el código de letras que aparece debajo del QR. También sigue sirviendo abrir el QR con la cámara normal del teléfono: el enlace lleva a esta misma pantalla. Cada entrada deja pasar a una sola persona; si alguien entró por error, un administrador puede usar <b>Deshacer ingreso</b>.</p>
 
   <h3>Bonos de regalo</h3>
   <p>En <span class="ruta">Funciones › Bonos de regalo</span> pulsa <span class="boton">+ Generar bono</span>, escribe el monto en dólares y entrega el código que aparece. La persona lo usa al pagar sus entradas: si cubre todo, recibe sus entradas al instante; si no, paga la diferencia. El saldo sobrante queda en el bono.</p>
@@ -427,7 +438,7 @@ details[open] summary { margin-bottom: 8px; }
 <section class="cap" id="reportes">
   <h2><span>8</span>Reportes y cierre de caja</h2>
   <ul>
-    <li><b>Cierre de caja</b> (<span class="ruta">Taquilla › Cierre de caja</span>): el dinero confirmado en un día, por persona y por forma de pago, en dólares y bolívares. Compara el efectivo con la caja y los pagos por banco con el estado de cuenta. Cada vendedor ve solo lo suyo.</li>
+    <li><b>Cierre de caja</b> (<span class="ruta">Taquilla › Cierre de caja</span>): el dinero confirmado en un día, por persona y por forma de pago, en dólares y bolívares. Incluye las ventas de taquilla, los pagos de entradas en línea que confirmaste y los cobros de la escuela. Tiene botón <span class="boton">Imprimir</span>. Compara el efectivo con la caja y los pagos por banco con el estado de cuenta. Cada vendedor ve solo lo suyo.</li>
     <li><b>Reportes</b> (<span class="ruta">Reportes</span>): elige las fechas y verás el total recibido, las entradas por función, lo cobrado por cada persona del equipo y los estudiantes con deudas. Cada reporte tiene un botón para <b>descargarlo y abrirlo en Excel</b>.</li>
   </ul>
 </section>

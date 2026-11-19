@@ -60,3 +60,6 @@ export function enlaceWhatsApp(telefono: string, texto = ""): string {
 
 /** Usuario de ingreso del equipo: un nombre (hgonzalez, h.gonzalez) o un correo. Sin espacios. */
 export const usuarioValido = (v: string) => /^[a-z0-9._@+-]{3,80}$/.test(v);
+
+/** El momento de hace `h` horas. */
+export const haceHoras = (h: number) => new Date(Date.now() - h * 3600_000);

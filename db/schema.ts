@@ -176,6 +176,18 @@ export const entradas = pgTable("entradas", {
   codigo: text("codigo").notNull().unique(),
   usadaEl: timestamp("usada_el", { withTimezone: true }),
   validadaPor: integer("validada_por").references(() => usuarios.id),
+  /** Salida temporal del recinto: la persona ya entró, salió y puede volver con la misma entrada. */
+  fueraDesde: timestamp("fuera_desde", { withTimezone: true }),
+  creadoEl,
+});
+
+/** Historial de la puerta: cada ingreso, salida temporal y regreso de una entrada. */
+export const movimientosPuerta = pgTable("movimientos_puerta", {
+  id: serial("id").primaryKey(),
+  entradaId: integer("entrada_id").notNull().references(() => entradas.id, { onDelete: "cascade" }),
+  /** entrada | salida | anulado */
+  tipo: text("tipo").notNull(),
+  usuarioId: integer("usuario_id").references(() => usuarios.id, { onDelete: "set null" }),
   creadoEl,
 });
 

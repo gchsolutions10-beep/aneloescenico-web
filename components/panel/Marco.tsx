@@ -83,7 +83,7 @@ export default function Marco({ nombre, rol, rolNombre, contadores, tasa, salir,
           <button type="button" className="pm-abrir-movil" onClick={() => setMovil(true)} aria-label="Abrir menú"><Icono nombre="menu" /></button>
           <nav aria-label="Ruta" className="pm-ruta">
             <span>Panel</span>
-            {actual?.grupo.titulo && <><span aria-hidden="true">/</span><span>{actual.grupo.titulo}</span></>}
+            {actual?.grupo.titulo && actual.grupo.titulo.toLowerCase() !== actual.item.nombre.toLowerCase() && <><span aria-hidden="true">/</span><span>{actual.grupo.titulo}</span></>}
             {actual && <><span aria-hidden="true">/</span>{profundo ? <Link href={actual.item.href}>{actual.item.nombre}</Link> : <strong>{actual.item.nombre}</strong>}</>}
             {profundo && <><span aria-hidden="true">/</span><strong>Detalle</strong></>}
           </nav>

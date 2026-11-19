@@ -2,6 +2,7 @@
 export const ICONOS = {
   inicio: "M3 11l9-8 9 8M5 10v10h14V10",
   entrada: "M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4zM14 7v10",
+  telefono: "M8 2h8a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM11 18h2",
   tarjeta: "M3 6h18v12H3zM3 10h18M7 15h3",
   qr: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2z",
   caja: "M3 7h18v10H3zM12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 10v.01M18 14v.01",

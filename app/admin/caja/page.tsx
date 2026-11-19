@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
-import { Ayuda } from "@/components/Ayuda";
+import { Ayuda, Encabezado } from "@/components/Ayuda";
+import Imprimir from "@/components/panel/Imprimir";
+import PestanasCaja from "@/components/panel/PestanasCaja";
 import { hoy } from "@/lib/escuela";
 import { esDinero, esFecha, movimientos, resumir } from "@/lib/reportes";
 import { exigirEquipo } from "@/lib/sesion";
@@ -22,7 +24,10 @@ async function Caja({ searchParams }: Props) {
 
   return (
     <>
-      <h1>Cierre de caja</h1>
+      <Encabezado titulo="Cierre de caja" descripcion={s.rol === "vendedor" ? `Tu caja: lo que cobraste el ${fecha}.` : `El dinero recibido por todo el equipo el ${fecha}.`}>
+        <Imprimir />
+      </Encabezado>
+      <PestanasCaja actual="cierre" />
       <Ayuda>
         <ul>
           <li>Muestra el dinero confirmado en un día: ventas de taquilla, pagos de entradas confirmados y cobros de la escuela.</li>
@@ -31,7 +36,7 @@ async function Caja({ searchParams }: Props) {
           {s.rol === "vendedor" && <li>Aquí ves solo lo que confirmaste o cobraste tú.</li>}
         </ul>
       </Ayuda>
-      <form className="acciones">
+      <form className="acciones no-imprimir">
         <label htmlFor="cj-fecha" style={{ fontWeight: 600 }}>Día</label>
         <input id="cj-fecha" name="fecha" type="date" defaultValue={fecha} max={hoy()} style={{ width: 180 }} />
         <button className="btn sec">Ver</button>

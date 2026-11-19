@@ -34,7 +34,7 @@ export async function contarDatos(masterId: number): Promise<Conteo> {
  */
 export async function reiniciarTodo(masterId: number) {
   await db().transaction(async (tx) => {
-    await tx.execute(sql`TRUNCATE entradas, pagos, butacas, zonas, ordenes, bonos, elenco, funciones,
+    await tx.execute(sql`TRUNCATE movimientos_puerta, entradas, pagos, butacas, zonas, ordenes, bonos, elenco, funciones,
       reportes_pago, cargos, fichas_artista, estudiantes, mensajes, entradas_blog, carrusel, niveles, salas,
       configuracion, tokens_clave RESTART IDENTITY CASCADE`);
     // Se conservan las cuentas principales: la de la escuela y la de soporte técnico.

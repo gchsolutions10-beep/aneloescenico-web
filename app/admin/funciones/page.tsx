@@ -62,7 +62,7 @@ async function Funciones({ searchParams }: Props) {
         {lista.length === 0 ? (
           <div className="vacio"><p>{todas.length === 0 ? "Todavía no hay funciones." : "No hay funciones en esta lista."}</p></div>
         ) : (
-          <div className="tabla"><table>
+          <div className="tabla tarjetas-f"><table>
             <thead><tr><th>Función</th><th>Fecha</th><th>Estado</th><th>Entradas</th><th>Cobrado</th><th><span className="sr">Acciones</span></th></tr></thead>
             <tbody>
               {lista.map((x) => {
@@ -71,20 +71,20 @@ async function Funciones({ searchParams }: Props) {
                 const vendidas = c ? c.total - c.libres : 0;
                 return (
                   <tr key={x.id} className={x.id === nueva ? "recien" : undefined}>
-                    <td>
+                    <td className="tf-fun">
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         {x.aficheUrl ? <img className="mini afiche" src={x.aficheUrl} alt="" /> : <span className="inicial" aria-hidden="true">{x.titulo.slice(0, 1)}</span>}
                         <div style={{ display: "grid", gap: 2, minWidth: 0 }}>
-                          <Link href={`/admin/funciones/${x.id}`} style={{ color: "var(--a-texto)", fontWeight: 700, textDecoration: "none" }}>{x.titulo}</Link>
+                          <Link className="tf-titulo" href={`/admin/funciones/${x.id}`} style={{ color: "var(--a-texto)", fontWeight: 700, textDecoration: "none" }}>{x.titulo}</Link>
                           <span className="tenue" style={{ fontSize: 13 }}>{x.plano ?? "Sin sala"}{x.lugar ? ` · ${x.lugar}` : ""}</span>
                         </div>
                         {x.id === nueva && <span className="pastilla si">Recién creada</span>}
                       </div>
                     </td>
-                    <td style={{ whiteSpace: "nowrap" }}>{x.fechaHora ? `${fechaCorta(x.fechaHora)} · ${hora(x.fechaHora)}` : "Por definir"}</td>
-                    <td><span className={`pastilla ${CLASE[x.estado] ?? ""}`}>{ESTADOS_FUNCION[x.estado]}</span></td>
-                    <td style={{ minWidth: 130 }}>
+                    <td className="tf-fec" style={{ whiteSpace: "nowrap" }}>{x.fechaHora ? `${fechaCorta(x.fechaHora)} · ${hora(x.fechaHora)}` : "Por definir"}</td>
+                    <td className="tf-est"><span className={`pastilla ${CLASE[x.estado] ?? ""}`}>{ESTADOS_FUNCION[x.estado]}</span></td>
+                    <td className="tf-ent" data-etq="Entradas" style={{ minWidth: 130 }}>
                       {c ? (
                         <div style={{ display: "grid", gap: 6 }}>
                           <span style={{ fontSize: 13, fontVariantNumeric: "tabular-nums" }}><b>{vendidas}</b> / {c.total}</span>
@@ -92,8 +92,8 @@ async function Funciones({ searchParams }: Props) {
                         </div>
                       ) : <span className="tenue">Sin butacas</span>}
                     </td>
-                    <td style={{ fontVariantNumeric: "tabular-nums" }}>{r.cobrado ? usd(r.cobrado) : "—"}</td>
-                    <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    <td className="tf-cob" data-etq="Cobrado" style={{ fontVariantNumeric: "tabular-nums" }}>{r.cobrado ? usd(r.cobrado) : "—"}</td>
+                    <td className="tf-acc" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                       <div className="acciones" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
                         <Link className="btn sec chico" href={`/admin/funciones/${x.id}`}>Gestionar</Link>
                         <MenuFila>

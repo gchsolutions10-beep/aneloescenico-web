@@ -340,7 +340,8 @@ export async function cambiarEstadoFuncion(f: FormData) {
   const estado = txt(f, "estado");
   if (estado in ESTADOS_FUNCION) await db().update(schema.funciones).set({ estado }).where(eq(schema.funciones.id, entero(f, "id")));
   updateTag("funciones"); updateTag("cupos");
-  redirect(`/admin/funciones?ok=${Date.now()}`);
+  const volver = txt(f, "volver");
+  redirect(volver.startsWith("/admin/") && !volver.startsWith("//") ? volver : `/admin/funciones?ok=${Date.now()}`);
 }
 
 export async function borrarFuncion(f: FormData) {

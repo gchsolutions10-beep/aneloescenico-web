@@ -8,6 +8,7 @@ import { db, schema } from "@/db";
 import type { Estado } from "./acciones";
 import { COBROS_INICIAL, getConfig, type Cobros } from "./datos";
 import { limpiarArchivos } from "./archivos";
+import { consultar, mover, type Consulta, type Movida } from "./puerta";
 import { exigirAdmin, exigirEquipo, exigirMaster } from "./sesion";
 import * as t from "./taquilla";
 import { actualizarTasa, getTasa } from "./tasa";
@@ -122,12 +123,18 @@ export async function accionVender(f: FormData) {
   redirect(destino);
 }
 
-export async function accionValidar(f: FormData) {
+/** Puerta: lee una entrada escaneada o escrita. */
+export async function consultarEntrada(codigo: string): Promise<Consulta> {
+  await exigirEquipo();
+  return consultar(String(codigo ?? ""));
+}
+
+/** Puerta: dar entrada, registrar salida temporal o (solo administradores) deshacer un ingreso. */
+export async function moverEntrada(codigo: string, movida: Movida, todas: boolean): Promise<Consulta> {
   const s = await exigirEquipo();
-  const c = txt(f, "c").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (!f.get("marcar")) redirect(`/admin/validar?c=${c}`);
-  const { resultado } = await t.validarEntrada(c, s.id, true);
-  redirect(`/admin/validar?c=${c}&r=${resultado}`);
+  if (!["entrar", "salir", "deshacer"].includes(movida)) throw new Error("Movimiento desconocido");
+  if (movida === "deshacer" && s.rol === "vendedor") throw new Error("Solo un administrador puede deshacer un ingreso.");
+  return mover(String(codigo ?? ""), movida, s.id, Boolean(todas));
 }
 
 // ---------- Administración de funciones ----------

@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
+import * as puerta from "@/lib/puerta";
 import * as t from "@/lib/taquilla";
 import { limpiarArchivos } from "@/lib/archivos";
 import { generarButacas, SALA_184, validarSala } from "@/lib/planos";
@@ -137,6 +138,30 @@ async function main() {
   assert.equal((await t.validarEntrada(e.codigo, admin, true)).resultado, "usada");
   assert.equal((await t.validarEntrada("XXXX", admin, true)).resultado, "inexistente");
   paso("cortesías solo para administradores; bloqueo de butacas; una entrada solo entra una vez");
+
+  // Puerta: entrada, salida temporal, regreso, grupo y dos puertas a la vez
+  const codG = await t.venderEnTaquilla({ funcionId: f.id, numeros: [101, 102, 103], nombre: "Familia", telefono: "", metodo: "efectivo", referencia: "", bono: "", vendedorId: admin, puedeCortesia: true, tasa: 900 });
+  const grupo = await db().select().from(entradas).where(eq(entradas.ordenId, (await orden(codG)).id));
+  const c1 = grupo[0].codigo;
+  const r0 = await puerta.consultar(`https://x.test/admin/validar?c=${c1.toLowerCase()}`);
+  assert.ok(r0.resultado === "ok" && r0.entrada.estado === "sin_usar" && r0.hermanas.length === 3, "el enlace del QR se entiende");
+  const dos = await Promise.all([puerta.mover(c1, "entrar", admin), puerta.mover(c1, "entrar", admin)]);
+  assert.equal(dos.filter((x) => x.resultado === "ok" && x.hecho?.ok).length, 1, "dos puertas a la vez: solo una da entrada");
+  const sal = await puerta.mover(c1, "salir", admin);
+  assert.ok(sal.resultado === "ok" && sal.hecho?.ok && sal.entrada.estado === "fuera");
+  assert.ok((await puerta.mover(c1, "salir", admin)).resultado === "ok");
+  const vuelve = await puerta.mover(c1, "entrar", admin);
+  assert.ok(vuelve.resultado === "ok" && vuelve.hecho?.ok && vuelve.entrada.estado === "dentro");
+  const todas = await puerta.mover(c1, "entrar", admin, true);
+  assert.ok(todas.resultado === "ok" && todas.hecho?.mensaje.startsWith("2 de 3") && todas.hermanas.every((h) => h.estado === "dentro"));
+  const sinSalir = await puerta.mover(grupo[1].codigo, "deshacer", admin);
+  assert.ok(sinSalir.resultado === "ok" && sinSalir.entrada.estado === "sin_usar");
+  const noSale = await puerta.mover(grupo[1].codigo, "salir", admin);
+  assert.ok(noSale.resultado === "ok" && noSale.hecho?.ok === false, "sin haber entrado no se registra salida");
+  const hist = await puerta.consultar(c1);
+  assert.ok(hist.resultado === "ok" && hist.historial.length === 3 && hist.conteo.dentro >= 2);
+  assert.equal((await puerta.consultar("NOEXISTE")).resultado, "inexistente");
+  paso("puerta: el QR se lee, una puerta a la vez, salida temporal y regreso, entrada en grupo, deshacer e historial");
 
   // BCV
   assert.equal(parsearBcv('<div id="dolar" class="col-sm-12"><div class="field-content"><div class="row recuadrotsmc"><div class="col-sm-6"><span> USD</span></div><div class="col-sm-6 centrado"><strong> 901,61750000 </strong></div></div></div></div>'), 901.6175);

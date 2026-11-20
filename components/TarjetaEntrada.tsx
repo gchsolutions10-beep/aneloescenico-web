@@ -1,6 +1,7 @@
 // Una entrada dibujada con su diseño. Sirve en el servidor (página de la compra) y en el
 // navegador (vista previa del panel): no usa estado. Las medidas vienen de lib/diseno-entrada.
 import type { CSSProperties } from "react";
+import { formasAdornos } from "@/lib/adornos";
 import { ALTO, ANCHO, type Caja, codigoLegible, type DatosEntrada, type DisenoEntrada, PIE, plano } from "@/lib/diseno-entrada";
 
 const u = (n: number) => `${(n / ANCHO) * 100}cqw`;
@@ -32,6 +33,14 @@ export default function TarjetaEntrada({ d, datos, qrSvg, imagen, logoUrl, usada
         {imagen && <img src={imagen} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />}
         {p.velo > 0 && <div style={{ position: "absolute", inset: 0, background: d.colorPrincipal, opacity: p.velo }} />}
       </div>
+
+      {d.adornos.length > 0 && (
+        <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} preserveAspectRatio="none" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+          {formasAdornos(d, p).map((f, i) => f.tipo === "trazo"
+            ? <path key={i} d={f.d} fill={f.color} fillOpacity={f.opacidad ?? 1} />
+            : <circle key={i} cx={f.x} cy={f.y} r={f.r} fill={f.color} fillOpacity={f.opacidad ?? 1} />)}
+        </svg>
+      )}
 
       <div style={{ ...caja(p.titulo), color: d.colorTexto, display: "grid", alignContent: "start", gap: u(4) }}>
         <span style={{ fontSize: u(8), fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: d.colorAcento }}>{datos.escuela} presenta</span>

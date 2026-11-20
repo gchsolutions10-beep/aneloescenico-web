@@ -415,3 +415,6 @@ a.cifra:hover { border-color: #cfc5be; transform: translateY(-1px); }
 .adm .paleta i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: -3px; border: 1.5px solid #fff; }
 .adm .paleta i:last-of-type { margin-right: 6px; }
 .adm .pestanas button:disabled { opacity: .45; cursor: not-allowed; }
+.adm .opciones-diseno.adornos { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); }
+.adm .opciones-diseno.adornos button { flex-direction: column; gap: 6px; text-align: center; padding: 10px 6px; }
+.adm .opciones-diseno.adornos svg { border-radius: 6px; }

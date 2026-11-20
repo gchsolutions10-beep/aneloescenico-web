@@ -4,6 +4,7 @@
 export type Estilo = "banda" | "completa";
 export type PosicionQr = "centro" | "derecha" | "izquierda" | "arriba";
 export type Fondo = "color" | "afiche" | "imagen";
+export type Adorno = "telon" | "escenario" | "mascaras" | "marquesina" | "estrellas";
 
 export type DisenoEntrada = {
   estilo: Estilo;
@@ -21,23 +22,30 @@ export type DisenoEntrada = {
   /** Fondo del QR y del cuerpo de la entrada: siempre claro. */
   colorQrFondo: string;
   logoEnQr: boolean;
+  /** Elementos de teatro dibujados sobre la imagen o el color. Se pueden combinar. */
+  adornos: Adorno[];
+  /** Color del telón y del piso del escenario. Máscaras, marquesina y estrellas usan el acento. */
+  colorAdorno: string;
 };
 
 export const DISENO_INICIAL: DisenoEntrada = {
   estilo: "banda", posicion: "centro", fondo: "color", imagenUrl: "",
   colorPrincipal: "#140a0c", colorAcento: "#d6ab52", colorTexto: "#f6ecdf", colorQr: "#140a0c", colorQrFondo: "#ffffff", logoEnQr: false,
+  adornos: [], colorAdorno: "#8f1d2c",
 };
+
+export const ADORNOS: [Adorno, string][] = [["telon", "Telón"], ["escenario", "Escenario"], ["mascaras", "Máscaras"], ["marquesina", "Marquesina"], ["estrellas", "Estrellas"]];
 
 export const POSICIONES: [PosicionQr, string][] = [["centro", "Abajo, al centro"], ["derecha", "Abajo, a la derecha"], ["izquierda", "Abajo, a la izquierda"], ["arriba", "Arriba"]];
 export const ESTILOS: [Estilo, string, string][] = [["banda", "Banda", "La imagen o el color arriba y el cuerpo claro."], ["completa", "Entrada completa", "La imagen cubre toda la entrada; el QR va en un recuadro claro."]];
 
 /** Combinaciones probadas: todas tienen el QR oscuro sobre claro, con contraste de sobra. */
 export const PALETAS: [string, Partial<DisenoEntrada>][] = [
-  ["Telón", { colorPrincipal: "#140a0c", colorAcento: "#d6ab52", colorTexto: "#f6ecdf", colorQr: "#140a0c", colorQrFondo: "#ffffff" }],
-  ["Vino", { colorPrincipal: "#6b1420", colorAcento: "#f2c66d", colorTexto: "#fff4e6", colorQr: "#6b1420", colorQrFondo: "#fff8ef" }],
-  ["Navidad", { colorPrincipal: "#0f3d2e", colorAcento: "#e8c35a", colorTexto: "#fdf6e3", colorQr: "#7a1020", colorQrFondo: "#fffaf0" }],
-  ["Noche", { colorPrincipal: "#0e1a33", colorAcento: "#8fb3ff", colorTexto: "#eef3ff", colorQr: "#0e1a33", colorQrFondo: "#f4f7ff" }],
-  ["Dorado", { colorPrincipal: "#2b1d08", colorAcento: "#f0cf7a", colorTexto: "#fff7e3", colorQr: "#4a3008", colorQrFondo: "#fffaeb" }],
+  ["Telón", { colorPrincipal: "#140a0c", colorAcento: "#d6ab52", colorTexto: "#f6ecdf", colorQr: "#140a0c", colorQrFondo: "#ffffff", colorAdorno: "#8f1d2c" }],
+  ["Vino", { colorPrincipal: "#6b1420", colorAcento: "#f2c66d", colorTexto: "#fff4e6", colorQr: "#6b1420", colorQrFondo: "#fff8ef", colorAdorno: "#a3192d" }],
+  ["Navidad", { colorPrincipal: "#0f3d2e", colorAcento: "#e8c35a", colorTexto: "#fdf6e3", colorQr: "#7a1020", colorQrFondo: "#fffaf0", colorAdorno: "#9b1b2a" }],
+  ["Noche", { colorPrincipal: "#0e1a33", colorAcento: "#8fb3ff", colorTexto: "#eef3ff", colorQr: "#0e1a33", colorQrFondo: "#f4f7ff", colorAdorno: "#3c2a6e" }],
+  ["Dorado", { colorPrincipal: "#2b1d08", colorAcento: "#f0cf7a", colorTexto: "#fff7e3", colorQr: "#4a3008", colorQrFondo: "#fffaeb", colorAdorno: "#7a1020" }],
 ];
 
 const esColor = (v: unknown): v is string => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v);
@@ -55,6 +63,8 @@ export function normalizar(v: unknown): DisenoEntrada {
     colorPrincipal: color("colorPrincipal"), colorAcento: color("colorAcento"), colorTexto: color("colorTexto"),
     colorQr: color("colorQr"), colorQrFondo: color("colorQrFondo"),
     logoEnQr: d.logoEnQr === true,
+    adornos: Array.isArray(d.adornos) ? ADORNOS.map(([k]) => k).filter((k) => (d.adornos as unknown[]).includes(k)) : [],
+    colorAdorno: color("colorAdorno"),
   };
 }
 
@@ -86,6 +96,8 @@ export type Caja = { x: number; y: number; w: number; h: number };
 export type Plano = {
   /** Dónde va la imagen o el color principal. */
   banda: Caja;
+  /** El "escenario": la parte de arriba de la imagen, donde van el título y los adornos. */
+  escena: Caja;
   /** Velo de color sobre la imagen para que el texto se lea. */
   velo: number;
   titulo: Caja;
@@ -97,6 +109,13 @@ export type Plano = {
 };
 
 export function plano(d: DisenoEntrada, hayImagen: boolean): Plano {
+  const base = planoBase(d, hayImagen);
+  // Con telón, el título se corre hacia adentro para que no lo tapen la cortina ni el bambalinón.
+  if (d.adornos.includes("telon")) base.titulo = { x: base.titulo.x + 18, y: base.titulo.y + 18, w: base.titulo.w - 36, h: base.titulo.h - 18 };
+  return base;
+}
+
+function planoBase(d: DisenoEntrada, hayImagen: boolean): Plano {
   const completa = d.estilo === "completa";
   const pad = completa ? 9 : 0;
   const velo = hayImagen ? (completa ? 0.62 : 0.45) : 0;
@@ -105,6 +124,7 @@ export function plano(d: DisenoEntrada, hayImagen: boolean): Plano {
     const qr = { x: 62, y: 24, lado: 176, recuadro: pad };
     return {
       banda: completa ? { x: 0, y: 0, w: ANCHO, h: ALTO } : { x: 0, y: 248, w: ANCHO, h: ALTO - 248 }, velo,
+      escena: completa ? { x: 0, y: 236, w: ANCHO, h: 164 } : { x: 0, y: 248, w: ANCHO, h: 152 },
       titulo: { x: 20, y: 262, w: 260, h: 140 },
       datos: { x: 20, y: 404, w: 260, h: 66, fila: true, claro: true },
       qr, codigo: { y: qr.y + qr.lado + pad + 14, claro: completa }, corte: null, pie: { y: 488, claro: true },
@@ -114,6 +134,7 @@ export function plano(d: DisenoEntrada, hayImagen: boolean): Plano {
     const qr = { x: 66, y: completa ? 270 : 266, lado: 168, recuadro: pad };
     return {
       banda: completa ? { x: 0, y: 0, w: ANCHO, h: ALTO } : { x: 0, y: 0, w: ANCHO, h: 168 }, velo,
+      escena: { x: 0, y: 0, w: ANCHO, h: 168 },
       titulo: { x: 20, y: 20, w: 260, h: 140 },
       datos: { x: 20, y: completa ? 172 : 180, w: 260, h: 66, fila: true, claro: completa },
       qr, codigo: { y: qr.y + qr.lado + pad + 14, claro: completa }, corte: completa ? null : 254, pie: { y: 488, claro: completa },
@@ -125,6 +146,7 @@ export function plano(d: DisenoEntrada, hayImagen: boolean): Plano {
   const qr = { x: der ? ANCHO - 20 - pad - lado : 20 + pad, y: 248, lado, recuadro: pad };
   return {
     banda: completa ? { x: 0, y: 0, w: ANCHO, h: ALTO } : { x: 0, y: 0, w: ANCHO, h: 214 }, velo,
+    escena: { x: 0, y: 0, w: ANCHO, h: completa ? 228 : 214 },
     titulo: { x: 20, y: 20, w: 260, h: 186 },
     datos: { x: der ? 20 : 20 + lado + 2 * pad + 18, y: 238, w: 260 - lado - 2 * pad - 18, h: 200, fila: false, claro: completa },
     qr, codigo: { y: qr.y + qr.lado + pad + 14, claro: completa }, corte: null, pie: { y: 488, claro: completa },

@@ -171,6 +171,7 @@ export async function accionGuardarDiseno(f: FormData) {
     imagenUrl: imagen.startsWith("/uploads/") || /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\//.test(imagen) ? imagen : "",
     colorPrincipal: txt(f, "colorPrincipal"), colorAcento: txt(f, "colorAcento"), colorTexto: txt(f, "colorTexto"),
     colorQr: txt(f, "colorQr"), colorQrFondo: txt(f, "colorQrFondo"), logoEnQr: txt(f, "logoEnQr") === "1",
+    adornos: txt(f, "adornos").split(","), colorAdorno: txt(f, "colorAdorno"),
   });
   if (d.fondo === "imagen" && !d.imagenUrl) d.fondo = "color";
   const base = `/admin/funciones/${id}?tab=entrada`;

@@ -5,6 +5,7 @@ import { asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { clip, endPath, PDFDocument, type PDFFont, type PDFImage, type PDFPage, popGraphicsState, pushGraphicsState, rectangle, rgb, StandardFonts } from "pdf-lib";
 import { db, schema } from "@/db";
+import { formasAdornos } from "@/lib/adornos";
 import { getConfig } from "@/lib/datos";
 import { ALTO, ANCHO, codigoLegible, type DisenoEntrada, normalizar, PIE, plano } from "@/lib/diseno-entrada";
 import { pngQr } from "@/lib/qr-entrada";
@@ -98,6 +99,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ codigo: 
     if (imagen) {
       cubrir(p, imagen, b.x, b.y, b.w, b.h);
       if (pl.velo) p.drawRectangle({ x: b.x, y: ALTO - b.y - b.h, width: b.w, height: b.h, color: color(d.colorPrincipal), opacity: pl.velo });
+    }
+    for (const fo of formasAdornos(d, pl)) {
+      if (fo.tipo === "trazo") p.drawSvgPath(fo.d, { x: 0, y: ALTO, color: color(fo.color), opacity: fo.opacidad ?? 1, borderWidth: 0 });
+      else p.drawCircle({ x: fo.x, y: ALTO - fo.y, size: fo.r, color: color(fo.color), opacity: fo.opacidad ?? 1 });
     }
 
     // Título

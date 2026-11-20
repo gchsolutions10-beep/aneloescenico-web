@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { formasAdornos } from "@/lib/adornos";
 import * as diseno from "@/lib/diseno-entrada";
 import * as puerta from "@/lib/puerta";
 import * as t from "@/lib/taquilla";
@@ -176,7 +177,21 @@ async function main() {
     const r = pl.qr.recuadro;
     assert.ok(pl.qr.x - r >= 0 && pl.qr.x + pl.qr.lado + r <= diseno.ANCHO && pl.qr.y - r >= 0 && pl.codigo.y < pl.pie.y, `${estilo}/${posicion}: el QR cabe en la entrada`);
   }
-  paso("diseño de la entrada: valores seguros, el QR siempre oscuro sobre claro y dentro de la hoja");
+  assert.deepEqual(diseno.normalizar({ adornos: ["telon", "dragon", "telon", "estrellas"] }).adornos, ["telon", "estrellas"]);
+  const todos = diseno.ADORNOS.map(([k]) => k);
+  for (const estilo of ["banda", "completa"] as const) for (const [posicion] of diseno.POSICIONES) {
+    const dd = { ...diseno.DISENO_INICIAL, estilo, posicion, adornos: todos };
+    const pl = diseno.plano(dd, true);
+    const r = pl.qr.recuadro, q = { x0: pl.qr.x - r, y0: pl.qr.y - r, x1: pl.qr.x + pl.qr.lado + r, y1: pl.qr.y + pl.qr.lado + r };
+    for (const f of formasAdornos(dd, pl)) {
+      const xs: number[] = [], ys: number[] = [];
+      if (f.tipo === "circulo") { xs.push(f.x - f.r, f.x + f.r); ys.push(f.y - f.r, f.y + f.r); }
+      else for (const [, a, b] of f.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)) { xs.push(Number(a)); ys.push(Number(b)); }
+      const toca = Math.max(...xs) > q.x0 && Math.min(...xs) < q.x1 && Math.max(...ys) > q.y0 && Math.min(...ys) < q.y1;
+      assert.ok(!toca, `${estilo}/${posicion}: un adorno toca el QR`);
+    }
+  }
+  paso("diseño de la entrada: valores seguros, el QR siempre oscuro sobre claro, dentro de la hoja y sin adornos encima");
 
   // BCV
   assert.equal(parsearBcv('<div id="dolar" class="col-sm-12"><div class="field-content"><div class="row recuadrotsmc"><div class="col-sm-6"><span> USD</span></div><div class="col-sm-6 centrado"><strong> 901,61750000 </strong></div></div></div></div>'), 901.6175);

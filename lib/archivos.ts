@@ -21,7 +21,7 @@ async function enUso(urls: string[]): Promise<Set<string>> {
     SELECT u AS url FROM jsonb_array_elements_text(${JSON.stringify(urls)}::jsonb) AS u WHERE
       EXISTS (SELECT 1 FROM carrusel WHERE imagen_url = u) OR
       EXISTS (SELECT 1 FROM entradas_blog WHERE portada_url = u) OR
-      EXISTS (SELECT 1 FROM funciones WHERE afiche_url = u) OR
+      EXISTS (SELECT 1 FROM funciones WHERE afiche_url = u OR diseno_entrada->>'imagenUrl' = u) OR
       EXISTS (SELECT 1 FROM elenco WHERE foto_url = u) OR
       EXISTS (SELECT 1 FROM niveles WHERE imagen_url = u) OR
       EXISTS (SELECT 1 FROM fichas_artista WHERE foto_url = u OR galeria ? u) OR

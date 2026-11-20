@@ -13,6 +13,7 @@ Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuel
 - **Sitio público** "Telón": carrusel, novedades, cartelera, Clases, Protagonistas, Blog, Sobre nosotros, Contáctanos. PWA.
 - **Venta en línea:** plano en vivo, apartado de 15 min, USD con preventa, cobro en Bs a tasa BCV (bcv.org.ve → DolarApi → manual), Pago Móvil, transferencia, bonos. Conflictos: cambio de butacas o reembolso. Entradas con QR y PDF.
 - **Taquilla** (`/admin/taquilla`): caja registradora (ticket, métodos en botones, vuelto $/Bs, "Tu caja de hoy"), unida al **Cierre de caja** por pestañas.
+- **Diseño de la entrada** (pestaña de cada función): estilo banda o completa, QR en 4 posiciones, fondo color/afiche/imagen, paletas, logo en el QR. Una sola geometría en `lib/diseno-entrada.ts` para web (`components/TarjetaEntrada.tsx`) y PDF; se rechaza un QR claro sobre oscuro o con contraste < 4.5.
 - **Puerta** (`/admin/validar`): escáner QR (BarcodeDetector o `jsqr`), modos Preguntar / Entrada rápida / Salida, salida temporal y regreso, grupo por compra, deshacer (admin), historial en `movimientos_puerta`. El QR apunta a `/admin/validar?c=CODIGO`.
 - **Escuela:** inscripciones, mensualidades con becas, portal del representante, cobranza, recibos (`recibos_seq`). **Protagonistas** con autorización del representante.
 - **Panel:** menú agrupado, cajones, confirmaciones con consecuencias, reportes con CSV. Borrar elimina datos en Neon y archivos en Blob; "Reiniciar datos" (`BORRAR TODO`) conserva las cuentas master.
@@ -28,6 +29,7 @@ Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuel
 - Butacas y entradas: UPDATE condicionado, nunca leer y luego escribir.
 - Acciones redirigen con `?ok=${Date.now()}`.
 - Migraciones: `db/schema.ts` → `npx drizzle-kit generate --name <nombre>`; se aplican en cada build. Tabla nueva de datos → sumarla al TRUNCATE de `lib/reinicio.ts`.
+- Imágenes nuevas guardadas en una columna o JSON: sumarlas a `enUso` de `lib/archivos.ts`, o la limpieza las borra.
 - La zona (precio) de una butaca vive en `butacas.zona_id` por función; la entrada vendida guarda su zona y precio propios.
 
 ## Verificar antes de subir

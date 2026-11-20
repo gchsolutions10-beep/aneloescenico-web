@@ -1,0 +1,1 @@
+ALTER TABLE "funciones" ADD COLUMN "diseno_entrada" jsonb;

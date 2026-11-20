@@ -386,3 +386,32 @@ a.cifra:hover { border-color: #cfc5be; transform: translateY(-1px); }
   .adm .panel, .adm .cifra { break-inside: avoid; border-color: #ccc; }
 }
 @media (max-width: 720px) { .adm .tarjetas-f .tf-ent .barrita { width: 100%; } .adm .tarjetas-f .tf-ent > div { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Diseño de la entrada ---------- */
+.adm .diseno-entrada { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .adm .diseno-entrada { grid-template-columns: minmax(0, 1fr); } }
+.adm .vista-entrada { position: sticky; top: 76px; display: grid; gap: 10px; background: var(--a-sup); border: 1px solid var(--a-linea); border-radius: 14px; padding: 16px; }
+.adm .vista-entrada .etq { font-weight: 600; font-size: 13.5px; }
+.adm .vista-entrada .entrada-d { box-shadow: 0 10px 30px rgba(29,21,23,.18); }
+@media (max-width: 1000px) { .adm .vista-entrada { position: static; max-width: 340px; width: 100%; justify-self: center; box-sizing: border-box; } }
+.adm .opciones-diseno { display: grid; gap: 8px; }
+.adm .opciones-diseno.dos { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.adm .opciones-diseno.cuatro { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.adm .opciones-diseno button { display: flex; gap: 12px; align-items: center; text-align: left; padding: 10px 12px; border: 1px solid #d9d2cc; border-radius: 10px; background: #fff; font: inherit; color: var(--a-texto); cursor: pointer; }
+.adm .opciones-diseno.cuatro button { flex-direction: column; text-align: center; gap: 6px; }
+.adm .opciones-diseno button[aria-pressed="true"] { border-color: var(--a-vino); background: #fbf0f1; box-shadow: inset 0 0 0 1px var(--a-vino); }
+.adm .opciones-diseno b { display: block; font-size: 14px; }
+.adm .opciones-diseno small { display: block; font-size: 12.5px; color: var(--a-tenue); }
+.adm .mini-entrada { width: 30px; height: 50px; border-radius: 4px; flex: none; border: 1px solid #cfc6bf; background: linear-gradient(#2a1418 0 40%, #fff 40%); }
+.adm .mini-entrada.completa { background: linear-gradient(160deg, #2a1418, #8f1d2c); position: relative; }
+.adm .mini-entrada.completa::after { content: ""; position: absolute; left: 8px; bottom: 6px; width: 12px; height: 12px; background: #fff; border-radius: 2px; }
+.adm .mini-qr { width: 30px; height: 50px; border-radius: 4px; border: 1px solid #cfc6bf; background: #fff; position: relative; display: block; }
+.adm .mini-qr span { position: absolute; width: 14px; height: 14px; background: repeating-conic-gradient(#1d1517 0 25%, #fff 0 50%) 0 0 / 7px 7px; outline: 1px solid #1d1517; }
+.adm .mini-qr.centro span { left: 7px; bottom: 6px; }
+.adm .mini-qr.derecha span { right: 3px; bottom: 9px; width: 12px; height: 12px; }
+.adm .mini-qr.izquierda span { left: 3px; bottom: 9px; width: 12px; height: 12px; }
+.adm .mini-qr.arriba span { left: 7px; top: 5px; }
+.adm .paleta { gap: 0; }
+.adm .paleta i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: -3px; border: 1.5px solid #fff; }
+.adm .paleta i:last-of-type { margin-right: 6px; }
+.adm .pestanas button:disabled { opacity: .45; cursor: not-allowed; }

@@ -8,6 +8,7 @@ import { db, schema } from "@/db";
 import type { Estado } from "./acciones";
 import { COBROS_INICIAL, getConfig, type Cobros } from "./datos";
 import { limpiarArchivos } from "./archivos";
+import { DISENO_INICIAL, normalizar, problemaQr } from "./diseno-entrada";
 import { consultar, mover, type Consulta, type Movida } from "./puerta";
 import { exigirAdmin, exigirEquipo, exigirMaster } from "./sesion";
 import * as t from "./taquilla";
@@ -158,6 +159,30 @@ export async function accionGuardarVenta(f: FormData) {
   }
   updateTag("funciones");
   redirect(`/admin/funciones/${id}?ok=${Date.now()}`);
+}
+
+/** Diseño de la entrada de una función. Rechaza colores de QR que los teléfonos no leerían. */
+export async function accionGuardarDiseno(f: FormData) {
+  await exigirAdmin();
+  const id = entero(f, "funcionId");
+  const imagen = txt(f, "imagenUrl");
+  const d = normalizar({
+    estilo: txt(f, "estilo"), posicion: txt(f, "posicion"), fondo: txt(f, "fondo"),
+    imagenUrl: imagen.startsWith("/uploads/") || /^https:\/\/[a-z0-9.-]+\.public\.blob\.vercel-storage\.com\//.test(imagen) ? imagen : "",
+    colorPrincipal: txt(f, "colorPrincipal"), colorAcento: txt(f, "colorAcento"), colorTexto: txt(f, "colorTexto"),
+    colorQr: txt(f, "colorQr"), colorQrFondo: txt(f, "colorQrFondo"), logoEnQr: txt(f, "logoEnQr") === "1",
+  });
+  if (d.fondo === "imagen" && !d.imagenUrl) d.fondo = "color";
+  const base = `/admin/funciones/${id}?tab=entrada`;
+  if (problemaQr(d)) redirect(`${base}&error=qr`);
+  const igual = JSON.stringify(d) === JSON.stringify(DISENO_INICIAL);
+  const [antes] = await db().select({ d: schema.funciones.disenoEntrada }).from(schema.funciones).where(eq(schema.funciones.id, id));
+  await db().update(schema.funciones).set({ disenoEntrada: igual ? null : d }).where(eq(schema.funciones.id, id));
+  // La imagen anterior queda suelta si se cambió: se borra si nadie más la usa.
+  const vieja = antes ? normalizar(antes.d).imagenUrl : "";
+  if (vieja && vieja !== d.imagenUrl) await limpiarArchivos([vieja]);
+  updateTag("funciones");
+  redirect(`${base}&ok=${Date.now()}`);
 }
 
 export async function accionBloquear(f: FormData) {

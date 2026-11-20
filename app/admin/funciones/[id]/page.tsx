@@ -6,10 +6,13 @@ import Cargando from "@/app/admin/loading";
 import { BotonBorrar } from "@/components/panel/Confirmar";
 import Cajon from "@/components/panel/Cajon";
 import { Resultado } from "@/components/Ayuda";
+import DisenoEntradaForm from "@/components/panel/DisenoEntrada";
 import PlanoButacas from "@/components/PlanoButacas";
 import SubirImagen from "@/components/SubirImagen";
 import { db, schema } from "@/db";
 import { accionBloquear, accionBorrarActor, accionCrearPlano, accionGuardarActor, accionGuardarVenta } from "@/lib/acciones-taquilla";
+import { getConfig } from "@/lib/datos";
+import { normalizar } from "@/lib/diseno-entrada";
 import { exigirAdmin } from "@/lib/sesion";
 import { enPreventa, estadoPlano } from "@/lib/taquilla";
 import { aInputLocal, ESTADOS_FUNCION, fechaLarga, hora, usd } from "@/lib/util";
@@ -44,7 +47,7 @@ async function Detalle({ params, searchParams }: Props) {
   const id = Number((await params).id) || 0;
   const [f] = await db().select().from(schema.funciones).where(eq(schema.funciones.id, id));
   if (!f) notFound();
-  const [alumnos, salas, zonas, elenco, plano, [dinero]] = await Promise.all([
+  const [alumnos, salas, zonas, elenco, plano, [dinero], config] = await Promise.all([
     db().select({ id: schema.estudiantes.id, nombres: schema.estudiantes.nombres, apellidos: schema.estudiantes.apellidos }).from(schema.estudiantes).where(sql`${schema.estudiantes.estado} IN ('activo', 'egresado')`).orderBy(asc(schema.estudiantes.nombres)),
     db().select().from(schema.salas).orderBy(asc(schema.salas.id)),
     db().select().from(schema.zonas).where(eq(schema.zonas.funcionId, id)).orderBy(asc(schema.zonas.orden)),
@@ -53,10 +56,11 @@ async function Detalle({ params, searchParams }: Props) {
     db().execute<{ cobrado: string; bonos: string }>(sql`
       SELECT coalesce(sum(p.monto_usd) FILTER (WHERE p.metodo <> 'bono'), 0) AS cobrado, coalesce(sum(p.monto_usd) FILTER (WHERE p.metodo = 'bono'), 0) AS bonos
       FROM pagos p JOIN ordenes o ON o.id = p.orden_id WHERE o.funcion_id = ${id} AND p.estado = 'confirmado'`).then((r) => r.rows),
+    getConfig(),
   ]);
   const cuenta = (e: string) => plano.butacas.filter((b) => b.e === e).length;
   const q = await searchParams;
-  const tab = ["butacas", "elenco"].includes(q.tab) ? q.tab : "venta";
+  const tab = ["butacas", "elenco", "entrada"].includes(q.tab) ? q.tab : "venta";
   const base = `/admin/funciones/${f.id}`;
 
   return (
@@ -78,16 +82,17 @@ async function Detalle({ params, searchParams }: Props) {
           {f.estado !== "borrador" && <Link className="btn sec" href={`/funciones/${f.slug}`} target="_blank">Ver en el sitio ↗</Link>}
         </div>
       </section>
-      <Resultado searchParams={searchParams} />
+      <Resultado searchParams={searchParams} errores={{ qr: "Los colores del QR no se leerían bien en la puerta. Oscurece el QR o aclara su fondo." }} />
       {f.estado === "borrador" && <p className="nota aviso">Es un borrador: no se ve en la cartelera. Para vender, cámbiala a A la venta en Editar datos.</p>}
 
       <nav className="subrayadas" aria-label="Secciones">
         <Link href={base} aria-current={tab === "venta" ? "page" : undefined}>Venta y precios</Link>
         <Link href={`${base}?tab=butacas`} aria-current={tab === "butacas" ? "page" : undefined}>Butacas{cuenta("bloqueada") ? ` (${cuenta("bloqueada")} bloqueadas)` : ""}</Link>
         <Link href={`${base}?tab=elenco`} aria-current={tab === "elenco" ? "page" : undefined}>Elenco ({elenco.length})</Link>
+        <Link href={`${base}?tab=entrada`} aria-current={tab === "entrada" ? "page" : undefined}>Diseño de la entrada</Link>
       </nav>
 
-      {tab !== "elenco" && (zonas.length === 0 ? (
+      {(tab === "venta" || tab === "butacas") && (zonas.length === 0 ? (
         <form action={accionCrearPlano} className="panel">
           <h2>Sala</h2>
           <p className="tenue" style={{ margin: 0 }}>Esta función aún no tiene butacas. Elige la sala para poder vender entradas.</p>
@@ -139,6 +144,12 @@ async function Detalle({ params, searchParams }: Props) {
           </form>}
         </>
       ))}
+
+      {tab === "entrada" && (
+        <DisenoEntradaForm key={q.ok ?? "diseno"} funcionId={f.id} inicial={normalizar(f.disenoEntrada)} titulo={f.titulo} lugar={f.lugar}
+          fecha={f.fechaHora ? `${fechaLarga(f.fechaHora)} · ${hora(f.fechaHora)}` : "Fecha por anunciar"}
+          escuela={config.escuela.nombre} aficheUrl={f.aficheUrl} logoUrl={config.escuela.icono512 || config.escuela.logoUrl} />
+      )}
 
       {tab === "elenco" && <section className="panel" id="elenco">
         <div className="cab">

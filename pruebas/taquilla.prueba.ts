@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
+import * as diseno from "@/lib/diseno-entrada";
 import * as puerta from "@/lib/puerta";
 import * as t from "@/lib/taquilla";
 import { limpiarArchivos } from "@/lib/archivos";
@@ -162,6 +163,20 @@ async function main() {
   assert.ok(hist.resultado === "ok" && hist.historial.length === 3 && hist.conteo.dentro >= 2);
   assert.equal((await puerta.consultar("NOEXISTE")).resultado, "inexistente");
   paso("puerta: el QR se lee, una puerta a la vez, salida temporal y regreso, entrada en grupo, deshacer e historial");
+
+  // Diseño de la entrada
+  assert.deepEqual(diseno.normalizar(null), diseno.DISENO_INICIAL);
+  assert.equal(diseno.normalizar({ posicion: "volando", colorQr: "rojo", estilo: "completa" }).posicion, "centro");
+  assert.equal(diseno.normalizar({ colorQr: "#ABCDEF" }).colorQr, "#abcdef");
+  assert.match(diseno.problemaQr({ colorQr: "#ffffff", colorQrFondo: "#140a0c" }) ?? "", /más oscuro/);
+  assert.match(diseno.problemaQr({ colorQr: "#777777", colorQrFondo: "#999999" }) ?? "", /se parecen/);
+  for (const [n, p] of diseno.PALETAS) assert.equal(diseno.problemaQr({ ...diseno.DISENO_INICIAL, ...p }), null, `la paleta ${n} se lee`);
+  for (const estilo of ["banda", "completa"] as const) for (const [posicion] of diseno.POSICIONES) {
+    const pl = diseno.plano({ ...diseno.DISENO_INICIAL, estilo, posicion }, true);
+    const r = pl.qr.recuadro;
+    assert.ok(pl.qr.x - r >= 0 && pl.qr.x + pl.qr.lado + r <= diseno.ANCHO && pl.qr.y - r >= 0 && pl.codigo.y < pl.pie.y, `${estilo}/${posicion}: el QR cabe en la entrada`);
+  }
+  paso("diseño de la entrada: valores seguros, el QR siempre oscuro sobre claro y dentro de la hoja");
 
   // BCV
   assert.equal(parsearBcv('<div id="dolar" class="col-sm-12"><div class="field-content"><div class="row recuadrotsmc"><div class="col-sm-6"><span> USD</span></div><div class="col-sm-6 centrado"><strong> 901,61750000 </strong></div></div></div></div>'), 901.6175);

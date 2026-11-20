@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import QRCode from "qrcode";
 import { Suspense } from "react";
 import { CambiarButacas, CuentaRegresiva, FormularioPago } from "@/components/Compra";
+import TarjetaEntrada from "@/components/TarjetaEntrada";
 import { db, schema } from "@/db";
 import { accionCancelarApartado, accionPedirReembolso } from "@/lib/acciones-taquilla";
 import { getConfig } from "@/lib/datos";
+import { normalizar } from "@/lib/diseno-entrada";
+import { svgQr } from "@/lib/qr-entrada";
 import { estadoPlano, limpiarVencidas, METODOS } from "@/lib/taquilla";
 import { enBs } from "@/lib/tasa";
 import { bs, fechaLarga, hora, usd } from "@/lib/util";
@@ -103,7 +105,11 @@ async function Orden({ params }: Props) {
     const h = await headers();
     const base = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
     const entradas = await db().select().from(schema.entradas).where(eq(schema.entradas.ordenId, o.id)).orderBy(asc(schema.entradas.numero));
-    const qrs = await Promise.all(entradas.map((e) => QRCode.toString(`${base}/admin/validar?c=${e.codigo}`, { type: "svg", margin: 1, errorCorrectionLevel: "M" })));
+    const d = normalizar(f.disenoEntrada);
+    const config = await getConfig();
+    const imagen = d.fondo === "afiche" ? f.aficheUrl : d.fondo === "imagen" ? d.imagenUrl || null : null;
+    const fecha = `${fechaLarga(f.fechaHora)}${f.fechaHora ? ` · ${hora(f.fechaHora)}` : ""}`;
+    const qrs = await Promise.all(entradas.map((e) => svgQr(`${base}/admin/validar?c=${e.codigo}`, d)));
     return (
       <div className="formulario">
         <div className="no-imprimir">
@@ -114,23 +120,8 @@ async function Orden({ params }: Props) {
         </div>
         <div className="entradas">
           {entradas.map((e, i) => (
-            <div key={e.id} className={`entrada${e.usadaEl ? " usada" : ""}`}>
-              <div className="talon">
-                <small>A-Nelo Escénico presenta</small>
-                <b>{f.titulo}</b>
-                <small style={{ textTransform: "none", letterSpacing: 0, fontSize: ".82rem" }}>{fechaLarga(f.fechaHora)}{f.fechaHora ? ` · ${hora(f.fechaHora)}` : ""}</small>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", marginTop: 12 }}>
-                  <div><small>Butaca</small><span className="num">{e.numero}</span></div>
-                  <div style={{ textAlign: "right" }}><small>Zona</small><strong>{e.zona}</strong></div>
-                </div>
-                {o.compradorNombre && <small style={{ marginTop: 10 }}>{o.compradorNombre}</small>}
-              </div>
-              <div className="qr">
-                <div dangerouslySetInnerHTML={{ __html: qrs[i] }} />
-                <code>{e.codigo}</code>
-                {e.usadaEl && <strong>Ya utilizada</strong>}
-              </div>
-            </div>
+            <TarjetaEntrada key={e.id} d={d} imagen={imagen} qrSvg={qrs[i]} logoUrl={config.escuela.icono512 || config.escuela.logoUrl} usada={Boolean(e.usadaEl)}
+              datos={{ escuela: config.escuela.nombre, titulo: f.titulo, fecha, lugar: f.lugar, numero: e.numero, zona: e.zona, comprador: o.compradorNombre ?? "", codigo: e.codigo }} />
           ))}
         </div>
         <div className="no-imprimir">{resumen}</div>

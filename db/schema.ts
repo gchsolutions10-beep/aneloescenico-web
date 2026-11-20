@@ -81,6 +81,8 @@ export const funciones = pgTable("funciones", {
   /** Hasta este momento rige el precio de preventa de cada zona. */
   preventaHasta: timestamp("preventa_hasta", { withTimezone: true }),
   maxPorCompra: integer("max_por_compra").notNull().default(8),
+  /** Diseño de la entrada (colores, imagen, posición del QR). Vacío = diseño de la escuela. */
+  disenoEntrada: jsonb("diseno_entrada"),
   /** Clave de la plantilla de plano usada (ver lib/planos.ts); null = sin butacas numeradas. */
   plano: text("plano"),
   creadoEl,

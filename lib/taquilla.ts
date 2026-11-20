@@ -422,6 +422,7 @@ export async function eliminarFuncion(funcionId: number): Promise<string[]> {
     await tx.delete(butacas).where(eq(butacas.funcionId, funcionId));
     await tx.delete(ordenes).where(eq(ordenes.funcionId, funcionId));
     await tx.delete(funciones).where(eq(funciones.id, funcionId));
-    return [f.aficheUrl, ...capturas.map((c) => c.url), ...fotos.map((x) => x.url)].filter((u): u is string => Boolean(u));
+    const fondo = (f.disenoEntrada as { imagenUrl?: unknown } | null)?.imagenUrl;
+    return [f.aficheUrl, typeof fondo === "string" ? fondo : null, ...capturas.map((c) => c.url), ...fotos.map((x) => x.url)].filter((u): u is string => Boolean(u));
   });
 }

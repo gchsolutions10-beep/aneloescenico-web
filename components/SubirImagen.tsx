@@ -10,6 +10,8 @@ type Props = {
   ayuda?: string;
   /** Para el logo: conserva transparencia y genera además los íconos de la app. */
   logo?: { fondo: string };
+  /** Avisa la URL nueva (para vistas previas en vivo). */
+  alCambiar?: (url: string) => void;
 };
 
 type Encuadre = 0 | 0.5 | 1;
@@ -53,7 +55,7 @@ function icono(origen: HTMLCanvasElement, lado: number, fondo: string) {
   return c;
 }
 
-export default function SubirImagen({ nombre, inicial, aspecto, ancho, etiqueta, ayuda, logo }: Props) {
+export default function SubirImagen({ nombre, inicial, aspecto, ancho, etiqueta, ayuda, logo, alCambiar }: Props) {
   const [url, setUrl] = useState(inicial ?? "");
   const [iconos, setIconos] = useState({ i192: "", i512: "" });
   const [estado, setEstado] = useState<"" | "subiendo" | string>("");
@@ -69,7 +71,9 @@ export default function SubirImagen({ nombre, inicial, aspecto, ancho, etiqueta,
       setEje(img.width / img.height > aspecto ? "h" : "v");
       const lienzo = recortar(img, aspecto, ancho, enc);
       const blob = logo ? await aBlob(lienzo, "image/png") : await aBlob(lienzo, "image/jpeg", 0.86);
-      setUrl(await subir(blob, logo ? "logo.png" : "foto.jpg"));
+      const nueva = await subir(blob, logo ? "logo.png" : "foto.jpg");
+      setUrl(nueva);
+      alCambiar?.(nueva);
       if (logo) {
         const [i192, i512] = await Promise.all([192, 512].map(async (l) => subir(await aBlob(icono(lienzo, l, logo.fondo), "image/png"), `icono-${l}.png`)));
         setIconos({ i192, i512 });

@@ -228,7 +228,7 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 .metodos label { flex: 1 1 150px; border: 1px solid var(--linea); border-radius: var(--radio); padding: 12px 14px; cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 600; }
 .metodos label:has(input:checked) { border-color: var(--acento); background: color-mix(in srgb, var(--acento) 12%, transparent); }
 .metodos input { accent-color: var(--acento); width: 18px; height: 18px; }
-.entradas { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.entradas { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
 .entrada { background: #fff; color: #17110f; border-radius: 12px; overflow: hidden; display: grid; break-inside: avoid; }
 .entrada .talon { padding: 16px; border-bottom: 2px dashed #bbb; }
 .entrada .talon small { text-transform: uppercase; letter-spacing: .14em; font-size: .66rem; color: #7a6a60; display: block; }
@@ -238,7 +238,7 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 .entrada .qr svg { width: 170px; height: 170px; }
 .entrada .qr code { font-size: .8rem; letter-spacing: .12em; }
 .entrada.usada { opacity: .55; }
-@media print { .cabecera, .pie, .whatsapp, .no-imprimir { display: none !important; } body { background: #fff; } .entrada { border: 1px solid #999; } }
+@media print { .cabecera, .pie, .whatsapp, .no-imprimir { display: none !important; } body { background: #fff; } .entrada-d { break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
 
 .afiche a.img { text-decoration: none; color: inherit; transition: transform .18s, border-color .18s; }
 .afiche a.img:hover { transform: translateY(-4px); border-color: var(--acento); }
@@ -295,3 +295,5 @@ body:has(.cargos) .whatsapp { display: none; }
 .galeria { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 .galeria div { aspect-ratio: 4 / 3; position: relative; border-radius: var(--radio); overflow: hidden; border: 1px solid var(--linea); }
 .galeria img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.entrada-d-qr svg { width: 100%; height: 100%; display: block; }
+.entrada-d.usada > :not(strong) { opacity: .55; }

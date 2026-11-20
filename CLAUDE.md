@@ -1,45 +1,43 @@
 @AGENTS.md
 
-# A-Nelo Escénico · contexto del proyecto
+# A-Nelo Escénico
 
-Sitio público, taquilla en línea y sistema de gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuela). Todo el texto de la interfaz, del código y de los commits va en **español**.
+Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuela). Interfaz, código y commits en **español**.
 
-- Producción: https://aneloescenico.vercel.app (Vercel + Neon + Vercel Blob).
-- Rama de trabajo y de producción en Vercel: `claude/dazzling-ride-eelsip`. No abrir PR sin que lo pidan.
+- Producción: https://aneloescenico.vercel.app · Vercel + Neon + Vercel Blob.
+- Rama de trabajo y de producción: `claude/dazzling-ride-eelsip`. No abrir PR sin que lo pidan.
+- La base de Neon se creó desde Vercel: se abre en Vercel › Storage › Open in Neon (no está en la organización personal de Neon).
 
-## Qué está hecho (todo en producción)
+## Listo y en producción
 
-- **Sitio público** (diseño "Telón", oscuro): carrusel, novedades, cartelera con afiches, Clases, Protagonistas, Blog, Sobre nosotros, Contáctanos. PWA instalable con el logo.
-- **Taquilla en línea:** plano de butacas en vivo, apartado de 15 minutos, precios en USD con preventa hasta una fecha, cobro en Bs a tasa BCV del día (bcv.org.ve → DolarApi → tasa manual), Pago Móvil, transferencia y bonos de regalo. Conflictos de butaca: cambiar de butacas o pedir reembolso. Entradas con QR y PDF.
-- **Taquilla en sala** (`/admin/taquilla`): caja registradora. Selector de funciones (los borradores se ven apagados y un admin puede ponerlos a la venta ahí mismo), plano + ticket con líneas, métodos de pago en botones, cálculo de vuelto en $ o Bs, "Tu caja de hoy" y pestañas Vender | Cierre de caja.
-- **Puerta** (`/admin/validar`): escáner QR con la cámara (BarcodeDetector o `jsqr` en iPhone), modos Preguntar / Entrada rápida / Salida, salida temporal y regreso, entrada en grupo por compra, deshacer ingreso (solo admin), historial en `movimientos_puerta`. El QR impreso apunta a `/admin/validar?c=CODIGO`.
-- **Cierre de caja y reportes:** dinero confirmado por día, persona y método; CSV para Excel; imprimir.
-- **Escuela:** inscripción en línea, estudiantes, mensualidades con becas, portal del representante, cobranza, recibos numerados (`recibos_seq`).
-- **Protagonistas:** fichas de artistas con trayectoria, publicadas solo con autorización del representante.
-- **Panel** (rediseñado): menú lateral agrupado, formularios en cajones que se abren al usarlos, confirmaciones con consecuencias al borrar, avisos. En el teléfono, Funciones se ve en tarjetas.
-- **Borrado completo:** borrar función, estudiante o ficha elimina sus datos en Neon y sus archivos en Blob. "Reiniciar datos" (frase `BORRAR TODO`) deja la base en cero y conserva las cuentas master.
-- **Cuentas:** roles master, admin, vendedor, representante. El equipo entra con nombre de usuario (`hgonzalez`) o correo; representantes con correo. Cuenta de **soporte técnico** del programador: su clave vive solo en las variables `SOPORTE_USUARIO` / `SOPORTE_CLAVE` de Vercel (≥12 caracteres), puede rescatar la clave de la cuenta principal y el cliente no puede tocarla.
-- **Guía del cliente:** `docs/instructivo/plantilla.html` + capturas → `python3 docs/instructivo/armar.py https://aneloescenico.vercel.app` genera `Guia-del-panel-A-Nelo-Escenico.html`. Si cambia una pantalla descrita ahí, actualizar texto y captura.
+- **Sitio público** "Telón": carrusel, novedades, cartelera, Clases, Protagonistas, Blog, Sobre nosotros, Contáctanos. PWA.
+- **Venta en línea:** plano en vivo, apartado de 15 min, USD con preventa, cobro en Bs a tasa BCV (bcv.org.ve → DolarApi → manual), Pago Móvil, transferencia, bonos. Conflictos: cambio de butacas o reembolso. Entradas con QR y PDF.
+- **Taquilla** (`/admin/taquilla`): caja registradora (ticket, métodos en botones, vuelto $/Bs, "Tu caja de hoy"), unida al **Cierre de caja** por pestañas.
+- **Puerta** (`/admin/validar`): escáner QR (BarcodeDetector o `jsqr`), modos Preguntar / Entrada rápida / Salida, salida temporal y regreso, grupo por compra, deshacer (admin), historial en `movimientos_puerta`. El QR apunta a `/admin/validar?c=CODIGO`.
+- **Escuela:** inscripciones, mensualidades con becas, portal del representante, cobranza, recibos (`recibos_seq`). **Protagonistas** con autorización del representante.
+- **Panel:** menú agrupado, cajones, confirmaciones con consecuencias, reportes con CSV. Borrar elimina datos en Neon y archivos en Blob; "Reiniciar datos" (`BORRAR TODO`) conserva las cuentas master.
+- **Cuentas:** master, admin, vendedor, representante. El equipo entra con usuario o correo. **Soporte técnico** del programador: clave solo en `SOPORTE_USUARIO`/`SOPORTE_CLAVE` de Vercel; puede rescatar la clave principal.
+- **Guía del cliente:** `docs/instructivo/plantilla.html` + `capturas/` → `python3 docs/instructivo/armar.py https://aneloescenico.vercel.app`. Si cambia una pantalla descrita, actualizar texto y captura.
 
-## Reglas técnicas que ya costaron errores
+## Reglas que ya costaron errores
 
-- Next.js 16 con `cacheComponents`: leer `node_modules/next/dist/docs/` antes de usar una API. `proxy.ts` reemplaza a middleware. `cookies`/`searchParams` dentro de `<Suspense>`; llamar `connection()` antes de usar la hora actual. Invalidar con `updateTag` en las acciones.
-- Un archivo `"use server"` solo puede exportar funciones async: las constantes van en otro módulo (`lib/util.ts`, `lib/reinicio.ts`).
-- Una página solo exporta `default`, `metadata` y config: los componentes compartidos van en `components/`.
-- Lint `react-hooks`: nada de `Date.now()` en el render (usar helpers de `lib/`, p. ej. `haceHoras`), nada de `setState` dentro de efectos.
-- Arreglos en `sql` de Drizzle: pasarlos como JSON (`jsonb_array_elements_text(${JSON.stringify(x)}::jsonb)`), no como arreglo JS.
-- Cambios de estado de butacas y entradas: UPDATE condicionado (dentro de transacción cuando aplica), nunca leer-y-luego-escribir.
-- Las acciones redirigen con `?ok=${Date.now()}` para que cajones y avisos se reinicien.
-- Migraciones: editar `db/schema.ts` y correr `npx drizzle-kit generate --name <nombre>`; `scripts/migrar.mjs` las aplica en cada build. Si se agrega una tabla de datos, sumarla al TRUNCATE de `lib/reinicio.ts`.
+- Next.js 16 con `cacheComponents`: consultar `node_modules/next/dist/docs/`. `proxy.ts` en vez de middleware. `cookies`/`searchParams` dentro de `<Suspense>`; `connection()` antes de usar la hora. `updateTag` en las acciones.
+- `"use server"` solo exporta funciones async; una página solo exporta `default`/`metadata`/config.
+- Lint `react-hooks`: sin `Date.now()` en el render (helpers como `haceHoras`), sin `setState` en efectos.
+- Arreglos en `sql` de Drizzle: como JSON (`jsonb_array_elements_text(${JSON.stringify(x)}::jsonb)`).
+- Butacas y entradas: UPDATE condicionado, nunca leer y luego escribir.
+- Acciones redirigen con `?ok=${Date.now()}`.
+- Migraciones: `db/schema.ts` → `npx drizzle-kit generate --name <nombre>`; se aplican en cada build. Tabla nueva de datos → sumarla al TRUNCATE de `lib/reinicio.ts`.
+- La zona (precio) de una butaca vive en `butacas.zona_id` por función; la entrada vendida guarda su zona y precio propios.
 
 ## Verificar antes de subir
 
 ```bash
-npx tsc --noEmit && npx eslint app components lib && npm run prueba && npx next build
+npx tsc --noEmit && npx eslint app components lib pruebas && npm run prueba && npx next build
 ```
 
-Base local: Postgres en el puerto 5433 (`/var/tmp/anelo-pg/data`), variables en `.env.local`. Pruebas de navegador con Playwright desde el scratchpad.
+Local: Postgres en el puerto 5433 (`/var/tmp/anelo-pg/data`, arrancar con `pg_ctl` como `postgres`), variables en `.env.local`. Tras `next build`, matar el `next start` anterior antes de levantar otro.
 
 ## Privacidad
 
-No escribir claves ni el correo personal del programador en el repositorio, la guía ni servicios externos. La clave del cliente la entrega el programador en persona.
+Nada de claves ni del correo personal del programador en el repositorio, la guía o servicios externos. La clave del cliente la entrega el programador en persona.

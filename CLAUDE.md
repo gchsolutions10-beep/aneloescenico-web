@@ -12,7 +12,9 @@ Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuel
 
 - **Sitio público** "Telón": carrusel, novedades, cartelera, Clases, Protagonistas, Blog, Sobre nosotros, Contáctanos. PWA.
 - **Venta en línea:** plano en vivo, apartado de 15 min, USD con preventa, cobro en Bs a tasa BCV (bcv.org.ve → DolarApi → manual), Pago Móvil, transferencia, bonos. Conflictos: cambio de butacas o reembolso. Entradas con QR y PDF.
-- **Taquilla** (`/admin/taquilla`): caja registradora (ticket, métodos en botones, vuelto $/Bs, "Tu caja de hoy"), unida al **Cierre de caja** por pestañas.
+- **Taquilla** (`/admin/taquilla`): caja registradora (ticket, métodos en botones, vuelto $/Bs, bono con saldo descontado, "Tu caja de hoy"), unida al **Cierre de caja** por pestañas.
+- **Bonos:** el cliente pulsa Aplicar y ve cuánto cubre y cuánto le falta; solo reporta el resto por banco. `saldoBono` no descuenta; el descuento ocurre al pagar.
+- **Reservadas** (pestaña Butacas): estado `bloqueada` + `butacas.reserva` (grupo: Prensa, Invitados…). `estadoPlano(f, "publico")` las muestra vendidas y sin grupo; la API de butacas elige la vista según la sesión. Solo un admin las vende o regala desde la taquilla.
 - **Diseño de la entrada** (pestaña de cada función): estilo banda o completa, QR en 4 posiciones, fondo color/afiche/imagen, paletas, logo en el QR, adornos combinables (telón, escenario, máscaras, marquesina, estrellas; `lib/adornos.ts`, nunca encima del QR). Una sola geometría en `lib/diseno-entrada.ts` para web (`components/TarjetaEntrada.tsx`) y PDF; se rechaza un QR claro sobre oscuro o con contraste < 4.5.
 - **Puerta** (`/admin/validar`): escáner QR (BarcodeDetector o `jsqr`), modos Preguntar / Entrada rápida / Salida, salida temporal y regreso, grupo por compra, deshacer (admin), historial en `movimientos_puerta`. El QR apunta a `/admin/validar?c=CODIGO`.
 - **Escuela:** inscripciones, mensualidades con becas, portal del representante, cobranza, recibos (`recibos_seq`). **Protagonistas** con autorización del representante.

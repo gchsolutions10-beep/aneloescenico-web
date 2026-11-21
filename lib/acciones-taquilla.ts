@@ -114,7 +114,7 @@ export async function accionVender(f: FormData) {
     const tasa = await getTasa();
     const codigo = await t.venderEnTaquilla({
       funcionId, numeros: numeros(f), nombre: txt(f, "nombre"), telefono: txt(f, "telefono"), metodo: txt(f, "metodo"), referencia: txt(f, "referencia"),
-      bono: txt(f, "bono"), vendedorId: s.id, puedeCortesia: s.rol !== "vendedor", tasa: tasa?.valor ?? null,
+      bono: txt(f, "bono"), vendedorId: s.id, puedeCortesia: s.rol !== "vendedor", puedeReservadas: s.rol !== "vendedor", tasa: tasa?.valor ?? null,
     });
     destino = `/admin/taquilla?funcion=${funcionId}&vendida=${codigo}`;
   } catch (e) {
@@ -186,13 +186,37 @@ export async function accionGuardarDiseno(f: FormData) {
   redirect(`${base}&ok=${Date.now()}`);
 }
 
-export async function accionBloquear(f: FormData) {
+/** Reserva butacas para un grupo (invitados, prensa) o las libera. */
+export async function accionReservar(f: FormData) {
   await exigirAdmin();
   const id = entero(f, "id");
-  let destino = `/admin/funciones/${id}?tab=butacas&ok=${Date.now()}`;
-  try { for (const n of numeros(f)) await t.alternarBloqueo(id, n); } catch (e) { destino = conError(`/admin/funciones/${id}?tab=butacas`, e); }
+  const base = `/admin/funciones/${id}?tab=butacas`;
+  const liberar = txt(f, "accion") === "liberar";
+  const grupo = liberar ? "" : txt(f, "grupo");
+  let destino: string;
+  try {
+    if (!liberar && !grupo) throw new t.ErrorTaquilla("Escribe para quién son: Prensa, Invitados especiales…");
+    const r = await t.reservarButacas(id, numeros(f), grupo);
+    const aviso = r.omitidas.length ? `&omitidas=${r.omitidas.join(",")}` : "";
+    destino = `${base}&ok=${Date.now()}&hechas=${r.cambiadas}${aviso}`;
+  } catch (e) {
+    destino = conError(base, e);
+  }
   updateTag("cupos");
   redirect(destino);
+}
+
+/** Saldo de un bono mientras el cliente paga su compra en línea. Solo para una compra que espera pago. */
+export async function saldoBonoCompra(ordenCodigo: string, bono: string): Promise<{ saldo: number } | { error: string }> {
+  const [o] = await db().select({ estado: schema.ordenes.estado }).from(schema.ordenes).where(eq(schema.ordenes.codigo, String(ordenCodigo ?? "")));
+  if (!o || (o.estado !== "apartada" && o.estado !== "vencida")) return { error: "Esta compra ya no espera un pago." };
+  try { return { saldo: (await t.saldoBono(String(bono ?? ""))).saldo }; } catch (e) { return { error: mensaje(e) }; }
+}
+
+/** Saldo de un bono en la taquilla. */
+export async function saldoBonoTaquilla(bono: string): Promise<{ saldo: number } | { error: string }> {
+  await exigirEquipo();
+  try { return { saldo: (await t.saldoBono(String(bono ?? ""))).saldo }; } catch (e) { return { error: mensaje(e) }; }
 }
 
 export async function accionGuardarActor(f: FormData) {

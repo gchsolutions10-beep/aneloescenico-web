@@ -15,7 +15,7 @@ type Props = {
   tope?: number;
 };
 
-const NOMBRE_ESTADO: Record<string, string> = { libre: "disponible", apartada: "apartada por otra persona", por_confirmar: "en proceso de pago", vendida: "vendida", bloqueada: "no disponible" };
+const NOMBRE_ESTADO: Record<string, string> = { libre: "disponible", apartada: "apartada por otra persona", por_confirmar: "en proceso de pago", vendida: "vendida", bloqueada: "reservada" };
 export const usdC = (v: number) => (Number.isInteger(v) ? `$${v}` : `$${v.toFixed(2)}`);
 export const bsC = (v: number) => `Bs ${v.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -38,7 +38,7 @@ export function usePlanoVivo(funcionId: number, inicial: EstadoPlano) {
   return plano;
 }
 
-export type Linea = { n: number; zona: string; color: string; precio: number };
+export type Linea = { n: number; zona: string; color: string; precio: number; reserva?: string };
 
 /** Butacas elegidas sobre un plano en vivo: si otra persona toma una, sale sola de la selección. */
 export function useSeleccion(plano: EstadoPlano, { max, tocables = ["libre"], tope }: { max: number; tocables?: string[]; tope?: number }) {
@@ -49,8 +49,8 @@ export function useSeleccion(plano: EstadoPlano, { max, tocables = ["libre"], to
   const vigentes = sel.filter((n) => tocables.includes(porNumero.get(n)?.e ?? ""));
   const perdidas = sel.length - vigentes.length;
   const lineas: Linea[] = vigentes.map((n) => {
-    const z = zona.get(porNumero.get(n)!.z);
-    return { n, zona: z?.nombre ?? "", color: z?.color ?? "#ccc", precio: z?.precio ?? 0 };
+    const b = porNumero.get(n)!, z = zona.get(b.z);
+    return { n, zona: z?.nombre ?? "", color: z?.color ?? "#ccc", precio: z?.precio ?? 0, ...(b.e === "bloqueada" ? { reserva: b.r ?? "Reservada" } : {}) };
   });
   const total = lineas.reduce((s, l) => s + l.precio, 0);
 
@@ -106,7 +106,8 @@ export function MapaButacas({ plano, vigentes, tocables = ["libre"], tocar }: { 
                           style={b.e === "libre" && !mia ? { background: z?.color } : undefined}
                           disabled={!tocables.includes(b.e)}
                           aria-pressed={mia}
-                          aria-label={`Butaca ${b.n}, ${z?.nombre}, ${usdC(z?.precio ?? 0)}, ${mia ? "elegida" : NOMBRE_ESTADO[b.e] ?? b.e}`}
+                          aria-label={`Butaca ${b.n}, ${z?.nombre}, ${usdC(z?.precio ?? 0)}, ${mia ? "elegida" : NOMBRE_ESTADO[b.e] ?? b.e}${b.r ? ` para ${b.r}` : ""}`}
+                          title={b.e === "bloqueada" ? `Reservada${b.r ? `: ${b.r}` : ""}` : undefined}
                           onClick={() => tocar(b.n)}
                         >{b.n}</button>
                       );
@@ -123,6 +124,7 @@ export function MapaButacas({ plano, vigentes, tocables = ["libre"], tocar }: { 
         {plano.zonas.map((z) => <span key={z.id}><i style={{ background: z.color }} />{z.nombre} · {usdC(z.precio)}</span>)}
         <span><i className="l-mia" />Selección</span>
         <span><i className="l-apartada" />Apartada</span>
+        {plano.butacas.some((b) => b.e === "bloqueada") && <span><i className="l-reservada" />Reservada</span>}
         <span><i className="l-vendida" />Vendida</span>
       </div>
     </>

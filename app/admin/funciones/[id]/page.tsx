@@ -10,7 +10,7 @@ import DisenoEntradaForm from "@/components/panel/DisenoEntrada";
 import PlanoButacas from "@/components/PlanoButacas";
 import SubirImagen from "@/components/SubirImagen";
 import { db, schema } from "@/db";
-import { accionBloquear, accionBorrarActor, accionCrearPlano, accionGuardarActor, accionGuardarVenta } from "@/lib/acciones-taquilla";
+import { accionReservar, accionBorrarActor, accionCrearPlano, accionGuardarActor, accionGuardarVenta } from "@/lib/acciones-taquilla";
 import { getConfig } from "@/lib/datos";
 import { normalizar } from "@/lib/diseno-entrada";
 import { exigirAdmin } from "@/lib/sesion";
@@ -59,6 +59,9 @@ async function Detalle({ params, searchParams }: Props) {
     getConfig(),
   ]);
   const cuenta = (e: string) => plano.butacas.filter((b) => b.e === e).length;
+  const grupos = new Map<string, number[]>();
+  for (const b of plano.butacas) if (b.e === "bloqueada") grupos.set(b.r ?? "Sin grupo", [...(grupos.get(b.r ?? "Sin grupo") ?? []), b.n]);
+  const reservas = [...grupos.entries()];
   const q = await searchParams;
   const tab = ["butacas", "elenco", "entrada"].includes(q.tab) ? q.tab : "venta";
   const base = `/admin/funciones/${f.id}`;
@@ -87,7 +90,7 @@ async function Detalle({ params, searchParams }: Props) {
 
       <nav className="subrayadas" aria-label="Secciones">
         <Link href={base} aria-current={tab === "venta" ? "page" : undefined}>Venta y precios</Link>
-        <Link href={`${base}?tab=butacas`} aria-current={tab === "butacas" ? "page" : undefined}>Butacas{cuenta("bloqueada") ? ` (${cuenta("bloqueada")} bloqueadas)` : ""}</Link>
+        <Link href={`${base}?tab=butacas`} aria-current={tab === "butacas" ? "page" : undefined}>Butacas{cuenta("bloqueada") ? ` (${cuenta("bloqueada")} reservadas)` : ""}</Link>
         <Link href={`${base}?tab=elenco`} aria-current={tab === "elenco" ? "page" : undefined}>Elenco ({elenco.length})</Link>
         <Link href={`${base}?tab=entrada`} aria-current={tab === "entrada" ? "page" : undefined}>Diseño de la entrada</Link>
       </nav>
@@ -110,6 +113,7 @@ async function Detalle({ params, searchParams }: Props) {
             <div className="cifra"><b>{cuenta("por_confirmar")}</b><span>Pago por confirmar</span></div>
             <div className="cifra"><b>{cuenta("apartada")}</b><span>Apartadas ahora</span></div>
             <div className="cifra"><b>{plano.libres}</b><span>Libres</span></div>
+            {cuenta("bloqueada") > 0 && <a className="cifra" href={`${base}?tab=butacas`}><b>{cuenta("bloqueada")}</b><span>Reservadas (invitados y prensa)</span></a>}
             <div className="cifra"><b>{usd(dinero.cobrado)}</b><span>Cobrado{Number(dinero.bonos) > 0 ? ` + ${usd(dinero.bonos)} en bonos` : ""}</span></div>
           </section>
 
@@ -135,13 +139,37 @@ async function Detalle({ params, searchParams }: Props) {
             <div><button className="btn">Guardar precios</button></div>
           </form>}
 
-          {tab === "butacas" && <form action={accionBloquear} className="panel" id="butacas">
-            <h2>Butacas bloqueadas</h2>
-            <p className="tenue" style={{ margin: 0 }}>Bloqueadas ahora: {cuenta("bloqueada")}. Las de borde dorado están bloqueadas.</p>
-            <input type="hidden" name="id" value={f.id} />
-            <PlanoButacas funcionId={f.id} inicial={plano} max={2000} tocables={["libre", "bloqueada"]} />
-            <div><button className="btn">Bloquear o liberar las elegidas</button></div>
-          </form>}
+          {tab === "butacas" && <>
+            {q.hechas && <p className="nota" role="status">Listo: {q.hechas} {q.hechas === "1" ? "butaca" : "butacas"}.{q.omitidas ? ` No se tocaron ${q.omitidas} porque ya están vendidas o en proceso de pago.` : ""}</p>}
+            <form action={accionReservar} className="panel" id="butacas">
+              <div className="cab">
+                <div>
+                  <h2>Butacas reservadas</h2>
+                  <p className="tenue" style={{ fontSize: 13, marginTop: 3, maxWidth: "70ch" }}>Para invitados especiales, prensa o producción, aunque todavía no sepas quiénes serán. En la web se ven <b>vendidas</b>; aquí y en la taquilla se ven a rayas doradas. Cuando sepas para quién son, véndelas o entrégalas como cortesía desde la Taquilla.</p>
+                </div>
+              </div>
+              {reservas.length > 0 && (
+                <div className="tabla"><table>
+                  <thead><tr><th>Para</th><th>Butacas</th><th>Total</th></tr></thead>
+                  <tbody>{reservas.map(([g, ns]) => <tr key={g}><td><b>{g}</b></td><td>{ns.join(", ")}</td><td>{ns.length}</td></tr>)}</tbody>
+                </table></div>
+              )}
+              <input type="hidden" name="id" value={f.id} />
+              <PlanoButacas funcionId={f.id} inicial={plano} max={2000} tocables={["libre", "bloqueada"]} />
+              <div className="fila" style={{ alignItems: "end" }}>
+                <div className="campo">
+                  <label htmlFor="r-grupo">¿Para quién son?</label>
+                  <input id="r-grupo" name="grupo" list="r-grupos" placeholder="Prensa, Invitados especiales…" autoComplete="off" maxLength={40} />
+                  <datalist id="r-grupos">{[...new Set(["Prensa", "Invitados especiales", "Producción", "Patrocinantes", ...reservas.map(([g]) => g)])].map((g) => <option key={g} value={g} />)}</datalist>
+                </div>
+                <div className="acciones">
+                  <button className="btn" name="accion" value="reservar">Reservar las elegidas</button>
+                  <button className="btn sec" name="accion" value="liberar" formNoValidate>Liberar las elegidas</button>
+                </div>
+              </div>
+              <small className="tenue">Toca en el plano las butacas (libres o ya reservadas), escribe el grupo y pulsa Reservar. Para devolverlas a la venta, elígelas y pulsa Liberar.</small>
+            </form>
+          </>}
         </>
       ))}
 

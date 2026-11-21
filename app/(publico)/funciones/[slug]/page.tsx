@@ -109,7 +109,7 @@ async function Taquilla({ f }: { f: Funcion }) {
   if (f.estado === "cancelada") return <p className="vacio">Esta función fue cancelada.</p>;
   if (f.estado === "finalizada" || yaPaso(f)) return <p className="vacio">Esta función ya se presentó. Mira las próximas en la <Link href="/funciones">cartelera</Link>.</p>;
   if (f.zonas.length === 0) return <p className="vacio">La venta de entradas para esta función abrirá pronto.</p>;
-  const [plano, tasa, { cobros }] = await Promise.all([estadoPlano(f), getTasa(), getConfig()]);
+  const [plano, tasa, { cobros }] = await Promise.all([estadoPlano(f, "publico"), getTasa(), getConfig()]);
   if (plano.libres === 0) return <p className="vacio">Entradas agotadas. Si se libera alguna butaca, aparecerá aquí.</p>;
   return <ElegirButacas funcionId={f.id} plano={plano} max={f.maxPorCompra} tasa={tasa?.valor ?? null} minutos={cobros.minutosApartado} />;
 }

@@ -418,3 +418,6 @@ a.cifra:hover { border-color: #cfc5be; transform: translateY(-1px); }
 .adm .opciones-diseno.adornos { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); }
 .adm .opciones-diseno.adornos button { flex-direction: column; gap: 6px; text-align: center; padding: 10px 6px; }
 .adm .opciones-diseno.adornos svg { border-radius: 6px; }
+.adm .caja-desc { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--a-suave); font-variant-numeric: tabular-nums; }
+.adm .caja-desc span:last-child { color: var(--a-ok); font-weight: 600; }
+.adm .caja-reserva { font-style: normal; color: #8a6100; font-weight: 600; }

@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { accionApartar, accionCambiarButacas, accionReportarPago } from "@/lib/acciones-taquilla";
+import { accionApartar, accionCambiarButacas, accionReportarPago, saldoBonoCompra } from "@/lib/acciones-taquilla";
 import type { Cobros } from "@/lib/datos";
 import type { EstadoPlano } from "@/lib/taquilla";
 import PlanoButacas from "./PlanoButacas";
@@ -84,7 +84,26 @@ export function FormularioPago({ codigo, totalUsd, totalBs, cobros, tardio }: Pr
   const [metodo, setMetodo] = useState(v?.metodo || (hayPM ? "pago_movil" : hayTR ? "transferencia" : ""));
   const [capturaUrl, setCapturaUrl] = useState(v?.capturaUrl ?? "");
   const [subida, setSubida] = useState<"" | "subiendo" | string>("");
-  const monto = totalBs != null ? `Bs ${totalBs.toLocaleString("es-VE", { minimumFractionDigits: 2 })}` : `$${totalUsd.toFixed(2)}`;
+  const [bono, setBono] = useState(v?.bono ?? "");
+  const [saldo, setSaldo] = useState<number | null>(null);
+  const [errorBono, setErrorBono] = useState("");
+  const [revisando, setRevisando] = useState(false);
+  async function revisarBono() {
+    if (!bono.trim()) { setSaldo(null); setErrorBono(""); return; }
+    setRevisando(true); setErrorBono("");
+    const r = await saldoBonoCompra(codigo, bono);
+    setRevisando(false);
+    if ("error" in r) { setSaldo(null); setErrorBono(r.error); } else setSaldo(r.saldo);
+  }
+  // El bono se descuenta primero: solo se paga por banco lo que falta.
+  const cubre = saldo == null ? 0 : Math.min(saldo, totalUsd);
+  const restoUsd = Math.round((totalUsd - cubre) * 100) / 100;
+  const tasa = totalBs != null && totalUsd > 0 ? totalBs / totalUsd : null;
+  const restoBs = tasa != null ? Math.round(restoUsd * tasa * 100) / 100 : null;
+  const usdT = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+  const bsT = (n: number) => `Bs ${n.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const monto = restoBs != null ? bsT(restoBs) : usdT(restoUsd);
+  const cubreTodo = saldo != null && restoUsd <= 0;
   const d = metodo === "pago_movil" ? cobros.pagoMovil : cobros.transferencia;
 
   return (
@@ -98,11 +117,26 @@ export function FormularioPago({ codigo, totalUsd, totalBs, cobros, tardio }: Pr
 
       <div className="campo">
         <label htmlFor="p-bono">¿Tienes un bono de regalo? (opcional)</label>
-        <input id="p-bono" name="bono" autoCapitalize="characters" autoComplete="off" placeholder="Código del bono" defaultValue={v?.bono} />
-        <small className="tenue">Si el bono cubre el total, no necesitas pagar nada más: deja vacía la referencia.</small>
+        <div className="bono-fila">
+          <input id="p-bono" name="bono" autoCapitalize="characters" autoComplete="off" placeholder="Código del bono" value={bono}
+            onChange={(e) => { setBono(e.target.value); setSaldo(null); setErrorBono(""); }} onBlur={revisarBono}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); revisarBono(); } }} />
+          <button type="button" className="boton sec" onClick={revisarBono} disabled={revisando || !bono.trim()}>{revisando ? "Revisando…" : "Aplicar"}</button>
+        </div>
+        {errorBono && <small className="aviso error" role="alert">{errorBono}</small>}
+        {saldo != null && (
+          <div className="bono-resumen" role="status">
+            <div><span>Total de tu compra</span><b>{usdT(totalUsd)}</b></div>
+            <div><span>Tu bono cubre</span><b>-{usdT(cubre)}</b></div>
+            <div className="falta"><span>{cubreTodo ? "No tienes que pagar nada más" : "Te falta pagar"}</span><b>{cubreTodo ? "$0" : `${usdT(restoUsd)}${restoBs != null ? ` · ${bsT(restoBs)}` : ""}`}</b></div>
+            {saldo > totalUsd && <small className="tenue">Al bono le quedarán {usdT(Math.round((saldo - totalUsd) * 100) / 100)} para otra compra.</small>}
+          </div>
+        )}
       </div>
 
-      {(hayPM || hayTR) ? (
+      {cubreTodo ? (
+        <p className="aviso">Tu bono cubre toda la compra. Pulsa <b>Usar mi bono</b> y tus entradas quedan listas al instante.</p>
+      ) : (hayPM || hayTR) ? (
         <>
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
             <legend style={{ fontWeight: 600, fontSize: ".92rem", marginBottom: 8 }}>¿Cómo pagas?</legend>
@@ -112,7 +146,7 @@ export function FormularioPago({ codigo, totalUsd, totalBs, cobros, tardio }: Pr
             </div>
           </fieldset>
           <div className="datos-pago">
-            <div><span>Monto a pagar</span><b>{monto}</b></div>
+            <div><span>{cubre > 0 ? "Monto a pagar (ya descontado el bono)" : "Monto a pagar"}</span><b>{monto}</b></div>
             <div><span>Banco</span><b>{d.banco}</b></div>
             {metodo === "pago_movil" ? <div><span>Teléfono</span><b>{cobros.pagoMovil.telefono}</b></div> : <div><span>Cuenta</span><b>{cobros.transferencia.cuenta}</b></div>}
             <div><span>Cédula o RIF</span><b>{d.cedula}</b></div>
@@ -137,7 +171,7 @@ export function FormularioPago({ codigo, totalUsd, totalBs, cobros, tardio }: Pr
         <p className="aviso">Todavía no están publicados los datos de pago. Escríbenos para completar tu compra o usa un bono de regalo.</p>
       )}
 
-      <div><button className="boton" disabled={enviando || subida === "subiendo"}>{enviando ? "Enviando…" : tardio ? "Ya pagué: reportar mi pago" : "Reportar pago"}</button></div>
+      <div><button className="boton" disabled={enviando || subida === "subiendo"}>{enviando ? "Enviando…" : cubreTodo ? "Usar mi bono" : tardio ? "Ya pagué: reportar mi pago" : "Reportar pago"}</button></div>
     </form>
   );
 }

@@ -190,9 +190,8 @@ a.tarjeta:hover { transform: translateY(-4px); border-color: var(--acento); }
 .butaca.mia { background: #4fd08a; transform: scale(1.12); box-shadow: 0 0 0 2px var(--superficie), 0 0 0 4px #4fd08a; }
 .butaca:disabled { cursor: not-allowed; }
 .butaca.e-apartada, .butaca.e-por_confirmar, .l-apartada { background: repeating-linear-gradient(45deg, #6f5f82 0 4px, #4d4060 4px 8px); color: #e9e2f2; }
-.butaca.e-vendida, .butaca.e-bloqueada, .l-vendida { background: transparent; box-shadow: inset 0 0 0 1px var(--linea); color: var(--tenue); }
+.butaca.e-vendida, .l-vendida { background: transparent; box-shadow: inset 0 0 0 1px var(--linea); color: var(--tenue); }
 .butaca.e-vendida { text-decoration: line-through; }
-.butaca.e-bloqueada:not(:disabled) { box-shadow: inset 0 0 0 2px var(--acento); color: var(--acento); }
 .leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-size: .82rem; color: var(--tenue); padding: 12px 14px; border-top: 1px solid var(--linea); }
 .leyenda i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
 .l-mia { background: #4fd08a; }
@@ -297,3 +296,13 @@ body:has(.cargos) .whatsapp { display: none; }
 .galeria img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .entrada-d-qr svg { width: 100%; height: 100%; display: block; }
 .entrada-d.usada > :not(strong) { opacity: .55; }
+/* Reservadas (invitados, prensa): solo el equipo las recibe; el público las ve vendidas. */
+.butaca.e-bloqueada, .l-reservada { background: repeating-linear-gradient(-45deg, #f7e7b8 0 4px, #ecd38a 4px 8px); box-shadow: inset 0 0 0 1.5px #b8862b; color: #6e4b00; }
+.butaca.e-bloqueada:not(:disabled) { box-shadow: inset 0 0 0 2px #b8862b; color: #5a3d00; }
+.butaca.e-bloqueada.mia { background: #4fd08a; color: #111; box-shadow: 0 0 0 2px var(--superficie), 0 0 0 4px #4fd08a; }
+.bono-fila { display: flex; gap: 8px; }
+.bono-fila input { flex: 1 1 auto; min-width: 0; }
+.bono-resumen { display: grid; gap: 6px; border: 1px solid var(--linea); border-radius: var(--radio); padding: 12px 14px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.bono-resumen > div { display: flex; justify-content: space-between; gap: 10px; }
+.bono-resumen .falta { border-top: 1px dashed var(--linea); padding-top: 8px; font-size: 1.05rem; }
+.bono-resumen .falta b { color: var(--acento); }

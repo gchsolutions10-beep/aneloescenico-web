@@ -4,7 +4,7 @@ import { useFormStatus } from "react-dom";
 import { bsC, MapaButacas, usdC, usePlanoVivo, useSeleccion } from "@/components/PlanoButacas";
 import { Icono } from "@/components/panel/Icono";
 import type { NombreIcono } from "@/components/panel/iconos";
-import { accionVender } from "@/lib/acciones-taquilla";
+import { accionVender, saldoBonoTaquilla } from "@/lib/acciones-taquilla";
 import type { EstadoPlano } from "@/lib/taquilla";
 
 type Props = {
@@ -12,6 +12,8 @@ type Props = {
   inicial: EstadoPlano;
   tasa: number | null;
   puedeCortesia: boolean;
+  /** Un administrador puede vender o regalar las butacas reservadas (invitados, prensa). */
+  puedeReservadas: boolean;
 };
 
 const METODOS: [string, string, NombreIcono][] = [
@@ -25,9 +27,9 @@ const METODOS: [string, string, NombreIcono][] = [
 const BILLETES = [5, 10, 20, 50, 100];
 const redondo = (v: number) => Math.round(v * 100) / 100;
 
-function Cobrar({ total, vacio, metodo, tasa }: { total: number; vacio: boolean; metodo: string; tasa: number | null }) {
+function Cobrar({ total, vacio, metodo, tasa, conBono }: { total: number; vacio: boolean; metodo: string; tasa: number | null; conBono: boolean }) {
   const { pending } = useFormStatus();
-  const texto = metodo === "cortesia" ? "Entregar cortesía" : `Cobrar ${usdC(total)}`;
+  const texto = metodo === "cortesia" ? "Entregar cortesía" : total === 0 && conBono ? "Entregar (pagado con bono)" : `Cobrar ${usdC(total)}`;
   return (
     <button className="btn caja-cobrar" disabled={vacio || pending}>
       {pending ? "Registrando venta…" : vacio ? "Elige las butacas" : <>{texto}{tasa && metodo !== "cortesia" && total > 0 ? <small>{bsC(redondo(total * tasa))}</small> : null}</>}
@@ -35,21 +37,37 @@ function Cobrar({ total, vacio, metodo, tasa }: { total: number; vacio: boolean;
   );
 }
 
-export default function Caja({ funcion, inicial, tasa, puedeCortesia }: Props) {
+export default function Caja({ funcion, inicial, tasa, puedeCortesia, puedeReservadas }: Props) {
   const plano = usePlanoVivo(funcion.id, inicial);
-  const { vigentes, perdidas, lineas, total, aviso, tocar, limpiar } = useSeleccion(plano, { max: 30 });
+  const tocables = puedeReservadas ? ["libre", "bloqueada"] : ["libre"];
+  const { vigentes, perdidas, lineas, total: subtotal, aviso, tocar, limpiar } = useSeleccion(plano, { max: 30, tocables });
   const [metodo, setMetodo] = useState("efectivo");
   const [moneda, setMoneda] = useState<"usd" | "bs">("usd");
   const [recibido, setRecibido] = useState("");
   const [conBono, setConBono] = useState(false);
   const [conCliente, setConCliente] = useState(false);
+  const [bono, setBono] = useState("");
+  const [saldo, setSaldo] = useState<number | null>(null);
+  const [errorBono, setErrorBono] = useState("");
+  const [revisando, setRevisando] = useState(false);
+
+  async function revisarBono() {
+    if (!bono.trim()) return;
+    setRevisando(true); setErrorBono("");
+    const r = await saldoBonoTaquilla(bono);
+    setRevisando(false);
+    if ("error" in r) { setSaldo(null); setErrorBono(r.error); } else setSaldo(r.saldo);
+  }
+  // Lo que cubre el bono y lo que queda por cobrar con el método elegido.
+  const cubre = metodo === "cortesia" || saldo == null ? 0 : Math.min(saldo, subtotal);
+  const total = metodo === "cortesia" ? 0 : redondo(subtotal - cubre);
 
   const totalBs = tasa ? redondo(total * tasa) : null;
   const cobro = moneda === "usd" ? total : totalBs ?? 0;
   const pago = Number(recibido.replace(",", ".")) || 0;
   const vuelto = redondo(pago - cobro);
   const metodos = METODOS.filter(([k]) => k !== "cortesia" || puedeCortesia);
-  const conReferencia = metodo === "pago_movil" || metodo === "transferencia" || metodo === "punto";
+  const conReferencia = total > 0 && (metodo === "pago_movil" || metodo === "transferencia" || metodo === "punto");
 
   return (
     <form action={accionVender} className="registradora">
@@ -58,7 +76,7 @@ export default function Caja({ funcion, inicial, tasa, puedeCortesia }: Props) {
       <input type="hidden" name="metodo" value={metodo} />
 
       <section className="panel caja-plano">
-        <div className="plano-caja"><MapaButacas plano={plano} vigentes={vigentes} tocar={tocar} /></div>
+        <div className="plano-caja"><MapaButacas plano={plano} vigentes={vigentes} tocar={tocar} tocables={tocables} /></div>
       </section>
 
       <aside className="caja-ticket" id="ticket" aria-label="Ticket de venta">
@@ -78,7 +96,7 @@ export default function Caja({ funcion, inicial, tasa, puedeCortesia }: Props) {
               {[...lineas].sort((a, b) => a.n - b.n).map((l) => (
                 <li key={l.n}>
                   <i style={{ background: l.color }} aria-hidden="true" />
-                  <span>Butaca <b>{l.n}</b><small>{l.zona}</small></span>
+                  <span>Butaca <b>{l.n}</b><small>{l.zona}{l.reserva ? <> · <em className="caja-reserva">Reservada: {l.reserva}</em></> : null}</small></span>
                   <b>{usdC(l.precio)}</b>
                   <button type="button" onClick={() => tocar(l.n)} aria-label={`Quitar la butaca ${l.n}`}>×</button>
                 </li>
@@ -89,7 +107,11 @@ export default function Caja({ funcion, inicial, tasa, puedeCortesia }: Props) {
 
         <div className="caja-total">
           <div><span>{lineas.length} {lineas.length === 1 ? "entrada" : "entradas"}</span>{lineas.length > 0 && <button type="button" className="caja-limpiar" onClick={limpiar}>Vaciar</button>}</div>
-          <div className="caja-monto"><b>{metodo === "cortesia" ? "$0" : usdC(total)}</b>{totalBs != null && metodo !== "cortesia" && <span>{bsC(totalBs)}</span>}</div>
+          {cubre > 0 && (
+            <div className="caja-desc"><span>Subtotal {usdC(subtotal)}</span><span>Bono −{usdC(cubre)}</span></div>
+          )}
+          <div className="caja-monto"><b>{usdC(total)}</b>{totalBs != null && metodo !== "cortesia" && <span>{bsC(totalBs)}</span>}</div>
+          {cubre > 0 && <small className="tenue">{total > 0 ? `A cobrar con ${METODOS.find((m) => m[0] === metodo)?.[1]}` : "El bono cubre todo"}</small>}
         </div>
 
         <fieldset className="caja-metodos">
@@ -135,11 +157,18 @@ export default function Caja({ funcion, inicial, tasa, puedeCortesia }: Props) {
           </div>
         )}
 
-        {(metodo === "bono" || conBono) ? (
+        {(metodo === "bono" || conBono) && metodo !== "cortesia" ? (
           <div className="campo">
             <label htmlFor="c-bono">Código del bono de regalo</label>
-            <input id="c-bono" name="bono" autoCapitalize="characters" autoComplete="off" required={metodo === "bono"} />
-            {metodo !== "bono" && <small>El bono se descuenta primero; el resto se cobra con {METODOS.find((m) => m[0] === metodo)?.[1]}.</small>}
+            <div style={{ display: "flex", gap: 8 }}>
+              <input id="c-bono" name="bono" autoCapitalize="characters" autoComplete="off" required={metodo === "bono"} value={bono}
+                onChange={(e) => { setBono(e.target.value); setSaldo(null); setErrorBono(""); }} onBlur={revisarBono}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); revisarBono(); } }} />
+              <button type="button" className="btn sec" onClick={revisarBono} disabled={revisando || !bono.trim()}>{revisando ? "…" : "Aplicar"}</button>
+            </div>
+            {errorBono && <small style={{ color: "var(--a-mal)" }} role="alert">{errorBono}</small>}
+            {saldo != null && <small style={{ color: "var(--a-ok)" }} role="status">Saldo del bono {usdC(saldo)}: cubre {usdC(Math.min(saldo, subtotal))}{saldo > subtotal ? ` y le quedan ${usdC(redondo(saldo - subtotal))} para otra compra` : ""}.</small>}
+            {metodo === "bono" && saldo != null && saldo < subtotal && <small style={{ color: "var(--a-mal)" }}>No alcanza: elige otra forma de pago para los {usdC(total)} restantes.</small>}
           </div>
         ) : metodo !== "cortesia" && <button type="button" className="caja-mas" onClick={() => setConBono(true)}>+ El cliente trae un bono de regalo</button>}
 
@@ -150,7 +179,7 @@ export default function Caja({ funcion, inicial, tasa, puedeCortesia }: Props) {
           </div>
         ) : <button type="button" className="caja-mas" onClick={() => setConCliente(true)}>+ Datos del cliente (para enviarle las entradas por WhatsApp)</button>}
 
-        <Cobrar total={total} vacio={lineas.length === 0} metodo={metodo} tasa={tasa} />
+        <Cobrar total={total} vacio={lineas.length === 0 || (metodo === "bono" && saldo != null && saldo < subtotal)} metodo={metodo} tasa={tasa} conBono={cubre > 0} />
       </aside>
 
       {lineas.length > 0 && (

@@ -130,7 +130,7 @@ async function Orden({ params }: Props) {
   }
 
   if (o.estado === "en_conflicto") {
-    const plano = await estadoPlano(f);
+    const plano = await estadoPlano(f, "publico");
     return (
       <div className="formulario">
         <h1>Tus butacas ya no están disponibles</h1>

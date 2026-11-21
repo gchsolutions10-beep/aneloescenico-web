@@ -135,6 +135,8 @@ export const butacas = pgTable("butacas", {
   estado: text("estado").notNull().default("libre"),
   ordenId: integer("orden_id").references(() => ordenes.id, { onDelete: "set null" }),
   apartadaHasta: timestamp("apartada_hasta", { withTimezone: true }),
+  /** Grupo de una butaca reservada (estado "bloqueada"): Prensa, Invitados especiales… El público la ve vendida. */
+  reserva: text("reserva"),
 }, (t) => [unique("butacas_funcion_numero").on(t.funcionId, t.numero)]);
 
 export const bonos = pgTable("bonos", {

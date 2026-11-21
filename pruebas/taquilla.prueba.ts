@@ -1,7 +1,7 @@
 // Pruebas de las reglas de la taquilla contra una base de datos real.
 // Uso: npm run prueba   (requiere DATABASE_URL apuntando a una base de pruebas; borra sus datos de taquilla)
 import assert from "node:assert/strict";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { formasAdornos } from "@/lib/adornos";
 import * as diseno from "@/lib/diseno-entrada";
@@ -11,7 +11,7 @@ import { limpiarArchivos } from "@/lib/archivos";
 import { generarButacas, SALA_184, validarSala } from "@/lib/planos";
 import { parsearBcv } from "@/lib/tasa";
 
-const { funciones, butacas, ordenes, bonos, entradas } = schema;
+const { funciones, butacas, ordenes, bonos, entradas, pagos } = schema;
 const comprador = { nombre: "Persona de prueba", telefono: "04120000000", correo: "", capturaUrl: null, bono: "" };
 const CFG = { minutos: 15, tasa: 900 };
 let ref = 10000;
@@ -123,6 +123,16 @@ async function main() {
   assert.equal(Number((await db().select().from(bonos).where(eq(bonos.id, bono.id)))[0].saldoUsd), 0);
   await t.rechazarOrden((await orden(cod6)).id, admin, "Referencia incorrecta");
   assert.equal(Number((await db().select().from(bonos).where(eq(bonos.id, bono.id)))[0].saldoUsd), 5, "al rechazar, el bono recupera su saldo");
+  // Bono de $10 y dos entradas de $10: el cliente solo reporta los $10 que faltan.
+  const [bono10] = await db().insert(bonos).values({ codigo: "DIEZDOLARES1", montoUsd: "10", saldoUsd: "10" }).returning();
+  assert.equal((await t.saldoBono("diez-dolares-1")).saldo, 10);
+  await falla(t.saldoBono("NOEXISTE99"), /no existe/);
+  const codB = await t.apartar(f.id, [95, 96], CFG); // 2 VIP preventa = 20
+  assert.equal(await t.reportarPago(codB, { ...pagoMovil(), bono: "DIEZDOLARES1" }), "por_confirmar");
+  const pagosB = await db().select().from(pagos).where(eq(pagos.ordenId, (await orden(codB)).id));
+  assert.deepEqual(pagosB.map((x) => [x.metodo, Number(x.montoUsd)]).sort(), [["bono", 10], ["pago_movil", 10]]);
+  assert.equal(Number((await db().select().from(bonos).where(eq(bonos.id, bono10.id)))[0].saldoUsd), 0);
+  await falla(t.saldoBono("DIEZDOLARES1"), /ya no tiene saldo/);
   const cod7 = await t.apartar(f.id, [92], CFG);
   await falla(t.reportarPago(cod7, { ...pagoMovil(), bono: "NOEXISTE" }), /no existe/);
   paso("bono cubre todo → entradas al instante; cubre parte → resto por pago móvil; rechazo devuelve el saldo");
@@ -140,6 +150,24 @@ async function main() {
   assert.equal((await t.validarEntrada(e.codigo, admin, true)).resultado, "usada");
   assert.equal((await t.validarEntrada("XXXX", admin, true)).resultado, "inexistente");
   paso("cortesías solo para administradores; bloqueo de butacas; una entrada solo entra una vez");
+
+  // Reservas para invitados y prensa
+  const res = await t.reservarButacas(f.id, [110, 111, 112, 70], "Prensa");
+  assert.deepEqual([res.cambiadas, res.omitidas], [3, [70]], "una butaca vendida no se puede reservar");
+  const [fr] = await db().select().from(schema.funciones).where(eq(schema.funciones.id, f.id));
+  const publico = await t.estadoPlano(fr, "publico"), equipo = await t.estadoPlano(fr);
+  assert.equal(publico.butacas.find((b) => b.n === 110)?.e, "vendida", "el público ve la reservada como vendida");
+  assert.equal(publico.butacas.find((b) => b.n === 110)?.r, undefined, "el público no ve para quién es");
+  assert.equal(equipo.butacas.find((b) => b.n === 110)?.r, "Prensa");
+  await falla(t.apartar(f.id, [110], CFG), /ya no está disponible/);
+  await falla(t.venderEnTaquilla({ funcionId: f.id, numeros: [111], nombre: "", telefono: "", metodo: "efectivo", referencia: "", bono: "", vendedorId: admin, puedeCortesia: false, tasa: 900 }), /ya no está disponible/);
+  const codR = await t.venderEnTaquilla({ funcionId: f.id, numeros: [111], nombre: "Periodista", telefono: "", metodo: "cortesia", referencia: "", bono: "", vendedorId: admin, puedeCortesia: true, puedeReservadas: true, tasa: 900 });
+  assert.equal(await estadoDe(f.id, 111), "vendida");
+  assert.equal((await db().select().from(butacas).where(and(eq(butacas.funcionId, f.id), eq(butacas.numero, 111))))[0].reserva, null);
+  assert.equal(Number((await orden(codR)).totalUsd), 0);
+  assert.equal((await t.reservarButacas(f.id, [110, 112], "")).cambiadas, 2);
+  assert.equal(await estadoDe(f.id, 110), "libre");
+  paso("reservas: el público las ve vendidas; solo un administrador las vende o regala; se liberan");
 
   // Puerta: entrada, salida temporal, regreso, grupo y dos puertas a la vez
   const codG = await t.venderEnTaquilla({ funcionId: f.id, numeros: [101, 102, 103], nombre: "Familia", telefono: "", metodo: "efectivo", referencia: "", bono: "", vendedorId: admin, puedeCortesia: true, tasa: 900 });

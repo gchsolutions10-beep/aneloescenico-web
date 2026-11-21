@@ -119,7 +119,7 @@ async function Taquilla({ searchParams }: Props) {
 
       {f && plano && (plano.butacas.length === 0
         ? <div className="panel vacio"><p>“{f.titulo}” todavía no tiene plano de butacas.</p>{s.rol !== "vendedor" && <Link className="btn" href={`/admin/funciones/${f.id}?tab=butacas`}>Configurar la sala</Link>}</div>
-        : <Caja key={`${f.id}-${q.vendida ?? ""}`} funcion={{ id: f.id, titulo: f.titulo, cuando: f.fechaHora ? `${fechaCorta(f.fechaHora)} · ${hora(f.fechaHora)}` : "Fecha por anunciar" }} inicial={plano} tasa={tasa?.valor ?? null} puedeCortesia={s.rol !== "vendedor"} />
+        : <Caja key={`${f.id}-${q.vendida ?? ""}`} funcion={{ id: f.id, titulo: f.titulo, cuando: f.fechaHora ? `${fechaCorta(f.fechaHora)} · ${hora(f.fechaHora)}` : "Fecha por anunciar" }} inicial={plano} tasa={tasa?.valor ?? null} puedeCortesia={s.rol !== "vendedor"} puedeReservadas={s.rol !== "vendedor"} />
       )}
 
       <section className="panel mi-caja">

@@ -74,13 +74,17 @@ export async function limpiarVencidas(tx: Tx | ReturnType<typeof db> = db()) {
 
 export type EstadoPlano = {
   zonas: { id: number; nombre: string; color: string; precio: number; precioRegular: number }[];
-  /** n: número, b: bloque, f: fila, p: posición, z: zona, e: estado, o: id de orden (solo para el equipo) */
-  butacas: { n: number; b: string; f: number; p: number; z: number; e: string; o?: number | null }[];
+  /** n: número, b: bloque, f: fila, p: posición, z: zona, e: estado, r: grupo de la reserva (solo para el equipo) */
+  butacas: { n: number; b: string; f: number; p: number; z: number; e: string; r?: string }[];
   libres: number;
   total: number;
 };
 
-export async function estadoPlano(f: Funcion, conOrden = false): Promise<EstadoPlano> {
+/**
+ * Estado del plano. El público ve las butacas reservadas (invitados, prensa) como vendidas
+ * y no sabe para quién son; el equipo las ve como reservadas, con su grupo.
+ */
+export async function estadoPlano(f: Funcion, vista: "equipo" | "publico" = "equipo"): Promise<EstadoPlano> {
   await limpiarVencidas();
   const [zs, bs] = await Promise.all([
     db().select().from(zonas).where(eq(zonas.funcionId, f.id)).orderBy(asc(zonas.orden)),
@@ -88,9 +92,11 @@ export async function estadoPlano(f: Funcion, conOrden = false): Promise<EstadoP
   ]);
   return {
     zonas: zs.map((z) => ({ id: z.id, nombre: z.nombre, color: z.color, precio: precioDe(z, f), precioRegular: Number(z.precioRegular) })),
-    butacas: bs.map((b) => ({ n: b.numero, b: b.bloque, f: b.fila, p: b.pos, z: b.zonaId, e: b.estado, ...(conOrden ? { o: b.ordenId } : {}) })),
+    butacas: bs.map((b) => vista === "publico"
+      ? { n: b.numero, b: b.bloque, f: b.fila, p: b.pos, z: b.zonaId, e: b.estado === "bloqueada" ? "vendida" : b.estado }
+      : { n: b.numero, b: b.bloque, f: b.fila, p: b.pos, z: b.zonaId, e: b.estado, ...(b.reserva ? { r: b.reserva } : {}) }),
     libres: bs.filter((b) => b.estado === "libre").length,
-    total: bs.filter((b) => b.estado !== "bloqueada").length,
+    total: vista === "publico" ? bs.length : bs.filter((b) => b.estado !== "bloqueada").length,
   };
 }
 
@@ -103,10 +109,10 @@ function validarNumeros(numeros: number[]) {
 }
 
 /** Toma las butacas para una orden. Falla (y no cambia nada) si alguna ya no está libre. */
-async function tomarButacas(tx: Tx, funcionId: number, numeros: number[], ordenId: number, estado: "apartada" | "por_confirmar" | "vendida", hasta: Date | null) {
+async function tomarButacas(tx: Tx, funcionId: number, numeros: number[], ordenId: number, estado: "apartada" | "por_confirmar" | "vendida", hasta: Date | null, desde: string[] = ["libre"]) {
   const tomadas = await tx.update(butacas)
-    .set({ estado, ordenId, apartadaHasta: hasta })
-    .where(and(eq(butacas.funcionId, funcionId), inArray(butacas.numero, numeros), eq(butacas.estado, "libre")))
+    .set({ estado, ordenId, apartadaHasta: hasta, reserva: null })
+    .where(and(eq(butacas.funcionId, funcionId), inArray(butacas.numero, numeros), inArray(butacas.estado, desde)))
     .returning({ numero: butacas.numero });
   if (tomadas.length !== numeros.length) {
     const ok = new Set(tomadas.map((t) => t.numero));
@@ -162,13 +168,28 @@ export async function cancelarApartado(codigo: string) {
 // ---------- Bonos ----------
 
 /** Descuenta del bono lo que cubra de `monto` y registra ese pago. Devuelve cuánto cubrió. */
-async function aplicarBono(tx: Tx, codigoBono: string, ordenId: number, monto: number): Promise<number> {
-  const codigo = codigoBono.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const [b] = await tx.select().from(bonos).where(eq(bonos.codigo, codigo)).for("update");
+const limpiarBono = (c: string) => c.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+function saldoUsable(b: typeof bonos.$inferSelect | undefined): number {
   if (!b || !b.activo) throw new ErrorTaquilla("Ese bono de regalo no existe o fue desactivado. Revisa el código.");
   if (b.venceEl && b.venceEl < new Date()) throw new ErrorTaquilla("Ese bono de regalo ya venció.");
   const saldo = Number(b.saldoUsd);
   if (saldo <= 0) throw new ErrorTaquilla("Ese bono de regalo ya no tiene saldo.");
+  return saldo;
+}
+
+/** Saldo disponible de un bono, para mostrarle al cliente cuánto cubre antes de pagar. No descuenta nada. */
+export async function saldoBono(codigoBono: string): Promise<{ codigo: string; saldo: number }> {
+  const codigo = limpiarBono(codigoBono);
+  if (!codigo) throw new ErrorTaquilla("Escribe el código del bono.");
+  const [b] = await db().select().from(bonos).where(eq(bonos.codigo, codigo));
+  return { codigo, saldo: saldoUsable(b) };
+}
+
+async function aplicarBono(tx: Tx, codigoBono: string, ordenId: number, monto: number): Promise<number> {
+  const codigo = limpiarBono(codigoBono);
+  const [b] = await tx.select().from(bonos).where(eq(bonos.codigo, codigo)).for("update");
+  const saldo = saldoUsable(b);
   const cubre = Math.min(saldo, monto);
   await tx.update(bonos).set({ saldoUsd: n2(saldo - cubre) }).where(eq(bonos.id, b.id));
   await tx.insert(pagos).values({ ordenId, metodo: "bono", referencia: b.codigo, montoUsd: n2(cubre), bonoId: b.id });
@@ -327,7 +348,12 @@ export async function pedirReembolso(codigo: string) {
 
 // ---------- Taquilla presencial ----------
 
-export type VentaTaquilla = { funcionId: number; numeros: number[]; nombre: string; telefono: string; metodo: string; referencia: string; bono: string; vendedorId: number; puedeCortesia: boolean; tasa: number | null };
+export type VentaTaquilla = {
+  funcionId: number; numeros: number[]; nombre: string; telefono: string; metodo: string; referencia: string; bono: string;
+  vendedorId: number; puedeCortesia: boolean; tasa: number | null;
+  /** Un administrador puede vender o regalar butacas reservadas (invitados, prensa). */
+  puedeReservadas?: boolean;
+};
 
 /** Venta en la sala: aparta, cobra y emite las entradas en un solo paso. Devuelve el código de la orden. */
 export async function venderEnTaquilla(v: VentaTaquilla): Promise<string> {
@@ -345,7 +371,7 @@ export async function venderEnTaquilla(v: VentaTaquilla): Promise<string> {
       vendedorId: v.vendedorId, detalle: esCortesia ? detalle.map((d) => ({ ...d, precio: 0 })) : detalle,
       totalUsd: n2(esCortesia ? 0 : total), tasa: v.tasa ? v.tasa.toFixed(4) : null, estado: "pagada",
     }).returning();
-    await tomarButacas(tx, f.id, numeros, o.id, "vendida", null);
+    await tomarButacas(tx, f.id, numeros, o.id, "vendida", null, v.puedeReservadas ? ["libre", "bloqueada"] : ["libre"]);
     if (esCortesia) {
       await tx.insert(pagos).values({ ordenId: o.id, metodo: "cortesia", montoUsd: "0", estado: "confirmado", revisadoPor: v.vendedorId, confirmadoEl: new Date() });
     } else {
@@ -368,9 +394,27 @@ export async function venderEnTaquilla(v: VentaTaquilla): Promise<string> {
 export async function alternarBloqueo(funcionId: number, numero: number) {
   await limpiarVencidas();
   const r = await db().execute(sql`
-    UPDATE butacas SET estado = CASE estado WHEN 'libre' THEN 'bloqueada' ELSE 'libre' END
+    UPDATE butacas SET estado = CASE estado WHEN 'libre' THEN 'bloqueada' ELSE 'libre' END, reserva = NULL
     WHERE funcion_id = ${funcionId} AND numero = ${numero} AND estado IN ('libre', 'bloqueada')`);
   if (r.rowCount === 0) throw new ErrorTaquilla(`La butaca ${numero} está apartada o vendida; no se puede bloquear.`);
+}
+
+/**
+ * Reserva butacas para un grupo (Prensa, Invitados especiales…) o, con grupo vacío, las libera.
+ * Solo toca butacas libres o ya reservadas: nunca una vendida o en proceso de pago.
+ * Devuelve cuántas cambió y cuáles no se pudieron tocar.
+ */
+export async function reservarButacas(funcionId: number, numeros: number[], grupo: string): Promise<{ cambiadas: number; omitidas: number[] }> {
+  const lista = validarNumeros(numeros);
+  const nombre = grupo.trim().slice(0, 40);
+  await limpiarVencidas();
+  const r = nombre
+    ? await db().update(butacas).set({ estado: "bloqueada", reserva: nombre })
+      .where(and(eq(butacas.funcionId, funcionId), inArray(butacas.numero, lista), inArray(butacas.estado, ["libre", "bloqueada"]))).returning({ n: butacas.numero })
+    : await db().update(butacas).set({ estado: "libre", reserva: null })
+      .where(and(eq(butacas.funcionId, funcionId), inArray(butacas.numero, lista), eq(butacas.estado, "bloqueada"))).returning({ n: butacas.numero });
+  const ok = new Set(r.map((x) => x.n));
+  return { cambiadas: r.length, omitidas: lista.filter((n) => !ok.has(n)) };
 }
 
 export type Validacion = { resultado: "valida" | "usada" | "inexistente"; entrada?: typeof entradas.$inferSelect; funcion?: Funcion; comprador?: string };

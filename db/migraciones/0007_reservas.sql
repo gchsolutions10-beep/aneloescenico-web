@@ -1,0 +1,1 @@
+ALTER TABLE "butacas" ADD COLUMN "reserva" text;

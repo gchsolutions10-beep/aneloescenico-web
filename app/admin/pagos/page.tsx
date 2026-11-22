@@ -1,4 +1,5 @@
 import { desc, eq, inArray } from "drizzle-orm";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";
 import Cargando from "@/app/admin/loading";
@@ -7,7 +8,7 @@ import { db, schema } from "@/db";
 import { accionConfirmar, accionRechazar, accionReembolsar } from "@/lib/acciones-taquilla";
 import { exigirEquipo } from "@/lib/sesion";
 import { ESTADOS_ORDEN, limpiarVencidas, METODOS } from "@/lib/taquilla";
-import { bs, enlaceWhatsApp, fechaCorta, hora, usd } from "@/lib/util";
+import { bs, enlaceWhatsApp, fechaCorta, hora, mensajeEntradas, usd } from "@/lib/util";
 
 export const metadata = { title: "Pagos" };
 type Props = { searchParams: Promise<Record<string, string>> };
@@ -18,12 +19,21 @@ async function Pagos({ searchParams }: Props) {
   const s = await exigirEquipo();
   await limpiarVencidas();
   const { ordenes, funciones, pagos } = schema;
-  const filas = await db().select({ o: ordenes, titulo: funciones.titulo }).from(ordenes).innerJoin(funciones, eq(ordenes.funcionId, funciones.id))
+  const filas = await db().select({ o: ordenes, titulo: funciones.titulo, fechaHora: funciones.fechaHora }).from(ordenes).innerJoin(funciones, eq(ordenes.funcionId, funciones.id))
     .where(inArray(ordenes.estado, [...ABIERTAS, "pagada", "rechazada", "reembolsada"])).orderBy(desc(ordenes.id)).limit(120);
   const delas = filas.length ? await db().select().from(pagos).where(inArray(pagos.ordenId, filas.map((x) => x.o.id))) : [];
   const pagosDe = (id: number) => delas.filter((p) => p.ordenId === id);
   const abiertas = filas.filter((x) => ABIERTAS.includes(x.o.estado)).reverse();
   const cerradas = filas.filter((x) => !ABIERTAS.includes(x.o.estado)).slice(0, 40);
+  const q = await searchParams;
+  const h = await headers();
+  const base = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
+  /** Enlace de WhatsApp con el mensaje de las entradas ya escrito. */
+  const whatsapp = ({ o, titulo, fechaHora }: (typeof filas)[number]) => enlaceWhatsApp(o.telefono ?? "", mensajeEntradas({
+    nombre: o.compradorNombre ?? "", titulo, cuando: fechaHora ? `${fechaCorta(fechaHora)}, ${hora(fechaHora)}` : "fecha por anunciar",
+    butacas: o.detalle.map((d) => d.numero), enlace: `${base}/orden/${o.codigo}`,
+  }));
+  const recien = q.enviar ? filas.find((x) => x.o.codigo === q.enviar && x.o.estado === "pagada") : undefined;
 
   return (
     <>
@@ -31,12 +41,27 @@ async function Pagos({ searchParams }: Props) {
       <Ayuda>
         <ol>
           <li>Abre tu banco y busca el pago por su <b>referencia</b> y su <b>monto en bolívares</b>. La captura es solo una ayuda: lo que cuenta es que el dinero esté en la cuenta.</li>
-          <li>Si llegó, pulsa <b>Confirmar pago</b>: las butacas quedan vendidas y el comprador recibe sus entradas.</li>
+          <li>Si llegó, pulsa <b>Confirmar pago</b>: las butacas quedan vendidas y las entradas aparecen en la página del comprador. Luego pulsa <b>Enviar por WhatsApp</b>: se abre WhatsApp con el mensaje y el enlace ya escritos.</li>
           <li>Si no aparece, escribe el motivo y pulsa <b>Rechazar</b>: las butacas vuelven a quedar libres.</li>
           <li><b>Butacas ya no disponibles:</b> el comprador pagó tarde y sus butacas se vendieron. Él elige otras butacas o pide reembolso; cuando pida reembolso, devuélvele el dinero y márcalo aquí.</li>
         </ol>
       </Ayuda>
-      <Resultado searchParams={searchParams} />
+      <Resultado searchParams={searchParams} ok="Pago confirmado. Las entradas ya están en la página del comprador." />
+
+      {recien && (
+        <section className="venta-lista" role="status">
+          <span className="aviso-check" aria-hidden="true">✓</span>
+          <div>
+            <h2>Ahora envíale sus entradas</h2>
+            <p>{recien.o.compradorNombre} · {recien.titulo} · {recien.o.detalle.length === 1 ? "butaca" : "butacas"} {recien.o.detalle.map((d) => d.numero).join(", ")}
+              {recien.o.telefono ? ` · ${recien.o.telefono}` : " · No dejó teléfono: copia el enlace y envíaselo como puedas."}</p>
+          </div>
+          <div className="acciones">
+            {recien.o.telefono && <a className="btn verde" target="_blank" rel="noopener" href={whatsapp(recien)}>Enviar por WhatsApp</a>}
+            <Link className="btn sec" href={`/orden/${recien.o.codigo}`} target="_blank">Ver sus entradas ↗</Link>
+          </div>
+        </section>
+      )}
 
       <h2>Por atender ({abiertas.length})</h2>
       {abiertas.length === 0 && <p className="tenue">No hay pagos pendientes.</p>}
@@ -90,9 +115,9 @@ async function Pagos({ searchParams }: Props) {
         <h2>Últimos movimientos</h2>
         {cerradas.length === 0 ? <p className="tenue">Aún no hay ventas.</p> : (
           <div className="tabla"><table>
-            <thead><tr><th>Fecha</th><th>Comprador</th><th>Función</th><th>Butacas</th><th>Pago</th><th>Total</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Comprador</th><th>Función</th><th>Butacas</th><th>Pago</th><th>Total</th><th>Estado</th><th><span className="sr">Enviar</span></th></tr></thead>
             <tbody>
-              {cerradas.map(({ o, titulo }) => (
+              {cerradas.map((fila) => { const { o, titulo } = fila; return (
                 <tr key={o.id}>
                   <td>{fechaCorta(o.creadoEl)}</td>
                   <td><Link href={`/orden/${o.codigo}`} target="_blank">{o.compradorNombre || "—"}</Link>{o.canal === "taquilla" && <> <span className="pastilla">Taquilla</span></>}</td>
@@ -101,8 +126,9 @@ async function Pagos({ searchParams }: Props) {
                   <td>{pagosDe(o.id).map((p) => METODOS[p.metodo]).join(" + ")}</td>
                   <td>{usd(o.totalUsd)}</td>
                   <td><span className={`pastilla${o.estado === "pagada" ? " si" : ""}`}>{ESTADOS_ORDEN[o.estado]}</span></td>
+                  <td>{o.estado === "pagada" && o.telefono && <a className="btn sec chico" target="_blank" rel="noopener" href={whatsapp(fila)} title="Enviar las entradas por WhatsApp">WhatsApp</a>}</td>
                 </tr>
-              ))}
+              ); })}
             </tbody>
           </table></div>
         )}

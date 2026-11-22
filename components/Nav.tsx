@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { EnlaceMisEntradas } from "./MisCompras";
 
 type Opcion = { href: string; texto: string; sub?: { href: string; texto: string }[] };
 
@@ -41,6 +42,7 @@ export default function Nav({ nombre, logo, niveles }: { nombre: string; logo: s
             )}
           </li>
         ))}
+        <EnlaceMisEntradas activo={activa("/mis-entradas")} />
         <li><Link href="/ingresar" className="ingresar">Ingresar</Link></li>
       </ul>
     </nav>

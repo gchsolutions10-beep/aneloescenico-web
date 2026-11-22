@@ -84,8 +84,14 @@ export async function accionPedirReembolso(f: FormData) {
 
 export async function accionConfirmar(f: FormData) {
   const s = await exigirEquipo();
-  let destino = `/admin/pagos?ok=${Date.now()}`;
-  try { await t.confirmarOrden(entero(f, "id"), s.id); } catch (e) { destino = conError("/admin/pagos", e); }
+  const id = entero(f, "id");
+  let destino: string;
+  try {
+    await t.confirmarOrden(id, s.id);
+    const [o] = await db().select({ codigo: schema.ordenes.codigo }).from(schema.ordenes).where(eq(schema.ordenes.id, id));
+    // La página de Pagos muestra el botón para enviarle las entradas por WhatsApp.
+    destino = `/admin/pagos?ok=${Date.now()}${o ? `&enviar=${o.codigo}` : ""}`;
+  } catch (e) { destino = conError("/admin/pagos", e); }
   updateTag("cupos");
   redirect(destino);
 }

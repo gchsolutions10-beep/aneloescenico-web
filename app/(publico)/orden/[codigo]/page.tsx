@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CambiarButacas, CuentaRegresiva, FormularioPago } from "@/components/Compra";
+import { GuardarCompra, RefrescoAuto } from "@/components/MisCompras";
 import TarjetaEntrada from "@/components/TarjetaEntrada";
 import { db, schema } from "@/db";
 import { accionCancelarApartado, accionPedirReembolso } from "@/lib/acciones-taquilla";
@@ -43,6 +44,8 @@ async function Orden({ params }: Props) {
   const tasa = o.tasa ? Number(o.tasa) : null;
   const totalBs = tasa ? enBs(total, tasa) : null;
   const butacas = o.detalle.map((d) => d.numero).join(", ");
+  // Solo las compras en línea se guardan en el teléfono; las de taquilla las abre el vendedor.
+  const guardar = o.canal === "web" ? <GuardarCompra codigo={o.codigo} titulo={f.titulo} /> : null;
 
   const resumen = (
     <div className="caja">
@@ -63,6 +66,7 @@ async function Orden({ params }: Props) {
     const tardio = o.estado === "vencida";
     return (
       <div className="formulario">
+        {guardar}
         {tardio ? (
           <>
             <h1>Se cumplió el tiempo</h1>
@@ -93,10 +97,19 @@ async function Orden({ params }: Props) {
   if (o.estado === "por_confirmar") {
     return (
       <div className="formulario">
+        {guardar}
         <h1>Recibimos tu reporte de pago</h1>
-        <p className="aviso">Estamos verificando el pago. Tus butacas {butacas} están reservadas a tu nombre mientras tanto. {o.correo ? "Te avisaremos por correo cuando esté confirmado." : "Guarda este enlace para volver y ver tus entradas."}</p>
+        <RefrescoAuto />
+        <p className="aviso">Estamos verificando el pago. Tus butacas {butacas} están reservadas a tu nombre mientras tanto. Cuando lo confirmemos, tus entradas aparecerán aquí mismo: esta página se actualiza sola.</p>
+        <div className="caja">
+          <b>No tienes que esperar en esta página</b>
+          <ul style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 6 }}>
+            <li>Guardamos tu compra en este teléfono: la encuentras en <Link href="/mis-entradas">Mis entradas</Link>, en el menú del sitio.</li>
+            {o.telefono && <li>Te enviaremos el enlace de tus entradas por WhatsApp al {o.telefono}.</li>}
+            {o.correo && <li>También te avisaremos al correo {o.correo}.</li>}
+          </ul>
+        </div>
         {resumen}
-        <p className="tenue">Puedes cerrar esta página. Vuelve a este mismo enlace para ver el estado.</p>
       </div>
     );
   }
@@ -112,6 +125,7 @@ async function Orden({ params }: Props) {
     const qrs = await Promise.all(entradas.map((e) => svgQr(`${base}/admin/validar?c=${e.codigo}`, d)));
     return (
       <div className="formulario">
+        {guardar}
         <div className="no-imprimir">
           <h1>¡Listo! Estas son tus entradas</h1>
           <p className="tenue">Muestra cada código QR en la puerta. Descarga el PDF para tenerlas en el teléfono sin necesidad de internet, o imprímelo.</p>
@@ -133,6 +147,7 @@ async function Orden({ params }: Props) {
     const plano = await estadoPlano(f, "publico");
     return (
       <div className="formulario">
+        {guardar}
         <h1>Tus butacas ya no están disponibles</h1>
         <p className="aviso error">Recibimos tu reporte de pago después de que venció el apartado, y para ese momento las butacas {butacas} ya se habían vendido a otra persona. Tu dinero no se pierde: elige una de estas dos opciones.</p>
         {resumen}
@@ -159,6 +174,7 @@ async function Orden({ params }: Props) {
   const [titulo, texto] = cierre[o.estado] ?? ["Tu compra", ""];
   return (
     <div className="formulario">
+      {guardar}
       <h1>{titulo}</h1>
       <p className="aviso">{texto}</p>
       {resumen}

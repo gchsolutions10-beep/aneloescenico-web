@@ -306,3 +306,15 @@ body:has(.cargos) .whatsapp { display: none; }
 .bono-resumen > div { display: flex; justify-content: space-between; gap: 10px; }
 .bono-resumen .falta { border-top: 1px dashed var(--linea); padding-top: 8px; font-size: 1.05rem; }
 .bono-resumen .falta b { color: var(--acento); }
+/* Mis entradas */
+.contador-menu { display: inline-block; min-width: 1.4em; text-align: center; background: var(--acento); color: var(--sobre-acento); border-radius: 10px; font-size: .72rem; font-weight: 700; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
+.mis-compras { display: grid; gap: 12px; }
+.mis-compras .compra { display: grid; gap: 12px; }
+.mis-compras .compra.lista { box-shadow: inset 3px 0 0 #4fd08a; }
+.compra-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.compra-cab > div { display: grid; gap: 3px; min-width: 0; }
+.compra-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.estado-compra { font-size: .8rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,.08); white-space: nowrap; }
+.estado-compra.si { background: #1f6b44; color: #fff; }
+.estado-compra.oro { background: #6e4b00; color: #fff3d6; }
+.estado-compra.mal { background: #7d2020; color: #fff; }

@@ -52,6 +52,12 @@ export const usd = (v: number | string) => { const n = Number(v); return Number.
 export const bs = (v: number | string) => `Bs ${Number(v).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /** Enlace de WhatsApp. Acepta números venezolanos locales (0412…) o con código de país. */
+/** Mensaje de WhatsApp con el enlace de las entradas, listo para enviar. */
+export function mensajeEntradas(d: { nombre: string; titulo: string; cuando: string; butacas: number[]; enlace: string }): string {
+  const saludo = d.nombre && d.nombre !== "Venta en taquilla" ? `Hola ${d.nombre.split(" ")[0]}, ` : "Hola, ";
+  return `${saludo}tu pago fue confirmado. Estas son tus entradas para *${d.titulo}* (${d.cuando}), ${d.butacas.length === 1 ? "butaca" : "butacas"} ${d.butacas.join(", ")}:\n\n${d.enlace}\n\nAhí puedes descargarlas en PDF para mostrar el código QR en la puerta, aunque no haya internet. ¡Te esperamos!\nA-Nelo Escénico`;
+}
+
 export function enlaceWhatsApp(telefono: string, texto = ""): string {
   let n = telefono.replace(/\D/g, "");
   if (n.startsWith("0")) n = `58${n.slice(1)}`;

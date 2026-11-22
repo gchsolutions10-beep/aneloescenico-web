@@ -4,34 +4,30 @@
 
 Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuela). Interfaz, código y commits en **español**.
 
-- Producción: https://aneloescenico.vercel.app · Vercel + Neon + Vercel Blob.
+- Producción: https://aneloescenico.vercel.app · Vercel + Neon + Vercel Blob. Todo lo construido está en producción.
 - Rama de trabajo y de producción: `claude/dazzling-ride-eelsip`. No abrir PR sin que lo pidan.
-- La base de Neon se creó desde Vercel: se abre en Vercel › Storage › Open in Neon (no está en la organización personal de Neon).
+- La base de Neon se abre en Vercel › Storage › Open in Neon (no está en la organización personal de Neon).
 
-## Listo y en producción
+## Dónde está cada cosa
 
-- **Sitio público** "Telón": carrusel, novedades, cartelera, Clases, Protagonistas, Blog, Sobre nosotros, Contáctanos. PWA.
-- **Venta en línea:** plano en vivo, apartado de 15 min, USD con preventa, cobro en Bs a tasa BCV (bcv.org.ve → DolarApi → manual), Pago Móvil, transferencia, bonos. Conflictos: cambio de butacas o reembolso. Entradas con QR y PDF.
-- **Taquilla** (`/admin/taquilla`): caja registradora (ticket, métodos en botones, vuelto $/Bs, bono con saldo descontado, "Tu caja de hoy"), unida al **Cierre de caja** por pestañas.
-- **Bonos:** el cliente pulsa Aplicar y ve cuánto cubre y cuánto le falta; solo reporta el resto por banco. `saldoBono` no descuenta; el descuento ocurre al pagar.
-- **Reservadas** (pestaña Butacas): estado `bloqueada` + `butacas.reserva` (grupo: Prensa, Invitados…). `estadoPlano(f, "publico")` las muestra vendidas y sin grupo; la API de butacas elige la vista según la sesión. Solo un admin las vende o regala desde la taquilla.
-- **Diseño de la entrada** (pestaña de cada función): estilo banda o completa, QR en 4 posiciones, fondo color/afiche/imagen, paletas, logo en el QR, adornos combinables (telón, escenario, máscaras, marquesina, estrellas; `lib/adornos.ts`, nunca encima del QR). Una sola geometría en `lib/diseno-entrada.ts` para web (`components/TarjetaEntrada.tsx`) y PDF; se rechaza un QR claro sobre oscuro o con contraste < 4.5.
-- **Puerta** (`/admin/validar`): escáner QR (BarcodeDetector o `jsqr`), modos Preguntar / Entrada rápida / Salida, salida temporal y regreso, grupo por compra, deshacer (admin), historial en `movimientos_puerta`. El QR apunta a `/admin/validar?c=CODIGO`.
-- **Escuela:** inscripciones, mensualidades con becas, portal del representante, cobranza, recibos (`recibos_seq`). **Protagonistas** con autorización del representante.
-- **Panel:** menú agrupado, cajones, confirmaciones con consecuencias, reportes con CSV. Borrar elimina datos en Neon y archivos en Blob; "Reiniciar datos" (`BORRAR TODO`) conserva las cuentas master.
-- **Cuentas:** master, admin, vendedor, representante. El equipo entra con usuario o correo. **Soporte técnico** del programador: clave solo en `SOPORTE_USUARIO`/`SOPORTE_CLAVE` de Vercel; puede rescatar la clave principal.
-- **Guía del cliente:** `docs/instructivo/plantilla.html` + `capturas/` → `python3 docs/instructivo/armar.py https://aneloescenico.vercel.app`. Si cambia una pantalla descrita, actualizar texto y captura.
+- `lib/taquilla.ts`: butacas, apartado de 15 min, pagos, bonos (`saldoBono` no descuenta), reservas (estado `bloqueada` + `butacas.reserva`), venta en sala. `estadoPlano(f, "publico")` muestra las reservadas como vendidas.
+- `lib/puerta.ts`: validación QR, salida temporal y regreso (`movimientos_puerta`). El QR apunta a `/admin/validar?c=CODIGO`.
+- `lib/diseno-entrada.ts` + `lib/adornos.ts` + `components/TarjetaEntrada.tsx`: una sola geometría (300 × 500) para la entrada web y el PDF (`app/api/entradas/[codigo]`). QR siempre oscuro sobre claro (contraste ≥ 4.5), ningún adorno encima.
+- `components/MisCompras.tsx`: compras guardadas en el teléfono del comprador (localStorage, solo el código) y página `/mis-entradas`; estados por `app/api/mis-compras`.
+- Envío de entradas: botón de WhatsApp al confirmar en `/admin/pagos` (`mensajeEntradas` en `lib/util.ts`). Correo opcional con Resend, configurado en el panel; sin dominio propio no se usa.
+- `lib/escuela.ts`, `lib/reportes.ts`, `lib/archivos.ts` (limpieza de Blob), `lib/reinicio.ts` (reiniciar datos, conserva cuentas master).
+- Cuenta de soporte del programador: `SOPORTE_USUARIO` / `SOPORTE_CLAVE` en Vercel (lógica en `lib/acciones.ts`).
+- Guía del cliente: `docs/instructivo/plantilla.html` + `capturas/` → `python3 docs/instructivo/armar.py https://aneloescenico.vercel.app`. Si cambia una pantalla descrita, actualizar texto y captura.
 
 ## Reglas que ya costaron errores
 
 - Next.js 16 con `cacheComponents`: consultar `node_modules/next/dist/docs/`. `proxy.ts` en vez de middleware. `cookies`/`searchParams` dentro de `<Suspense>`; `connection()` antes de usar la hora. `updateTag` en las acciones.
 - `"use server"` solo exporta funciones async; una página solo exporta `default`/`metadata`/config.
-- Lint `react-hooks`: sin `Date.now()` en el render (helpers como `haceHoras`), sin `setState` en efectos.
+- Lint `react-hooks`: sin `Date.now()` en el render (helpers como `haceHoras`), sin `setState` síncrono en efectos.
 - Arreglos en `sql` de Drizzle: como JSON (`jsonb_array_elements_text(${JSON.stringify(x)}::jsonb)`).
 - Butacas y entradas: UPDATE condicionado, nunca leer y luego escribir.
 - Acciones redirigen con `?ok=${Date.now()}`.
-- Migraciones: `db/schema.ts` → `npx drizzle-kit generate --name <nombre>`; se aplican en cada build. Tabla nueva de datos → sumarla al TRUNCATE de `lib/reinicio.ts`.
-- Imágenes nuevas guardadas en una columna o JSON: sumarlas a `enUso` de `lib/archivos.ts`, o la limpieza las borra.
+- Migraciones: `db/schema.ts` → `npx drizzle-kit generate --name <nombre>`; se aplican en cada build. Tabla nueva → sumarla al TRUNCATE de `lib/reinicio.ts`. Imagen nueva guardada en una columna o JSON → sumarla a `enUso` de `lib/archivos.ts`.
 - La zona (precio) de una butaca vive en `butacas.zona_id` por función; la entrada vendida guarda su zona y precio propios.
 
 ## Verificar antes de subir
@@ -40,7 +36,7 @@ Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuel
 npx tsc --noEmit && npx eslint app components lib pruebas && npm run prueba && npx next build
 ```
 
-Local: Postgres en el puerto 5433 (`/var/tmp/anelo-pg/data`, arrancar con `pg_ctl` como `postgres`), variables en `.env.local`. Tras `next build`, matar el `next start` anterior antes de levantar otro.
+Local: Postgres en el puerto 5433 (`/var/tmp/anelo-pg/data`, arrancar con `pg_ctl` como `postgres`), variables en `.env.local`. `npm run prueba` vacía funciones y compras de la base local. `next build` prerenderiza con los datos del momento: recompilar después de cargar datos de prueba, y matar el `next start` anterior antes de levantar otro.
 
 ## Privacidad
 

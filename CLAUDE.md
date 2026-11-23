@@ -13,7 +13,7 @@ Sitio, taquilla y gestión de **A-Nelo | Escuela de Teatro** (Acarigua, Venezuel
 - `lib/taquilla.ts`: butacas, apartado de 15 min, pagos, bonos (`saldoBono` no descuenta), reservas (estado `bloqueada` + `butacas.reserva`), venta en sala. `estadoPlano(f, "publico")` muestra las reservadas como vendidas.
 - `lib/puerta.ts`: validación QR, salida temporal y regreso (`movimientos_puerta`). El QR apunta a `/admin/validar?c=CODIGO`.
 - `lib/diseno-entrada.ts` + `lib/adornos.ts` + `components/TarjetaEntrada.tsx`: una sola geometría (300 × 500) para la entrada web y el PDF (`app/api/entradas/[codigo]`). QR siempre oscuro sobre claro (contraste ≥ 4.5), ningún adorno encima.
-- `components/MisCompras.tsx`: compras guardadas en el teléfono del comprador (localStorage, solo el código) y página `/mis-entradas`; estados por `app/api/mis-compras`.
+- `components/MisCompras.tsx`: compras guardadas en el teléfono del comprador (localStorage, solo el código) y página `/mis-entradas`; estados por `app/api/mis-compras`. Con sesión del equipo, abrir `/orden/…` no guarda la compra (y la quita si estaba).
 - Envío de entradas: botón de WhatsApp al confirmar en `/admin/pagos` (`mensajeEntradas` en `lib/util.ts`). Correo opcional con Resend, configurado en el panel; sin dominio propio no se usa.
 - `lib/escuela.ts`, `lib/reportes.ts`, `lib/archivos.ts` (limpieza de Blob), `lib/reinicio.ts` (reiniciar datos, conserva cuentas master).
 - Cuenta de soporte del programador: `SOPORTE_USUARIO` / `SOPORTE_CLAVE` en Vercel (lógica en `lib/acciones.ts`).

@@ -43,6 +43,15 @@ export function GuardarCompra({ codigo, titulo }: { codigo: string; titulo: stri
   return null;
 }
 
+/** Quita una compra de este teléfono (la abrió alguien del equipo, no el comprador). No muestra nada. */
+export function OlvidarCompra({ codigo }: { codigo: string }) {
+  useEffect(() => {
+    const lista = leer(leerTexto());
+    if (lista.some((x) => x.codigo === codigo)) escribir(lista.filter((x) => x.codigo !== codigo));
+  }, [codigo]);
+  return null;
+}
+
 /** Recarga la página cada cierto tiempo mientras está visible (pago esperando confirmación). */
 export function RefrescoAuto({ segundos = 20 }: { segundos?: number }) {
   const router = useRouter();
@@ -81,7 +90,7 @@ const TEXTO: Record<string, [string, string]> = {
 };
 
 /** La lista de la página Mis entradas, con el estado de cada compra. */
-export function ListaMisEntradas() {
+export function ListaMisEntradas({ delEquipo = false }: { delEquipo?: boolean }) {
   const guardadas = useGuardadas();
   const codigos = guardadas.map((g) => g.codigo).join(",");
   const [estados, setEstados] = useState<Record<string, Estado>>({});
@@ -120,6 +129,12 @@ export function ListaMisEntradas() {
 
   return (
     <div className="mis-compras">
+      {delEquipo && (
+        <div className="aviso">
+          <p style={{ margin: 0 }}>Tienes la sesión del equipo abierta en este teléfono. Si aquí aparecen compras de clientes que abriste desde el panel antes de esta corrección, no son tuyas: quítalas todas de una vez.</p>
+          <p style={{ margin: "10px 0 0" }}><button type="button" className="boton sec" onClick={() => escribir([])}>Vaciar la lista de este teléfono</button></p>
+        </div>
+      )}
       {guardadas.map((g) => {
         const e = estados[g.codigo];
         const [texto, clase] = e ? TEXTO[e.estado] ?? [e.estado, ""] : [cargando ? "Consultando…" : "No encontrada", ""];
@@ -139,9 +154,7 @@ export function ListaMisEntradas() {
                   <a className="boton sec" href={`/api/entradas/${g.codigo}`} download>Descargar PDF</a>
                 </>
               ) : e ? <Link className="boton sec" href={`/orden/${g.codigo}`}>Ver la compra</Link> : null}
-              {(!e || ["vencida", "rechazada", "reembolsada", "anulada"].includes(e.estado)) && (
-                <button type="button" className="boton sec" onClick={() => quitar(g.codigo)}>Quitar de la lista</button>
-              )}
+              <button type="button" className="boton sec" onClick={() => quitar(g.codigo)}>Quitar de la lista</button>
             </div>
           </article>
         );

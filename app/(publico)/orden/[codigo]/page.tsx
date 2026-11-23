@@ -5,13 +5,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CambiarButacas, CuentaRegresiva, FormularioPago } from "@/components/Compra";
-import { GuardarCompra, RefrescoAuto } from "@/components/MisCompras";
+import { GuardarCompra, OlvidarCompra, RefrescoAuto } from "@/components/MisCompras";
 import TarjetaEntrada from "@/components/TarjetaEntrada";
 import { db, schema } from "@/db";
 import { accionCancelarApartado, accionPedirReembolso } from "@/lib/acciones-taquilla";
 import { getConfig } from "@/lib/datos";
 import { normalizar } from "@/lib/diseno-entrada";
 import { svgQr } from "@/lib/qr-entrada";
+import { leerSesion } from "@/lib/sesion";
 import { estadoPlano, limpiarVencidas, METODOS } from "@/lib/taquilla";
 import { enBs } from "@/lib/tasa";
 import { bs, fechaLarga, hora, usd } from "@/lib/util";
@@ -45,7 +46,11 @@ async function Orden({ params }: Props) {
   const totalBs = tasa ? enBs(total, tasa) : null;
   const butacas = o.detalle.map((d) => d.numero).join(", ");
   // Solo las compras en línea se guardan en el teléfono; las de taquilla las abre el vendedor.
-  const guardar = o.canal === "web" ? <GuardarCompra codigo={o.codigo} titulo={f.titulo} /> : null;
+  // Si la abre alguien del equipo (por ejemplo, al revisar el pago desde el panel), no es su compra:
+  // no se guarda en su teléfono, y si había quedado guardada, se quita.
+  const s = await leerSesion();
+  const delEquipo = Boolean(s && s.rol !== "representante");
+  const guardar = o.canal !== "web" ? null : delEquipo ? <OlvidarCompra codigo={o.codigo} /> : <GuardarCompra codigo={o.codigo} titulo={f.titulo} />;
 
   const resumen = (
     <div className="caja">
